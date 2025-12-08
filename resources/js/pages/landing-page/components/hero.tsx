@@ -8,15 +8,6 @@ import { Button } from "@/components/ui/button"
 import { dashboard, login } from "@/routes"
 import { Link } from "@inertiajs/react"
 import { ArrowRight, PlayIcon, SquareArrowUpRight } from "lucide-react"
-
-import logoBbc from '@/images/logos/bbc.svg'
-import logoCbs from '@/images/logos/cbs.svg'
-import logoCnn from '@/images/logos/cnn.svg'
-import logoFastCompany from '@/images/logos/fast-company.svg'
-import logoForbes from '@/images/logos/forbes.svg'
-import logoHuffpost from '@/images/logos/huffpost.svg'
-import logoTechcrunch from '@/images/logos/techcrunch.svg'
-import logoWired from '@/images/logos/wired.svg'
 import { cn } from "@/lib/utils"
 import { OptimizedImage } from "@/components/utils/optimized-image"
 
@@ -33,7 +24,7 @@ export function Hero() {
     return (
         <>
             <ContainerSection>
-                <div className="pt-36 pb-32 sm:pt-60 lg:pt-32 grid lg:grid-cols-2 gap-12 items-center">
+                <div className="pt-20 pb-19 sm:pt-60 lg:pt-16 grid lg:grid-cols-2 gap-12 items-center">
                     <div className="space-y-8">
                         <div>
                             {/*

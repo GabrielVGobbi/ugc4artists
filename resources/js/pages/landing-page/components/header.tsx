@@ -11,8 +11,8 @@ const navLinks = [
     { label: 'Como funciona', href: '#solucao' },
     { label: 'Benefícios', href: '#desafios' },
     { label: 'Para Artistas', href: '#exemplos' },
-    { label: 'Para Criadores', href: '#exemplos' },
-    { label: 'Blog', href: '#exemplos' },
+    { label: 'Para Criadores', href: '#show-cases' },
+    { label: 'Blog', href: '#blog' },
 ]
 
 export type HeaderProps = {
@@ -49,7 +49,7 @@ export function Header({ isAuthenticated, headerCtaHref, headerCtaLabel }: Heade
                         asChild
                         className="bg-primary px-5 font-semibold text-white hover:bg-secondary"
                     >
-                        <Link prefetch href={'/waiting-list'} tabIndex={0}>
+                        <Link prefetch href={'/waitlist'} tabIndex={0}>
                             Lista de Espera
                             <SquareArrowUpRight />
                         </Link>

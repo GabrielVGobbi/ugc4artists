@@ -1,0 +1,76 @@
+.body_waitlist {
+    background-color: #0a0a0a !important;
+}
+
+@keyframes float1 {
+    0%,
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(3px, -4px) rotate(1deg);
+    }
+    50% {
+        transform: translate(-2px, -6px) rotate(-1deg);
+    }
+    75% {
+        transform: translate(-4px, -2px) rotate(0.5deg);
+    }
+}
+@keyframes float2 {
+    0%,
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(-4px, 3px) rotate(-1deg);
+    }
+    50% {
+        transform: translate(3px, 5px) rotate(1deg);
+    }
+    75% {
+        transform: translate(5px, -3px) rotate(-0.5deg);
+    }
+}
+@keyframes float3 {
+    0%,
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(4px, 4px) rotate(0.5deg);
+    }
+    50% {
+        transform: translate(-3px, -3px) rotate(-1deg);
+    }
+    75% {
+        transform: translate(-2px, 5px) rotate(1deg);
+    }
+}
+@keyframes float4 {
+    0%,
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(-3px, -5px) rotate(-0.5deg);
+    }
+    50% {
+        transform: translate(5px, 2px) rotate(1deg);
+    }
+    75% {
+        transform: translate(2px, -4px) rotate(-1deg);
+    }
+}
+.animate-float1 {
+    animation: float1 8s ease-in-out infinite;
+}
+.animate-float2 {
+    animation: float2 10s ease-in-out infinite;
+}
+.animate-float3 {
+    animation: float3 9s ease-in-out infinite;
+}
+.animate-float4 {
+    animation: float4 11s ease-in-out infinite;
+}

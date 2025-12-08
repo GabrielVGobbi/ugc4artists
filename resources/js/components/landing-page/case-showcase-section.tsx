@@ -37,13 +37,13 @@ const statusStyles: Record<CaseItem['status'], string> = {
 export function CaseShowcaseSection() {
     return (
         <ContainerSection
-            id="exemplos"
+            id="show-cases"
             className="bg-white "
         >
             <div className="pt-36 pb-32 sm:pt-60 lg:pt-32  items-center mx-auto grid  gap-12  lg:grid-cols-2 ">
                 <div className="space-y-6">
                     <span className="text-sm font-semibold uppercase tracking-widest text-primary">
-                        Exemplos
+                        CASES
                     </span>
                     <h2 className="text-5xl font-semibold text-[#040404]">
                         Onde marcas e criadores se conectam
@@ -51,13 +51,17 @@ export function CaseShowcaseSection() {
                     <p className="text-base text-gray-600">
                         Lorem ipsum dolor sit amet consectetur adipisicing elit. Quo pariatur odio nesciunt recusandae facilis cum eaque vel sapiente, officiis ipsa saepe provident blanditiis nobis numquam at. Earum at beatae et.
                     </p>
-                    <ul className="flex flex-wrap gap-4 text-sm text-gray-500">
-                        {['Spotify+', 'Deezer', 'Youtube', 'Youtube Music+'].map((brand) => (
+                    <ul className="flex flex-wrap gap-2  ">
+                        {['spotify-icon', 'youtube-logo', 'deezer-logo', 'youtube-music-logo'].map((brand) => (
                             <li
                                 key={brand}
                                 className="rounded-full border border-gray-200 px-4 py-1 shadow-sm"
                             >
-                                {brand}
+                                <img
+                                    className="mx-auto h-15 w-full  "
+                                    src={`/assets/landing_page/images/svg/${brand}.svg`}
+                                    alt="Laravel Logo"
+                                />
                             </li>
                         ))}
                     </ul>
@@ -94,4 +98,5 @@ export function CaseShowcaseSection() {
         </ContainerSection>
     )
 }
+
 

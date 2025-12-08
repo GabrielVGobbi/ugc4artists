@@ -1,5 +1,5 @@
 import type { SharedData } from '@/types'
-import { Container } from "@/components/landing-page/container";
+import { Container, ContainerSection } from "@/components/landing-page/container";
 import { Layout } from "./layout";
 import { usePage } from "@inertiajs/react";
 import { dashboard, login, register } from "@/routes";
@@ -8,7 +8,12 @@ import { AppsLogo } from './components/apps-logo';
 import { FadeIn } from '@/components/fade-in';
 import { CaseShowcaseSection } from '@/components/landing-page/case-showcase-section';
 import { GradientBackground } from '@/components/landing-page/gradient';
-import { PainPointsSection } from '@/components/landing-page/pain-points-section';
+import { SolutionSection } from './components/solution-section';
+import FeatureCards from './components/feature-cards';
+import { Benefits } from './components/benefits';
+import { CreatorsCTA } from './components/creators-cta';
+import { FinalCTA } from './components/final-cta';
+import { Footer } from './components/footer';
 
 type IndexPageProps = {
     canRegister?: boolean
@@ -53,8 +58,18 @@ export default function LandingPage({ canRegister = true }: IndexPageProps) {
 
             <CaseShowcaseSection />
 
-            <PainPointsSection />
+            <SolutionSection />
 
-        </Layout>
+            <Benefits />
+
+            <FeatureCards />
+
+            <ContainerSection id="cta" className="pb-24 px-4 sm:px-6 lg:px-8 bg-[#fff7ed]" >
+                <CreatorsCTA />
+                <FinalCTA />
+            </ContainerSection>
+
+            <Footer />
+        </Layout >
     )
 }
