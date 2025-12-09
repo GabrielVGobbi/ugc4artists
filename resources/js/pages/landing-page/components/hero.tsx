@@ -1,7 +1,7 @@
 'use client'
 import '@/../css/animate.css';
 
-import {  ContainerSection } from "@/components/landing-page/container"
+import { ContainerSection } from "@/components/landing-page/container"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { OptimizedImage } from "@/components/utils/optimized-image"
@@ -65,6 +65,11 @@ export function Hero() {
                             height={462}
                             className="relative z-10 w-full h-full object-cover rounded-3xl object-right"
                         />
+
+                        {/*
+                        <TwicImg
+                            alt="Creator fazendo conteúdo UGC"
+                            src="/assets/landing_page/images/music-728.jpg" />
 
                         {/*
 
