@@ -61,7 +61,10 @@ export default function WaitListIndex({ canRegister = true }: IndexPageProps) {
                         <div className="flex items-center gap-4">
                             <div className="relative">
                                 <div className="absolute inset-0 bg-[#fc7c04]/20 blur-xl rounded-full" />
-                                <AppLogo variant="white" />
+                                <Link
+                                    href={home()}>
+                                    <AppLogo variant="white" />
+                                </Link>
                             </div>
                         </div>
                         <Link
@@ -79,8 +82,8 @@ export default function WaitListIndex({ canRegister = true }: IndexPageProps) {
                             <WaitListForm></WaitListForm>
                         </div>
                     </main>
-                </div>
-            </div>
+                </div >
+            </div >
         </>
 
     )

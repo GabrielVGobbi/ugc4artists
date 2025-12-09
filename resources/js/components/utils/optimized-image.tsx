@@ -7,6 +7,9 @@ interface OptimizedImageProps {
     alt: string;
     className?: string;
     priority?: boolean;
+    width?: number,
+    height?: number,
+    fetchPriority?: 'high' | 'low' | 'auto'
     fallbackIcon?: React.ReactNode;
     aspectRatio?: 'square' | 'video' | 'auto';
     onLoad?: () => void;
@@ -18,8 +21,11 @@ export const OptimizedImage = React.memo(({
     alt,
     className,
     priority = false,
+    fetchPriority = 'low',
     fallbackIcon = <ShoppingBag className="h-8 w-8 text-gray-400" />,
     aspectRatio = 'square',
+    width,
+    height,
     onLoad,
     onError
 }: OptimizedImageProps) => {
@@ -105,6 +111,9 @@ export const OptimizedImage = React.memo(({
                     onError={handleError}
                     loading={priority ? 'eager' : 'lazy'}
                     decoding="async"
+                    width={width}
+                    height={height}
+                    fetchPriority={fetchPriority}
                 />
             )}
 

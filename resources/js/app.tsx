@@ -5,8 +5,15 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
+import { installTwicpics } from "@twicpics/components/react";
+import "@twicpics/components/style.css";
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+installTwicpics({
+    // domain is mandatory
+    "domain": "https://ugc4artists.twic.pics"
+});
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

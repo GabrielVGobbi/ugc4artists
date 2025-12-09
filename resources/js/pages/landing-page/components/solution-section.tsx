@@ -1,5 +1,6 @@
 "use client"
 
+import { OptimizedImage } from "@/components/utils/optimized-image"
 import { Check } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
@@ -35,10 +36,15 @@ export function SolutionSection() {
                         className={`transition-all duration-1000 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"
                             }`}
                     >
-                        <img
-                            src="/assets/landing_page/images/modern-dashboard.jpg"
+
+                        <OptimizedImage
+                            src="/assets/landing_page/images/modern-dashboard-400.jpg"
                             alt="Plataforma UGC Dashboard"
+                            priority={false}
+                            aspectRatio='auto'
                             className="rounded-2xl shadow-2xl hover:scale-[1.02] transition-transform duration-500"
+                            width={380}
+                            height={380}
                         />
                     </div>
 

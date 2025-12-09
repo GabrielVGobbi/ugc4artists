@@ -10,7 +10,7 @@ export default function AppLogo({ variant = "dark", className }: AppLogoProps) {
     const logoSrc =
         variant === "white"
             ? "/assets/images/logo-white.png"
-            : "/assets/images/logo.png";
+            : "/assets/images/logo-380x380.png";
 
     return (
         <>
@@ -18,7 +18,9 @@ export default function AppLogo({ variant = "dark", className }: AppLogoProps) {
                 <OptimizedImage
                     src={logoSrc}
                     alt="logo ugc-for-artists"
-                    priority={true}
+                    priority={false}
+                    width={130}
+                    height={80}
                     aspectRatio='auto'
                     className="relative h-20"
                 />
@@ -33,11 +35,13 @@ export function AppLogoIcon() {
         <>
             <figure className="">
                 <OptimizedImage
-                    src="/assets/images/logo-icon.png"
+                    src="/assets/images/logo-icon-260.png"
                     alt="logo ugc-for-artists"
-                    priority={true}
+                    priority={false}
                     aspectRatio='auto'
                     className="relative h-20"
+                    width={80}
+                    height={80}
                 />
             </figure>
 
