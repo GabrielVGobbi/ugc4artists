@@ -1,5 +1,5 @@
 import type { SeoProps, SharedData } from '@/types'
-import { Container, ContainerSection } from "@/components/landing-page/container";
+import { ContainerSection } from "@/components/landing-page/container";
 import { Layout } from "./layout";
 import { usePage } from "@inertiajs/react";
 import { dashboard, login, register } from "@/routes";
@@ -51,8 +51,6 @@ export default function LandingPage({ seo, canRegister = true }: IndexPageProps)
             headerCtaLabel={headerCtaLabel}
             seo={seo}
         >
-
-
 
             <FadeIn>
                 <GradientBackground></GradientBackground>

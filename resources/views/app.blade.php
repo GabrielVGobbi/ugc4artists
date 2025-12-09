@@ -38,10 +38,16 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,400i,500,500i,600,700|inter:200,300,400,500,600|roboto:300,400,500,700,900"
-          rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+
+    <link
+          rel="preload" as="style" href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" />
+    <link
+          rel="stylesheet" href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+        <link
+              rel="stylesheet" href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap">
+    </noscript>
 
     @viteReactRefresh
     @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])

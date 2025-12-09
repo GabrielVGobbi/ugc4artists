@@ -1,5 +1,4 @@
 import { ReactNode } from "react"
-import { Footer } from './components/footer'
 import { Header } from './components/header'
 import { Head } from "@inertiajs/react"
 import { SeoProps } from "@/types"
@@ -17,7 +16,6 @@ export function Layout({ children, isAuthenticated, headerCtaHref, headerCtaLabe
 
     return (
         <>
-
             <Head>
                 <title>{title}</title>
                 <meta name="description" content={description} />
@@ -60,9 +58,7 @@ export function Layout({ children, isAuthenticated, headerCtaHref, headerCtaLabe
                 headerCtaLabel={headerCtaLabel}
             />
             <main className="bg-gradient-to-b from-orange-50/50 to-white">{children}</main>
-            {/*
-                <Footer />
-                */}
+
         </>
     )
 }

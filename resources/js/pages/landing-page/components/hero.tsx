@@ -1,23 +1,10 @@
 'use client'
 import '@/../css/animate.css';
 
-import AppLogo from "@/components/app-logo"
-import { BackgroundIllustration } from "@/components/background-illustration"
-import { Container, ContainerSection } from "@/components/landing-page/container"
+import {  ContainerSection } from "@/components/landing-page/container"
 import { Button } from "@/components/ui/button"
-import { dashboard, login } from "@/routes"
-import { Link } from "@inertiajs/react"
-import { ArrowRight, PlayIcon, SquareArrowUpRight } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { ArrowRight } from "lucide-react"
 import { OptimizedImage } from "@/components/utils/optimized-image"
-
-const brandLogos = [
-    { name: "TechCorp", logo: "TechCorp" },
-    { name: "MediaFlow", logo: "MediaFlow" },
-    { name: "BrandSync", logo: "BrandSync" },
-    { name: "ContentHub", logo: "ContentHub" },
-    { name: "CreatorLab", logo: "CreatorLab" },
-]
 
 export function Hero() {
 
@@ -37,14 +24,9 @@ export function Hero() {
                             </h1>
                         </div>
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed grid gap-2">
-                            {/*
-                                           <span className=""> Para <span className="text-primary">Artistas</span> : Encontre campanhas, envie propostas e receba após a aprovação</span>
-                                <span className=""> Para <span className="text-primary">Marcas</span> : Lance campanhas, contrate artistas qualificados e gerencie tudo sem fricção.</span>
-                                */}
                             Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
-
                             <Button size="lg" className="bg-primary hover:bg-secondary/90 text-white px-8">
                                 Sou uma Marca
                                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -73,13 +55,23 @@ export function Hero() {
                     <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-orange-100 rounded-3xl" />
 
+
                         <OptimizedImage
-                            src="/assets/landing_page/images/music.webp"
+                            src="/assets/landing_page/images/music-728.jpg"
                             alt="Creator fazendo conteúdo UGC"
-                            priority={true}
+                            priority={false}
                             aspectRatio='auto'
+                            width={728}
+                            height={462}
                             className="relative z-10 w-full h-full object-cover rounded-3xl object-right"
                         />
+
+                        {/*
+
+                        <TwicImg
+                            alt="Creator fazendo conteúdo UGC"
+                            src="/assets/landing_page/images/music-728.jpg" />
+                                */}
 
                         {/* Floating social icons */}
                         {/* TikTok */}
