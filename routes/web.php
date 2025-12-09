@@ -42,10 +42,10 @@ Route::get('/sitemap.xml', function () {
 })->name('sitemap');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/regulamento', [HomeController::class, 'regulamento'])->name('regulamento');
 
 Route::get('/waitlist', [WaitlistRegistrationController::class, 'index']);
 Route::post('/waitlist', [WaitlistRegistrationController::class, 'store'])->name('waitlist.store');
-Route::get('/regulamento', [WaitlistRegistrationController::class, 'regulation'])->name('waitlist.regulation');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {

@@ -781,7 +781,7 @@ export function WaitListForm(): JSX.Element {
                     className='mt-6 h-12 rounded-2xl border-slate-200 text-white '
                 >
                     <a
-                        href={waitlist.regulation.url()}
+                        href={'/regulamento'}
                         target='_blank'
                         rel='noreferrer'
                         aria-label='Acessar Regulamento Oficial'

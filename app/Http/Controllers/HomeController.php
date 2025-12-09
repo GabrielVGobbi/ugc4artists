@@ -25,4 +25,9 @@ class HomeController extends Controller
             ],
         ]);
     }
+
+    public function regulamento()
+    {
+        return view('regulamento');
+    }
 }
