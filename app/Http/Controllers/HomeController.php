@@ -23,7 +23,7 @@ class HomeController extends Controller
                 'canonical' => 'https://ugc4artists.com.br/',
                 'image' => 'https://ugc4artists.com.br/images/og-image.jpg',
             ],
-        ]);
+        ])->rootView('landing');
     }
 
     public function regulamento()

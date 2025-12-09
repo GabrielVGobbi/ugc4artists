@@ -144,3 +144,21 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Animação usada no InfiniteSlider sem JS pesado */
+@keyframes slider-marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.animate-slider-marquee {
+    animation: slider-marquee var(--slider-duration, 30s) linear infinite;
+}
+
+.slider-pause:hover .slider-track {
+    animation-play-state: paused;
+}
