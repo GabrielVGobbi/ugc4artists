@@ -17,8 +17,12 @@ return [
 
     'ssr' => [
         'enabled' => true,
-        'url' => 'http://127.0.0.1:13714',
-        // 'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
+
+        // Porta do servidor SSR
+        'url' => env('INERTIA_SSR_URL', 'http://127.0.0.1:13714'),
+
+        // Caminho do arquivo SSR gerado pelo Vite (ajusta conforme teu setup)
+        'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
 
     ],
 

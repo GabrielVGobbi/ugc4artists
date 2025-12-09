@@ -1,6 +1,14 @@
 import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
+export type SeoProps = {
+    title: string;
+    description: string;
+    canonical: string;
+    image: string;
+};
+
+
 export interface Auth {
     user: User;
 }

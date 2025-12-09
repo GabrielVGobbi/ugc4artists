@@ -1,4 +1,4 @@
-import type { SharedData } from '@/types'
+import type { SeoProps, SharedData } from '@/types'
 import { Container, ContainerSection } from "@/components/landing-page/container";
 import { Layout } from "./layout";
 import { usePage } from "@inertiajs/react";
@@ -16,10 +16,11 @@ import { FinalCTA } from './components/final-cta';
 import { Footer } from './components/footer';
 
 type IndexPageProps = {
+    seo: SeoProps;
     canRegister?: boolean
 }
 
-export default function LandingPage({ canRegister = true }: IndexPageProps) {
+export default function LandingPage({ seo, canRegister = true }: IndexPageProps) {
 
     const { auth } = usePage<SharedData>().props
     const isAuthenticated = Boolean(auth?.user)
@@ -48,7 +49,11 @@ export default function LandingPage({ canRegister = true }: IndexPageProps) {
             isAuthenticated={isAuthenticated}
             headerCtaHref={headerCtaHref}
             headerCtaLabel={headerCtaLabel}
+            seo={seo}
         >
+
+
+
             <FadeIn>
                 <GradientBackground></GradientBackground>
                 <Hero />
