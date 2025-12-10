@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class WaitlistRegistrationController extends Controller
 {
-
     public function index()
     {
         return Inertia::render('landing-page/waitlist/index')->rootView('landing');

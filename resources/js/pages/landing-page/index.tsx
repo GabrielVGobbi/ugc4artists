@@ -14,6 +14,7 @@ import { Benefits } from './components/benefits';
 import { CreatorsCTA } from './components/creators-cta';
 import { FinalCTA } from './components/final-cta';
 import { Footer } from './components/footer';
+import { useEffect } from 'react';
 
 type IndexPageProps = {
     seo: SeoProps;
@@ -43,6 +44,13 @@ export default function LandingPage({ seo, canRegister = true }: IndexPageProps)
         : canRegister
             ? 'Lista de Espera'
             : 'Entrar'
+
+    useEffect(() => {
+        document.documentElement.classList.add('dark')
+        return () => {
+            document.documentElement.classList.add('dark')
+        }
+    }, [])
 
     return (
         <Layout
