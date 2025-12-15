@@ -406,7 +406,7 @@ export function WaitListForm(): JSX.Element {
                         </p>
                     </div>
                     <div className='rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 p-6 text-sm font-medium text-slate-700'>
-                        @ugcparamusicos | #UGCparamusicos
+                        @ugc4artists | #ugc4artists
                     </div>
                     <Button
                         type='button'
@@ -898,7 +898,7 @@ export function WaitListForm(): JSX.Element {
                         <p className="text-xs text-white/30 uppercase tracking-wider mb-4">Siga-nos</p>
                         <div className="flex items-center gap-3">
                             {[
-                                { icon: Instagram, href: "#", label: "Instagram" },
+                                { icon: Instagram, href: "https://www.instagram.com/ugc4artists/", label: "Instagram" },
                             ].map(({ icon: SocialIcon, href, label }) => (
                                 <a
                                     key={label}

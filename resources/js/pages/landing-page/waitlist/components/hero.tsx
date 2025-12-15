@@ -125,7 +125,6 @@ export function HeroShowcase({
                             className=""
                             preset="slide"
                         >
-
                             {buttons.secondary && (
                                 <Button asChild >
                                     <a href='#form'>

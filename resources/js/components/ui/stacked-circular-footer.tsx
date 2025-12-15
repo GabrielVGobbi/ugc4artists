@@ -24,8 +24,10 @@ function StackedCircularFooter() {
 
 
                         <Button variant="outline" size="icon" className="rounded-full">
-                            <Instagram className="h-4 w-4" />
-                            <span className="sr-only">Instagram</span>
+                            <a href="https://www.instagram.com/ugc4artists/" className="" target="_blank">
+                                <Instagram className="h-4 w-4" />
+                                <span className="sr-only">Instagram</span>
+                            </a>
                         </Button>
 
                     </div>
