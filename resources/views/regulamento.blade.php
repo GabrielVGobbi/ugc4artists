@@ -121,12 +121,14 @@
 <li>O pagamento ocorrerá mediante comprovação da entrega do conteúdo conforme as instruções do briefing.</li>
 <li>Os valores poderão variar conforme engajamento, formato e complexidade do conteúdo.</li>
 </ol>
+{{--
 <h2>5. Exclusividade e Sigilo</h2>
 <ol>
 <li>O participante autoriza o uso de imagem, voz e conteúdo produzido nas campanhas, exclusivamente para fins de divulgação da música e das ações da UGC 4ARTISTS.</li>
 <li>É vedado ao participante compartilhar briefings, valores, campanhas ou informações internas sem autorização expressa.</li>
 <li>A participação implica exclusividade de 24 meses dentro do movimento UGC 4ARTISTS para campanhas do mesmo formato.</li>
 </ol>
+--}}
 <h2>6. Conduta e Desclassificação</h2>
 <ol>
 <li>Serão desclassificados os participantes que não cumprirem prazos, entregarem materiais fora do padrão acordado ou desrespeitarem regras de convivência com outros artistas.</li>
