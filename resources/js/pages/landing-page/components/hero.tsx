@@ -49,7 +49,7 @@ export function Hero() {
                                 </Button>
                                 */}
                         </div>
-                        <p className="text-sm text-gray-500">Mais de 3.000 criadores e artistas se cadastraram</p>
+                       {/*<p className="text-sm text-gray-500">Mais de 3.000 criadores e artistas se cadastraram</p>*/}
                     </div>
 
                     <div className="relative">
