@@ -769,7 +769,7 @@ export function WaitListForm(): JSX.Element {
         <div className='space-y-8'>
             <div className='rounded-3xl border border-gray-700  p-8 shadow-[0_40px_120px_-80px_rgba(255,121,0)]'>
                 <h4 className='mt-4 text-2xl font-semibold text-slate-300'>
-                    Regulamento Oficial — UGC 4ARTISTS
+                    Regulamento Oficial UGC 4ARTISTS
                 </h4>
                 <p className='mt-3 text-sm text-slate-500'>
                     Leia atentamente antes de confirmar sua inscrição. O movimento conecta artistas,

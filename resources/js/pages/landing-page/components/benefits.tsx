@@ -31,10 +31,10 @@ export function Benefits() {
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                     <div>
                         <h2 className="text-3xl sm:text-4xl font-bold text-[#040404] tracking-tight text-balance">
-                            Por que escolher <span className="text-primary">ForArtists</span>?
+                            Por que escolher a <span className="text-primary">UGC4Artists</span>?
                         </h2>
                         <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic quisquam dolores, totam dignissimos maiores, dolorum doloribus ab, reprehenderit debitis natus assumenda consectetur quos aliquid expedita. Commodi omnis quis ea rerum.
+                            Porque o mercado mudou. Hoje, músicas não crescem sozinhas. Elas crescem quando são compartilhadas, reinterpretadas, dançadas e vividas por pessoas reais. Criadores não são apenas divulgadores são pontes entre artistas, marcas e audiência. A UGC4Artists nasce para estruturar esse novo modelo, conectando quem cria com quem precisa de conteúdo que gera conexão, engajamento e resultados reais.
                         </p>
                     </div>
 

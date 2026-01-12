@@ -5,41 +5,41 @@ import { FeatureCardGrid } from '@/components/grid-feature-cards';
 
 const features = [
     {
-        title: 'Negociar preços, gerir contratos, acompanhar entregas',
+        title: 'Gestão Completa de Campanhas',
         icon: Zap,
-        description: 'Lorem ipsum dolor sit, amet consectetur adipisicing elit.',
+        description: 'Gerencie todo o ciclo da campanha em um só lugar: criação, briefing, aprovação e entrega.',
     },
     {
-        title: 'Acesso limitado a criadores UGC em nichos diversos',
+        title: 'Criadores Especializados',
         icon: Cpu,
-        description: 'Lorem ipsum dolor sit, amet consectetur adipisicing elit.',
+        description: 'Acesso a criadores UGC alinhados com música, cultura e performance para suas campanhas.',
     },
     {
-        title: 'Qualidade inconsistente ou falta de expertise em roteirização',
+        title: 'Briefings Estruturados',
         icon: Fingerprint,
-        description: 'Lorem ipsum dolor sit, amet consectetur adipisicing elit',
+        description: 'Briefings padronizados que facilitam a criação e mantêm a consistência da sua marca.',
     },
     {
-        title: 'Dashbaord Customizado',
+        title: 'Dashboard Intuitivo',
         icon: Pencil,
-        description: 'Lorem ipsum dolor sit, amet consectetur adipisicing elit.',
+        description: 'Acompanhe métricas, entregas e resultados em tempo real com interface moderna e fácil.',
     },
     {
-        title: 'Conexão Personalizada ',
+        title: 'Matching Inteligente',
         icon: Settings2,
-        description: 'Lorem ipsum dolor sit, amet consectetur adipisicing elit.',
+        description: 'Conectamos você com os criadores ideais para o perfil e objetivos da sua campanha.',
     },
     {
-        title: 'Construa com IA',
+        title: 'Otimização por Plataforma',
         icon: Sparkles,
-        description: 'Lorem ipsum dolor sit, amet consectetur adipisicing elit.',
+        description: 'Conteúdo pensado para TikTok, Reels e Shorts, com formatos nativos que performam.',
     },
 ];
 
 export default function FeatureCards() {
     return (
         <section className="py-16 md:py-32 bg-black ">
-            <div className="mx-auto w-full max-w-5xl space-y-8 px-4">
+            <div className="mx-auto w-full max-w-5xl space-y-8 px-4" id="features">
                 <AnimatedContainer className="mx-auto max-w-3xl text-center ">
                     <h2 className="text-white text-3xl font-bold tracking-wide text-balance md:text-4xl lg:text-5xl xl:font-extrabold">
                         Criar conteúdo é difícil

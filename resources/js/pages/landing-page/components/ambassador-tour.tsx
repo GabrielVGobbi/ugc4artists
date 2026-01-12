@@ -77,7 +77,7 @@ export function AmbassadorTour({
         {
             length: 200,
             title: "Comunique-se com seus criadores.",
-            description: " O Influentials Messenger permite que você converse com todos os seus colaboradores em um só lugar — troque ideias, mantenha todos atualizados e cumpra seus prazos.",
+            description: " O Influentials Messenger permite que você converse com todos os seus colaboradores em um só lugar troque ideias, mantenha todos atualizados e cumpra seus prazos.",
             content: (
                 <div className="h-full w-full flex items-center justify-center p-8">
                     <div className="text-center space-y-4">

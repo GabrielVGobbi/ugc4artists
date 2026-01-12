@@ -12,7 +12,7 @@ export function CreatorsCTA() {
         <section id="criadores" className="py-24 px-4 sm:px-6 lg:px-8 bg-[#fff7ed]">
             <div className="max-w-7xl mx-auto">
                 <div className="max-w-3xl mx-auto text-center">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-[#040404] tracking-tight">Quer ser um criador <span className="text-primary">ForArtists?</span> </h2>
+                    <h2 className="text-3xl sm:text-4xl font-bold text-[#040404] tracking-tight">Quer ser um criador <span className="text-primary">UGC4Artists?</span> </h2>
                     <p className="mt-4 text-lg text-muted-foreground">
                         Monetize sua criatividade. Trabalhe com marcas que você ama, no seu tempo.
                     </p>

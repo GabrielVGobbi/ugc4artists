@@ -46,10 +46,10 @@ export function CaseShowcaseSection() {
                         CASES
                     </span>
                     <h2 className="text-5xl font-semibold text-[#040404]">
-                        Onde marcas e criadores se conectam
+                        Onde marcas, artistas e criadores se encontram
                     </h2>
                     <p className="text-base text-gray-600">
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quo pariatur odio nesciunt recusandae facilis cum eaque vel sapiente, officiis ipsa saepe provident blanditiis nobis numquam at. Earum at beatae et.
+                        Grandes campanhas não nascem do acaso. Elas surgem quando pessoas criativas, estratégias bem definidas e conteúdo autêntico se conectam. Aqui, criadores UGC, artistas e marcas constroem narrativas que geram engajamento real, ampliam alcance e fazem a música circular onde ela realmente importa: nas pessoas.
                     </p>
                     <ul className="flex flex-wrap gap-2  ">
                         {['spotify-icon', 'youtube-logo', 'deezer-logo', 'youtube-music-logo'].map((brand) => (

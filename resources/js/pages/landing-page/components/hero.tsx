@@ -5,6 +5,7 @@ import { ContainerSection } from "@/components/landing-page/container"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { OptimizedImage } from "@/components/utils/optimized-image"
+import { Link } from '@inertiajs/react';
 
 export function Hero() {
 
@@ -24,20 +25,32 @@ export function Hero() {
                             </h1>
                         </div>
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed grid gap-2">
-                            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
+                            Conectamos marcas e artistas aos criadores certos para transformar conteúdo em conexão real e conexão em performance.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Button size="lg" className="bg-primary hover:bg-secondary/90 text-white px-8">
-                                Sou uma Marca
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                            <Button
-                                size="lg"
-                                variant="outline"
-                                className="border-primary-foreground text-primary-foreground hover:bg-secondary/90 hover:text-white px-8 bg-transparent"
+                            <Link
+                                prefetch
+                                href={'/waitlist'}
+                                target='_blank'
                             >
-                                Sou Criador(a)
-                            </Button>
+                                <Button size="lg" className="bg-primary hover:bg-secondary/90 text-white px-8">
+                                    Sou uma Marca
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                            <Link
+                                prefetch
+                                href={'/waitlist'}
+                                target='_blank'
+                            >
+                                <Button
+                                    size="lg"
+                                    variant="outline"
+                                    className="border-primary-foreground text-primary-foreground hover:bg-secondary/90 hover:text-white px-8 bg-transparent"
+                                >
+                                    Sou Criador(a)
+                                </Button>
+                            </Link>
 
                             {/*
                                 <Button
@@ -49,7 +62,7 @@ export function Hero() {
                                 </Button>
                                 */}
                         </div>
-                       {/*<p className="text-sm text-gray-500">Mais de 3.000 criadores e artistas se cadastraram</p>*/}
+                        <p className="text-sm text-gray-500">Mais de 3.000 criadores e artistas já fazem parte desse movimento.</p>
                     </div>
 
                     <div className="relative">

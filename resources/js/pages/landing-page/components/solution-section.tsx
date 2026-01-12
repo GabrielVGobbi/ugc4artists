@@ -5,10 +5,10 @@ import { Check } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 const solutions = [
-    "Acesso a milhares de criadores verificados",
-    "Contratos e pagamentos automatizados",
-    "Briefings padronizados e revisões ilimitadas",
-    "Conteúdo otimizado para cada plataforma",
+    "Acesso a criadores UGC alinhados com música, cultura e performance",
+    "Processos claros de contratação, alinhamento e entrega",
+    "Briefings estruturados para facilitar a criação e manter consistência",
+    "Conteúdo pensado para TikTok, Reels e Shorts, desde a origem",
 ]
 
 export function SolutionSection() {
@@ -31,20 +31,20 @@ export function SolutionSection() {
     return (
         <section ref={sectionRef} id="como-funciona" className="py-20 bg-[#040404] overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="grid lg:grid-cols-2 gap-12 items-center" >
                     <div
                         className={`transition-all duration-1000 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"
                             }`}
                     >
 
                         <OptimizedImage
-                            src="/assets/landing_page/images/modern-dashboard-400.jpg"
+                            src="/assets/landing_page/images/modern-dashboard.jpeg"
                             alt="Plataforma UGC Dashboard"
                             priority={false}
                             aspectRatio='auto'
                             className="rounded-2xl shadow-2xl hover:scale-[1.02] transition-transform duration-500"
-                            width={380}
-                            height={380}
+                            width={550}
+                            height={400}
                         />
                     </div>
 
@@ -57,11 +57,10 @@ export function SolutionSection() {
                                 A solução
                             </span>
                             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 text-balance">
-                                Tudo que você precisa em uma única plataforma
+                                Tudo o que você precisa em um único ecossistema
                             </h2>
                             <p className="text-lg text-gray-300 leading-relaxed">
-                                Conectamos sua marca aos melhores criadores de conteúdo UGC, automatizando todo o processo de
-                                contratação até a entrega final.
+                                Simplificamos a conexão entre marcas, artistas e criadores UGC para que o foco esteja no que realmente importa: criar conteúdo que performa. Da escolha dos criadores à entrega final, estruturamos processos que tornam campanhas mais rápidas, profissionais e escaláveis.
                             </p>
                         </div>
 

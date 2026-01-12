@@ -8,11 +8,12 @@ import { Link } from "@inertiajs/react"
 import { SquareArrowUpRight } from "lucide-react"
 
 const navLinks = [
-    { label: 'Como funciona', href: '#solucao' },
-    { label: 'Benefícios', href: '#desafios' },
-    { label: 'Para Artistas', href: '#exemplos' },
-    { label: 'Para Criadores', href: '#show-cases' },
-    { label: 'Blog', href: '#blog' },
+    { label: 'Como funciona', href: '#como-funciona' },
+    { label: 'Benefícios', href: '#beneficios' },
+    { label: 'Para Artistas', href: '#features' },
+    { label: 'Para Criadores', href: '#features' },
+    { label: 'Dúvidas', href: '#FAQ' },
+    { label: 'Blog (em breve)', href: '#blog' },
 ]
 
 export type HeaderProps = {

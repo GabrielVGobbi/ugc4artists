@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Regulamento Oficial — UGC 4ARTISTS</title>
+        <title>Regulamento Oficial UGC 4ARTISTS</title>
         <style>
             body {
                 font-family: 'Helvetica', 'Arial', sans-serif;
@@ -100,7 +100,7 @@
             <img class="logo" src="/assets/images/logo.png" alt="Logo UGC 4ARTISTS" />
             <p class="main-title">REGULAMENTO </p>
         </div>
-        <h1>REGULAMENTO OFICIAL — UGC 4ARTISTS</h1>
+        <h1>REGULAMENTO OFICIAL UGC 4ARTISTS</h1>
 <h2>1. Objetivo</h2>
 <p>O presente regulamento estabelece as condições de participação no movimento UGC 4ARTISTS ou UGC PARA MÚSICOS, que conecta artistas, criadores de conteúdo e gravadoras interessadas em campanhas de divulgação musical remuneradas.</p>
 <h2>2. Participação</h2>
@@ -144,7 +144,7 @@
 <p>Este regulamento é válido a partir da data de publicação.
 Eventuais divergências serão resolvidas no foro da cidade do Rio de Janeiro/RJ.</p>
         <div class="footer-content">
-            UGC 4ARTISTS — Documento de Regulamento Oficial
+            UGC 4ARTISTS Documento de Regulamento Oficial
         </div>
     </body>
     </html>

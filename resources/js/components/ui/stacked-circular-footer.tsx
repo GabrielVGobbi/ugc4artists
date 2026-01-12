@@ -10,9 +10,10 @@ function StackedCircularFooter() {
         <footer className="bg-background py-12">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="flex flex-col items-center">
-                    <div className="mb-8 rounded-full bg-primary/10 p-8">
+                    <div className="mb-8 rounded-full bg-white p-8">
                         <AppLogoIcon />
                     </div>
+                    {/*
                     <nav className="mb-8 flex flex-wrap justify-center gap-6">
                         <a href="#" className="hover:text-primary">Home</a>
                         <a href="#" className="hover:text-primary">Sobre</a>
@@ -20,6 +21,7 @@ function StackedCircularFooter() {
                         <a href="#" className="hover:text-primary">Grupo</a>
                         <a href="#" className="hover:text-primary">Contato</a>
                     </nav>
+                    */}
                     <div className="mb-8 flex space-x-4">
 
 
