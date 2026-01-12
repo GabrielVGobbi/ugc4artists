@@ -18,7 +18,7 @@ export default function AppLogo({ variant = "dark", className }: AppLogoProps) {
                 <OptimizedImage
                     src={logoSrc}
                     alt="logo ugc-for-artists"
-                    priority={false}
+                    priority={true}
                     width={130}
                     height={80}
                     aspectRatio='auto'

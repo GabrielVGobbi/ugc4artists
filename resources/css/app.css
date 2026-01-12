@@ -162,3 +162,27 @@
 .slider-pause:hover .slider-track {
     animation-play-state: paused;
 }
+
+/* Admin Panel Custom Styles */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e4e4e7;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #FF4D00;
+}
+
+/* Smooth transitions for admin layout */
+.admin-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

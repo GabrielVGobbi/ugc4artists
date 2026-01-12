@@ -49,3 +49,9 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+declare global {
+    interface Window {
+        axios: import('axios').AxiosInstance;
+    }
+}

@@ -1,4 +1,5 @@
-import AuthLayoutTemplate from '@/layouts/auth/auth-card-layout';
+import AuthLayoutTemplate from '@/layouts/auth/auth-split-layout';
+import { useEffect } from 'react';
 
 export default function AuthLayout({
     children,
@@ -10,6 +11,14 @@ export default function AuthLayout({
     title: string;
     description: string;
 }) {
+
+    useEffect(() => {
+        document.documentElement.classList.remove('dark')
+        return () => {
+            document.documentElement.classList.add('dark')
+        }
+    }, [])
+
     return (
         <AuthLayoutTemplate title={title} description={description} {...props}>
             {children}
