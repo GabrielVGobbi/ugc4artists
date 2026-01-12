@@ -1,5 +1,4 @@
-
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import type { ComponentType, FormEvent } from 'react'
 import { Link, useForm } from '@inertiajs/react'
 import { z } from 'zod'
@@ -104,9 +103,7 @@ const waitlistSchema = z
             .max(160, 'Use até 160 caracteres.')
             .optional(),
         creation_availability: z.enum(['high', 'medium', 'low'], {
-            errorMap: () => ({
-                message: 'Escolha sua disponibilidade.',
-            }),
+            message: 'Escolha sua disponibilidade.',
         }),
         terms: z.boolean().refine((value) => value, {
             message: 'É necessário aceitar o regulamento.',
@@ -249,10 +246,15 @@ function toggleSelection<T extends string>(current: T[], value: T): T[] {
         : [...current, value]
 }
 
+interface WaitListFormProps {
+	onStepChange?: (step: number, isSuccess: boolean) => void
+	onInteraction?: () => void
+}
+
 /**
  * Formulário multi-etapas para captar artistas interessados na lista de espera UGC 4ARTISTS.
  */
-export function WaitListForm(): JSX.Element {
+export function WaitListForm({ onStepChange, onInteraction }: WaitListFormProps) {
     const { data, setData, post, processing, errors, reset } = useForm<WaitlistFormValues>(
         initialFormState,
     )
@@ -274,6 +276,13 @@ export function WaitListForm(): JSX.Element {
 
         return Math.round((currentStep + 1) * progressPerStep)
     }, [currentStep, isSuccessStep, totalSteps])
+
+    // Notify parent component about step changes
+    useEffect(() => {
+        if (onStepChange) {
+            onStepChange(currentStep, isSuccessStep)
+        }
+    }, [currentStep, isSuccessStep, onStepChange])
 
     const clearClientError = (field: keyof WaitlistFormValues) => {
         setClientErrors((prev) => {
@@ -361,7 +370,11 @@ export function WaitListForm(): JSX.Element {
         field: K,
         value: WaitlistFormValues[K],
     ) => {
-        setData(field, value)
+        // Notificar interação na primeira mudança
+        if (onInteraction) {
+            onInteraction()
+        }
+        setData(field, value as any)
         clearClientError(field)
     }
 
@@ -389,28 +402,28 @@ export function WaitListForm(): JSX.Element {
     }
 
     const renderSection = () => {
-
         if (isSuccessStep) {
             return (
-                <div className='animate-in fade-in slide-in-from-right-4 space-y-6 rounded-3xl border border-emerald-100  p-20 text-center shadow-[0_40px_120px_-60px_rgba(16,185,129,0.8)] '>
-                    <div className='mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 animate-pulse'>
-                        <CheckCircle2 className='size-8' />
+                <div className="animate-in fade-in slide-in-from-right-2 space-y-6 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-10 text-center shadow-[0_30px_80px_-50px_rgba(16,185,129,0.4)] backdrop-blur-sm m-10">
+                    <div className="mx-auto flex size-16 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 animate-pulse border border-emerald-500/20">
+                        <CheckCircle2 className="size-8" />
                     </div>
-                    <div className='space-y-4'>
-                        <h3 className='text-2xl font-semibold text-slate-300'>
-                            Você está oficialmente inscrito no movimento <span className="text-primary">UGC 4ARTISTS!</span>
+                    <div className="space-y-4">
+                        <h3 className="text-2xl font-bold text-white tracking-tight">
+                            Você está oficialmente inscrito no movimento{' '}
+                            <span className="text-[#fc7c04]">UGC 4ARTISTS!</span>
                         </h3>
-                        <p className='text-base text-slate-300'>
+                        <p className="text-sm text-white/70 font-medium max-w-md mx-auto">
                             Aguarde nosso contato para a sua primeira campanha. Fique de olho no seu Direct e e-mail
                             para não perder nenhuma oportunidade.
                         </p>
                     </div>
-                    <div className='rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 p-6 text-sm font-medium text-slate-700'>
+                    <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-sm font-bold text-[#fc7c04] backdrop-blur-sm">
                         @ugc4artists | #ugc4artists
                     </div>
                     <Button
-                        type='button'
-                        className='rounded-2xl'
+                        type="button"
+                        className="h-11 rounded-xl bg-[#fc7c04] hover:bg-[#ff9a3c] px-8 text-black font-bold shadow-lg shadow-[#fc7c04]/30 transition-all duration-300 text-sm"
                         onClick={() => setCurrentStep(0)}
                     >
                         Fazer nova inscrição
@@ -422,23 +435,34 @@ export function WaitListForm(): JSX.Element {
         const step = steps[currentStep]
 
         return (
-            <form className='space-y-10' onSubmit={handleSubmit}>
-                <div className='space-y-2'>
-                    <h3 className='text-2xl font-semibold text-white'>{step.title}</h3>
-                    <p className='text-sm text-slate-500'>{step.subtitle}</p>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+                {/* Section Header - Mais compacto */}
+                <div className="space-y-2  border-b border-white/5">
+                    <p className="text-[10px] uppercase tracking-widest text-[#fc7c04] font-bold">
+                        Etapa {currentStep + 1} de {totalSteps}
+                    </p>
+                    <h3 className="text-2xl font-bold text-white tracking-tight">
+                        {step.title}
+                    </h3>
+                    <p className="text-sm text-white/60 font-medium">
+                        {step.subtitle}
+                    </p>
                 </div>
+
+                {/* Form Content */}
                 {currentStep === 0 && renderProfileStep()}
                 {currentStep === 1 && renderParticipationStep()}
                 {currentStep === 2 && renderTermsStep()}
-                <div className='flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between'>
+
+                <div className="flex flex-col  sm:flex-row sm:items-center sm:justify-between border-t border-white/5 sticky bottom-0  backdrop-blur-sm -mx-6 md:-mx-8 px-6 md:px-8 py-4 rounded-b-[2rem]">
                     {currentStep > 0 ? (
                         <Button
-                            type='button'
-                            variant='outline'
+                            type="button"
+                            variant="outline"
                             onClick={handlePrevStep}
-                            className='h-10 rounded-2xl border-slate-200 text-slate-700'
+                            className="h-11 rounded-xl border-white/20 text-white hover:bg-white/5 hover:border-white/40 font-medium transition-all duration-300 bg-foreground"
                         >
-                            <CornerUpLeft />
+                            <CornerUpLeft className="size-4" />
                             Voltar
                         </Button>
                     ) : (
@@ -446,18 +470,18 @@ export function WaitListForm(): JSX.Element {
                     )}
                     {currentStep < totalSteps - 1 ? (
                         <Button
-                            type='button'
-                            className='h-10 rounded-2xl bg-gradient-to-r from-primary to-gray-600 px-8 text-white shadow-lg shadow-indigo-300/50 hover:bg-primary/10'
+                            type="button"
+                            className="h-11 rounded-xl bg-gradient-to-r from-[#fc7c04] to-[#ff9a3c] px-8 text-black font-bold shadow-lg shadow-[#fc7c04]/30 hover:shadow-[#fc7c04]/50 hover:scale-105 transition-all duration-300"
                             onClick={handleNextStep}
                         >
                             Continuar
-                            <ArrowRight className='size-4' />
+                            <ArrowRight className="size-4" />
                         </Button>
                     ) : (
                         <Button
-                            type='submit'
+                            type="submit"
                             disabled={processing}
-                            className='h-10 rounded-2xl bg-gradient-to-r from-primary to-rose-500 px-8 text-white shadow-lg shadow-rose-300/60'
+                            className="h-11 rounded-xl bg-gradient-to-r from-[#fc7c04] to-[#ff9a3c] px-8 text-black font-bold shadow-lg shadow-[#fc7c04]/50 hover:shadow-[#fc7c04]/70 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
                         >
                             {processing ? 'Enviando…' : 'Confirmar inscrição'}
                         </Button>
@@ -468,56 +492,57 @@ export function WaitListForm(): JSX.Element {
     }
 
     const renderProfileStep = () => (
-        <div className='space-y-8'>
-            <div className='grid gap-6 md:grid-cols-2'>
-                <div className='space-y-2'>
-                    <Label htmlFor='stage_name'>Nome artístico</Label>
+        <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                    <Label htmlFor="stage_name" className="text-white font-bold text-xs">
+                        Nome artístico
+                    </Label>
                     <Input
-                        id='stage_name'
-                        name='stage_name'
-                        placeholder='Como você é conhecido?'
+                        id="stage_name"
+                        name="stage_name"
+                        placeholder="Como você é conhecido?"
                         value={data.stage_name}
-                        className="border-gray-700"
+                        className="border-white/20 bg-white/5 text-white placeholder:text-white/30 h-10 rounded-lg focus:border-[#fc7c04] focus:ring-[#fc7c04]/20 text-sm"
                         onChange={(event) => handleFieldChange('stage_name', event.target.value)}
                         aria-invalid={Boolean(getError('stage_name'))}
                     />
-                    <p className='text-sm text-slate-500'>Como você assina nos palcos e nas redes.</p>
                     {getError('stage_name') && (
-                        <p className='text-sm text-rose-500'>{getError('stage_name')}</p>
+                        <p className="text-xs text-rose-400 font-medium">{getError('stage_name')}</p>
                     )}
                 </div>
-                <div className='space-y-2'>
-                    <Label htmlFor='contact_email'>E-mail de contato</Label>
+                <div className="space-y-2">
+                    <Label htmlFor="contact_email" className="text-white font-bold text-xs">
+                        E-mail de contato
+                    </Label>
                     <Input
-                        id='contact_email'
-                        name='contact_email'
-                        type='email'
-                        placeholder='nome@email.com'
+                        id="contact_email"
+                        name="contact_email"
+                        type="email"
+                        placeholder="nome@email.com"
                         value={data.contact_email}
-                        className="border-gray-700"
+                        className="border-white/20 bg-white/5 text-white placeholder:text-white/30 h-10 rounded-lg focus:border-[#fc7c04] focus:ring-[#fc7c04]/20 text-sm"
                         onChange={(event) => handleFieldChange('contact_email', event.target.value)}
                         aria-invalid={Boolean(getError('contact_email'))}
                     />
-                    <p className='text-sm text-slate-500'>Usaremos para comunicações oficiais.</p>
                     {getError('contact_email') && (
-                        <p className='text-sm text-rose-500'>{getError('contact_email')}</p>
+                        <p className="text-xs text-rose-400 font-medium">{getError('contact_email')}</p>
                     )}
                 </div>
             </div>
-            <div className='rounded-2xl border border-gray-700 bg-foreground/20 p-6'>
-                <p className='text-sm font-medium text-slate-300'>
-                    @ do Instagram · @ do YouTube · @ do TikTok
+            <div className="rounded-xl border border-white/20 bg-white/[0.02] p-5">
+                <p className="text-xs font-bold text-white">
+                    Redes Sociais (obrigatório ao menos uma)
                 </p>
-                <p className='text-sm text-slate-500'>
-                    Precisamos para ver seu conteúdo e adicionar às campanhas (obrigatório ao menos um).
-                </p>
-                <div className='mt-6 grid gap-4 md:grid-cols-3'>
-                    <div className='space-y-1'>
-                        <Label htmlFor='instagram_handle'>Instagram</Label>
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    <div className="space-y-1.5">
+                        <Label htmlFor="instagram_handle" className="text-white/80 font-medium text-[10px]">
+                            Instagram
+                        </Label>
                         <Input
-                            className="border-gray-700"
-                            id='instagram_handle'
-                            placeholder='@seuartista'
+                            className="border-white/20 bg-white/5 text-white placeholder:text-white/30 h-9 rounded-lg focus:border-[#fc7c04] focus:ring-[#fc7c04]/20 text-sm"
+                            id="instagram_handle"
+                            placeholder="@seuartista"
                             value={data.instagram_handle}
                             onChange={(event) =>
                                 handleHandleChange('instagram_handle', event.target.value)
@@ -525,12 +550,14 @@ export function WaitListForm(): JSX.Element {
                             aria-invalid={Boolean(getError('instagram_handle'))}
                         />
                     </div>
-                    <div className='space-y-1'>
-                        <Label htmlFor='youtube_handle'>YouTube</Label>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="youtube_handle" className="text-white/80 font-medium text-[10px]">
+                            YouTube
+                        </Label>
                         <Input
-                            className="border-gray-700"
-                            id='youtube_handle'
-                            placeholder='@seu-canal'
+                            className="border-white/20 bg-white/5 text-white placeholder:text-white/30 h-9 rounded-lg focus:border-[#fc7c04] focus:ring-[#fc7c04]/20 text-sm"
+                            id="youtube_handle"
+                            placeholder="@seu-canal"
                             value={data.youtube_handle}
                             onChange={(event) =>
                                 handleHandleChange('youtube_handle', event.target.value)
@@ -538,12 +565,14 @@ export function WaitListForm(): JSX.Element {
                             aria-invalid={Boolean(getError('youtube_handle'))}
                         />
                     </div>
-                    <div className='space-y-1'>
-                        <Label htmlFor='tiktok_handle'>TikTok</Label>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="tiktok_handle" className="text-white/80 font-medium text-[10px]">
+                            TikTok
+                        </Label>
                         <Input
-                            className="border-gray-700"
-                            id='tiktok_handle'
-                            placeholder='@seu.tiktok'
+                            className="border-white/20 bg-white/5 text-white placeholder:text-white/30 h-9 rounded-lg focus:border-[#fc7c04] focus:ring-[#fc7c04]/20 text-sm"
+                            id="tiktok_handle"
+                            placeholder="@seu.tiktok"
                             value={data.tiktok_handle}
                             onChange={(event) => handleHandleChange('tiktok_handle', event.target.value)}
                             aria-invalid={Boolean(getError('tiktok_handle'))}
@@ -551,14 +580,12 @@ export function WaitListForm(): JSX.Element {
                     </div>
                 </div>
                 {getError('instagram_handle') && (
-                    <p className='mt-3 text-sm text-rose-500'>{getError('instagram_handle')}</p>
+                    <p className="mt-2 text-xs text-rose-400 font-medium">{getError('instagram_handle')}</p>
                 )}
             </div>
-            <div className='space-y-4'>
-                <p className='text-sm font-medium text-slate-300'>
-                    Você é...
-                </p>
-                <div className='grid gap-4 md:grid-cols-2'>
+            <div className="space-y-4">
+                <p className="text-xs font-bold text-white">Você é...</p>
+                <div className="grid gap-3 md:grid-cols-2">
                     {artistProfiles.map((option) => {
                         const Icon = option.icon
                         const isActive = data.artist_types.includes(option.value)
@@ -566,7 +593,7 @@ export function WaitListForm(): JSX.Element {
                         return (
                             <button
                                 key={option.value}
-                                type='button'
+                                type="button"
                                 onClick={() => handleChipToggle('artist_types', option.value)}
                                 onKeyDown={(event) => {
                                     if (event.key === 'Enter' || event.key === ' ') {
@@ -575,66 +602,70 @@ export function WaitListForm(): JSX.Element {
                                     }
                                 }}
                                 className={cn(
-                                    'cursor-pointer flex items-start gap-3 rounded-2xl border p-4 text-left transition',
+                                    'cursor-pointer flex items-center gap-3 rounded-lg border p-3 text-left transition-all duration-300',
                                     isActive
-                                        ? 'border-blue-500 bg-blue-100/20  shadow-[0_15px_60px_-35px_rgba(59,130,246,1)]'
-                                        : 'border-gray-700 hover:border-slate-200'
+                                        ? 'border-[#fc7c04] bg-[#fc7c04]/10 shadow-[0_15px_50px_-35px_rgba(252,124,4,0.9)] scale-[1.02]'
+                                        : 'border-white/20 hover:border-white/40 hover:bg-white/5'
                                 )}
                                 aria-pressed={isActive}
                                 aria-label={option.title}
                             >
-                                <div className='flex size-11 items-center justify-center rounded-xl bg-white text-slate-700'>
-                                    <Icon className='size-5' />
+                                <div className="flex size-10 items-center justify-center rounded-lg bg-white text-black shrink-0">
+                                    <Icon className="size-5" />
                                 </div>
-                                <div>
-                                    <p className='font-semibold text-slate-300'>{option.title}</p>
-                                    <p className='text-sm text-slate-500'>{option.description}</p>
+                                <div className="flex-1">
+                                    <p className="font-bold text-white text-xs">{option.title}</p>
+                                    <p className="text-[10px] text-white/50 font-medium">{option.description}</p>
                                 </div>
                             </button>
                         )
                     })}
                 </div>
                 {getError('artist_types') && (
-                    <p className='text-sm text-rose-500'>{getError('artist_types')}</p>
+                    <p className="text-xs text-rose-400 font-medium">{getError('artist_types')}</p>
                 )}
                 {data.artist_types.includes('other') && (
-                    <div className='space-y-2'>
-                        <Label htmlFor='other_artist_type'>Outro — qual?</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="other_artist_type" className="text-white font-bold text-xs">
+                            Outro — qual?
+                        </Label>
                         <Input
-                            className="border-gray-700"
-                            id='other_artist_type'
-                            placeholder='Ex: produtor musical, maestro...'
+                            className="border-white/20 bg-white/5 text-white placeholder:text-white/30 h-10 rounded-lg focus:border-[#fc7c04] focus:ring-[#fc7c04]/20 text-sm"
+                            id="other_artist_type"
+                            placeholder="Ex: produtor musical, maestro..."
                             value={data.other_artist_type}
                             onChange={(event) => handleFieldChange('other_artist_type', event.target.value)}
                             aria-invalid={Boolean(getError('other_artist_type'))}
                         />
                         {getError('other_artist_type') && (
-                            <p className='text-sm text-rose-500'>{getError('other_artist_type')}</p>
+                            <p className="text-xs text-rose-400 font-medium">{getError('other_artist_type')}</p>
                         )}
                     </div>
                 )}
             </div>
-            <div className='space-y-2'>
-                <Label htmlFor='main_genre'>Estilo musical principal</Label>
+            <div className="space-y-2">
+                <Label htmlFor="main_genre" className="text-white font-bold text-xs">
+                    Estilo musical principal
+                </Label>
                 <Input
-                    className="border-gray-700"
-                    id='main_genre'
-                    placeholder='MPB, pop, rap, sertanejo, gospel...'
+                    className="border-white/20 bg-white/5 text-white placeholder:text-white/30 h-10 rounded-lg focus:border-[#fc7c04] focus:ring-[#fc7c04]/20 text-sm"
+                    id="main_genre"
+                    placeholder="MPB, pop, rap, sertanejo, gospel..."
                     value={data.main_genre}
                     onChange={(event) => handleFieldChange('main_genre', event.target.value)}
                 />
                 {getError('main_genre') && (
-                    <p className='text-sm text-rose-500'>{getError('main_genre')}</p>
+                    <p className="text-xs text-rose-400 font-medium">{getError('main_genre')}</p>
                 )}
             </div>
         </div>
     )
 
     const renderParticipationStep = () => (
-        <div className='space-y-8'>
-            <div className='space-y-3'>
-                <p className='text-sm font-medium text-slate-300'>Você quer...</p>
-                <div className='grid gap-4 md:grid-cols-2'>
+        <div className="space-y-6">
+            <div className="space-y-4">
+                <p className="text-xs font-bold text-white">Você quer...</p>
+                <div className="grid gap-3 md:grid-cols-2">
                     {participationOptions.map((option) => {
                         const Icon = option.icon
                         const isActive = data.participation_types.includes(option.value)
@@ -642,7 +673,7 @@ export function WaitListForm(): JSX.Element {
                         return (
                             <button
                                 key={option.value}
-                                type='button'
+                                type="button"
                                 onClick={() => handleChipToggle('participation_types', option.value)}
                                 onKeyDown={(event) => {
                                     if (event.key === 'Enter' || event.key === ' ') {
@@ -651,73 +682,69 @@ export function WaitListForm(): JSX.Element {
                                     }
                                 }}
                                 className={cn(
-                                    'flex items-start gap-3 rounded-2xl border p-4 text-left transition',
+                                    'cursor-pointer flex items-center gap-3 rounded-lg border p-3 text-left transition-all duration-300',
                                     isActive
-                                        ? 'border-indigo-500 bg-blue-100/20 shadow-[0_15px_60px_-35px_rgba(255,121,0)]'
-                                        : 'border-gray-700 hover:border-slate-200'
+                                        ? 'border-[#fc7c04] bg-[#fc7c04]/10 shadow-[0_15px_50px_-35px_rgba(252,124,4,0.9)] scale-[1.02]'
+                                        : 'border-white/20 hover:border-white/40 hover:bg-white/5'
                                 )}
                                 aria-pressed={isActive}
                                 aria-label={option.title}
                             >
-                                <div className='flex size-11 items-center justify-center rounded-xl bg-white text-slate-700'>
-                                    <Icon className='size-5' />
-                                </div>
-                                <div>
-                                    <p className='font-semibold text-slate-300'>{option.title}</p>
-                                    <p className='text-sm text-slate-500'>{option.description}</p>
+
+                                <div className="flex-1">
+                                    <p className="font-bold text-white text-xs">{option.title}</p>
+                                    <p className="text-[10px] text-white/50 font-medium">{option.description}</p>
                                 </div>
                             </button>
                         )
                     })}
                 </div>
                 {getError('participation_types') && (
-                    <p className='text-sm text-rose-500'>{getError('participation_types')}</p>
+                    <p className="text-xs text-rose-400 font-medium">{getError('participation_types')}</p>
                 )}
             </div>
-            <div className='grid gap-6 md:grid-cols-2'>
-                <div className='space-y-2'>
-                    <Label htmlFor='portfolio_link'>Link de um vídeo seu</Label>
+            <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                    <Label htmlFor="portfolio_link" className="text-white font-bold text-xs">
+                        Link de um vídeo seu
+                    </Label>
                     <Input
-                        className="border-gray-700"
-                        id='portfolio_link'
-                        placeholder='https://instagram.com/reel/...'
+                        className="border-white/20 bg-white/5 text-white placeholder:text-white/30 h-10 rounded-lg focus:border-[#fc7c04] focus:ring-[#fc7c04]/20 text-sm"
+                        id="portfolio_link"
+                        placeholder="https://instagram.com/reel/..."
                         value={data.portfolio_link}
                         onChange={(event) => handleFieldChange('portfolio_link', event.target.value)}
                         aria-invalid={Boolean(getError('portfolio_link'))}
                     />
-                    <p className='text-sm text-slate-500'>
-                        Reel, TikTok ou YouTube (cantando, tocando ou apresentando).
-                    </p>
                     {getError('portfolio_link') && (
-                        <p className='text-sm text-rose-500'>{getError('portfolio_link')}</p>
+                        <p className="text-xs text-rose-400 font-medium">{getError('portfolio_link')}</p>
                     )}
                 </div>
-                <div className='space-y-2'>
-                    <Label htmlFor='city_state'>Cidade e Estado (opcional)</Label>
+                <div className="space-y-2">
+                    <Label htmlFor="city_state" className="text-white font-bold text-xs">
+                        Cidade e Estado (opcional)
+                    </Label>
                     <Input
-                        className="border-gray-700"
-                        id='city_state'
-                        placeholder='Ex: Recife / PE'
+                        className="border-white/20 bg-white/5 text-white placeholder:text-white/30 h-10 rounded-lg focus:border-[#fc7c04] focus:ring-[#fc7c04]/20 text-sm"
+                        id="city_state"
+                        placeholder="Ex: Recife / PE"
                         value={data.city_state}
                         onChange={(event) => handleFieldChange('city_state', event.target.value)}
                         aria-invalid={Boolean(getError('city_state'))}
                     />
-                    <p className='text-sm text-slate-500'>
-                        Usaremos para campanhas regionais e ações presenciais.
-                    </p>
                     {getError('city_state') && (
-                        <p className='text-sm text-rose-500'>{getError('city_state')}</p>
+                        <p className="text-xs text-rose-400 font-medium">{getError('city_state')}</p>
                     )}
                 </div>
             </div>
-            <div className='space-y-3'>
-                <p className='text-sm font-medium text-slate-300'>
-                    Qual é a sua disponibilidade de criação de conteúdo?
+            <div className="space-y-4">
+                <p className="text-xs font-bold text-white">
+                    Disponibilidade de criação
                 </p>
-                <div className='rounded-2xl border border-gray-700 p-6'>
-                    <div className='relative mb-6 h-2 rounded-full bg-slate-100'>
+                <div className="rounded-xl border border-white/20 bg-white/[0.02] p-4">
+                    <div className="relative mb-5 h-1.5 rounded-full bg-white/10">
                         <div
-                            className='absolute inset-y-0 rounded-full bg-gradient-to-r from-emerald-400 to-blue-500 transition-all'
+                            className="absolute inset-y-0 rounded-full bg-gradient-to-r from-emerald-400 to-[#fc7c04] transition-all duration-500"
                             style={{
                                 width:
                                     data.creation_availability === 'high'
@@ -728,37 +755,38 @@ export function WaitListForm(): JSX.Element {
                             }}
                         />
                     </div>
-                    <div className='grid gap-3 md:grid-cols-3'>
+                    <div className="grid gap-3 md:grid-cols-3">
                         {availabilityOptions.map((option) => {
                             const isActive = data.creation_availability === option.value
 
                             return (
                                 <button
                                     key={option.value}
-                                    type='button'
+                                    type="button"
                                     onClick={() => handleAvailabilityChange(option.value)}
                                     className={cn(
-                                        'cursor-pointer rounded-2xl border p-4 text-left transition',
+                                        'cursor-pointer rounded-lg border p-3 text-center transition-all duration-300',
                                         isActive
-                                            ? 'border-emerald-500 bg-emerald-100/80 shadow-[0_15px_60px_-35px_rgba(16,185,129,1)]'
-                                            : 'border-gray-700 hover:border-slate-200'
+                                            ? 'border-emerald-500 bg-emerald-500/10 shadow-[0_15px_50px_-35px_rgba(16,185,129,0.9)] scale-[1.02]'
+                                            : 'border-white/20 hover:border-white/40 hover:bg-white/5'
                                     )}
                                     aria-pressed={isActive}
                                 >
-                                    <p className=
-                                        {cn(
-                                            'font-semibold text-slate-300',
-                                            isActive
-                                                ? 'text-slate-900'
-                                                : ''
-                                        )}>{option.title}</p>
-                                    <p className='text-sm text-slate-500'>{option.description}</p>
+                                    <p className={cn(
+                                        'font-bold text-xs',
+                                        isActive ? 'text-emerald-400' : 'text-white'
+                                    )}>
+                                        {option.title}
+                                    </p>
+                                    <p className="text-[10px] text-white/50 font-medium mt-0.5">
+                                        {option.description}
+                                    </p>
                                 </button>
                             )
                         })}
                     </div>
                     {getError('creation_availability') && (
-                        <p className='mt-3 text-sm text-rose-500'>{getError('creation_availability')}</p>
+                        <p className="mt-3 text-xs text-rose-400 font-medium">{getError('creation_availability')}</p>
                     )}
                 </div>
             </div>
@@ -766,47 +794,46 @@ export function WaitListForm(): JSX.Element {
     )
 
     const renderTermsStep = () => (
-        <div className='space-y-8'>
-            <div className='rounded-3xl border border-gray-700  p-8 shadow-[0_40px_120px_-80px_rgba(255,121,0)]'>
-                <h4 className='mt-4 text-2xl font-semibold text-slate-300'>
+        <div className="space-y-6">
+            <div className="rounded-xl border border-[#fc7c04]/30 bg-[#fc7c04]/5 p-6 shadow-[0_30px_80px_-60px_rgba(252,124,4,0.5)]">
+                <h4 className="text-xl font-bold text-white tracking-tight">
                     Regulamento Oficial UGC 4ARTISTS
                 </h4>
-                <p className='mt-3 text-sm text-slate-500'>
+                <p className="mt-3 text-xs text-white/70 font-medium leading-relaxed">
                     Leia atentamente antes de confirmar sua inscrição. O movimento conecta artistas,
-                    criadores e gravadoras para campanhas de divulgação musical remuneradas. Ao confirmar,
-                    você declara estar ciente das regras e da exclusividade de 24 meses.
+                    criadores e gravadoras para campanhas de divulgação musical remuneradas.
                 </p>
                 <Button
                     asChild
-                    className='mt-6 h-12 rounded-2xl border-slate-200 text-white '
+                    className="mt-5 h-10 rounded-xl bg-white text-black font-bold hover:bg-white/90 shadow-lg shadow-white/20 transition-all duration-300 text-xs"
                 >
                     <a
                         href={'/regulamento'}
-                        target='_blank'
-                        rel='noreferrer'
-                        aria-label='Acessar Regulamento Oficial'
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Acessar Regulamento Oficial"
                     >
-                        <FileText />
+                        <FileText className="size-4" />
                         Acesse o Regulamento Oficial
                     </a>
                 </Button>
             </div>
-            <label className='flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-700  p-6 shadow-[0_30px_80px_-70px_rgba(15,23,42,1)]'>
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/20 bg-white/[0.02] p-5 shadow-[0_20px_60px_-50px_rgba(252,124,4,0.3)] hover:bg-white/5 transition-all duration-300">
                 <Checkbox
                     checked={data.terms}
                     onCheckedChange={(checked) => handleFieldChange('terms', Boolean(checked))}
-                    className='mt-1'
-                    aria-label='Li e concordo com o Regulamento Oficial'
+                    className="mt-0.5 data-[state=checked]:bg-[#fc7c04] data-[state=checked]:border-[#fc7c04]"
+                    aria-label="Li e concordo com o Regulamento Oficial"
                 />
-                <div className='space-y-1 text-sm text-slate-300'>
-                    <p className='font-semibold text-slate-300'>
+                <div className="space-y-1 text-xs">
+                    <p className="font-bold text-white">
                         Li e concordo com o Regulamento Oficial de Participação
                     </p>
-                    <p>
+                    <p className="text-white/60 font-medium">
                         Confirmo que estou apto(a) a participar das campanhas
                     </p>
                     {getError('terms') && (
-                        <p className='text-sm text-rose-500'>{getError('terms')}</p>
+                        <p className="text-xs text-rose-400 font-medium mt-2">{getError('terms')}</p>
                     )}
                 </div>
             </label>
@@ -814,120 +841,21 @@ export function WaitListForm(): JSX.Element {
     )
 
     return (
-        <>
-            {/* Left Column - Steps & Info */}
-            <div id="form" className=" lg:w-[420px] shrink-0 lg:border-r pr-12 border-white/5">
-                <div className=" lg:sticky lg:top-8 space-y-10" >
-                    {/* Progress Bar */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                            <span className="text-white/40">Progresso</span>
-                            <span className="text-primary font-medium">{progressValue}%</span>
-                        </div>
-                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-gradient-to-r from-primary to-[#ff9a3c] rounded-full transition-all duration-500 ease-out"
-                                style={{ width: `${progressValue}%` }}
-                            />
-                        </div>
-                    </div>
+        <div className="w-full max-w-3xl mx-auto">
+            {/* Editorial Card Container - Mais compacto */}
+            <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.02] backdrop-blur-sm px-6 md:px-8 pt-5 overflow-hidden shadow-[0_40px_120px_-80px_rgba(252,124,4,0.3)]">
+                {/* Subtle Inner Glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#fc7c04]/5 via-transparent to-transparent pointer-events-none rounded-[2rem]"></div>
 
-                    <div className="space-y-2" >
-                        {steps.map((step, index) => {
-                            const Icon = step.icon
-                            const isActive = currentStep === step.number
-                            const isCompleted = currentStep > step.number
-
-                            console.log(currentStep)
-                            console.log(step.number)
-
-                            return (
-                                <div
-                                    key={step.id}
-                                    className={`
-                      group relative flex items-center gap-4 p-4 rounded-2xl transition-all duration-300
-                      ${isActive ? "bg-primary/5" : "hover:bg-primary/[0.02]"}
-                    `}
-                                >
-                                    {/* Step Number/Icon */}
-                                    <div
-                                        className={`
-                      relative flex items-center justify-center w-14 h-14 rounded-xl transition-all duration-300
-                      ${isActive
-                                                ? "bg-primary"
-                                                : isCompleted
-                                                    ? "bg-primary/10 border border-primary/30"
-                                                    : "bg-white/5 border border-white/10"
-                                            }
-                    `}
-                                    >
-                                        {isCompleted ? (
-                                            <Check className="w-6 h-6 text-primary" />
-                                        ) : (
-                                            <Icon className={`w-6 h-6 ${isActive ? "text-black" : "text-white/30"}`} />
-                                        )}
-                                    </div>
-
-                                    {/* Step Info */}
-                                    <div className="flex-1">
-                                        <p className={`font-semibold transition-colors ${isActive ? "text-white" : "text-white/40"}`}>
-                                            {step.title}
-                                        </p>
-                                        <p className={`text-sm ${isActive ? "text-white/60" : "text-white/20"}`}>{step.subtitle}</p>
-                                    </div>
-
-                                    {/* Active Indicator */}
-                                    {isActive && <div className="absolute right-4 w-2 h-2 bg-primary rounded-full animate-pulse" />}
-
-                                    {/* Connection Line */}
-                                    {index < steps.length - 1 && (
-                                        <div
-                                            className={`
-                        absolute left-[43px] top-[72px] w-0.5 h-6
-                        ${isCompleted ? "bg-primary/30" : "bg-white/5"}
-                      `}
-                                        />
-                                    )}
-                                </div>
-                            )
-                        })}
-                    </div>
-
-                    {/* Social Links */}
-                    <div className="hidden lg:block pt-8 border-t border-white/5">
-                        <p className="text-xs text-white/30 uppercase tracking-wider mb-4">Siga-nos</p>
-                        <div className="flex items-center gap-3">
-                            {[
-                                { icon: Instagram, href: "https://www.instagram.com/ugc4artists/", label: "Instagram" },
-                            ].map(({ icon: SocialIcon, href, label }) => (
-                                <a
-                                    key={label}
-                                    href={href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="group flex items-center justify-center w-11 h-11 rounded-xl border-white/5 hover:border-[#fc7c04]/30 hover:bg-[#fc7c04]/5 transition-all duration-300"
-                                >
-                                    <SocialIcon className="w-5 h-5 text-white/40 group-hover:text-[#fc7c04] transition-colors" />
-                                </a>
-                            ))}
-                        </div>
-                    </div>
+                {/* Content */}
+                <div className="relative z-10">
+                    {renderSection()}
                 </div>
             </div>
-
-            {/* Right Column - Form */}
-            <div className="flex-1 flex items-start justify-center">
-                <div className="w-full max-w-2xl">
-                    {/* Form Container */}
-                    <div className="container relative">
-                        {/* Glassmorphism Card */}
-                        <div className="  relative border border-white/10 rounded-3xl p-8 md:p-10 overflow-hidden">
-                            {renderSection()}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </ >
+        </div>
     )
 }
+
+// Export steps for use in sidebar
+export { steps }
 

@@ -125,14 +125,10 @@ export function HeroShowcase({
                             className=""
                             preset="slide"
                         >
-                            {buttons.secondary && (
-                                <Button asChild >
-                                    <a href='#form'>
-                                        Preencher formulário
-                                        <ArrowDownRight className="size-4" />
-                                    </a>
-                                </Button>
-                            )}
+                            <div className="flex items-center gap-3 text-sm font-bold text-white/60">
+                                <ArrowDownRight className="size-5 text-[#fc7c04] animate-bounce" />
+                                <span>Role para baixo e preencha o formulário</span>
+                            </div>
                         </AnimatedGroup>
                     </div>
 
