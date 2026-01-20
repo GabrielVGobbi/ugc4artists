@@ -18,11 +18,15 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+	protected $fillable = [
+		'name',
+		'email',
+		'password',
+		'google_id',
+		'avatar',
+		'email_verified_at',
+		'onboarding_completed_at',
+	];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -34,6 +38,7 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
+        'onboarding_completed_at',
     ];
 
     /**
@@ -45,6 +50,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'onboarding_completed_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];

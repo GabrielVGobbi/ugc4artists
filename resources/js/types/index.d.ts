@@ -35,19 +35,21 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     sidebarOpen: boolean;
+    currentPath: string;
     [key: string]: unknown;
 }
 
 export interface User {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    email_verified_at: string | null;
-    two_factor_enabled?: boolean;
-    created_at: string;
-    updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
+	id: number;
+	name: string;
+	email: string;
+	google_id?: string | null;
+	avatar?: string | null;
+	email_verified_at: string | null;
+	two_factor_enabled?: boolean;
+	created_at: string;
+	updated_at: string;
+	[key: string]: unknown; // This allows for additional properties...
 }
 
 declare global {

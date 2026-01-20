@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin-layout'
+import AdminLayout from '@/layouts/app-layout'
 import { Head } from '@inertiajs/react'
 import { DollarSign } from 'lucide-react'
 
@@ -22,5 +22,7 @@ export default function Payments() {
 		</AdminLayout>
 	)
 }
+
+
 
 

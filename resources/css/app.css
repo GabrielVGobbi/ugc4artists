@@ -7,6 +7,21 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@layer utilities {
+    input:-webkit-autofill {
+        @apply bg-white text-zinc-900;
+        -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+        -webkit-text-fill-color: #000;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+
+    input:-webkit-autofill:focus {
+        @apply ring-2 ring-[#FF4D00]/20 border-[#FF4D00]/30;
+        -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+        -webkit-text-fill-color: #000;
+    }
+}
+
 @theme {
     --font-roboto:
         "Roboto", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
@@ -179,7 +194,7 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #FF4D00;
+    background: #ff4d00;
 }
 
 /* Smooth transitions for admin layout */

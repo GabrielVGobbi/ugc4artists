@@ -5,11 +5,16 @@ export default function AuthLayout({
     children,
     title,
     description,
+    subtitle,
+    type,
     ...props
 }: {
     children: React.ReactNode;
     title: string;
     description: string;
+    subtitle?: string;
+    type: 'login' | 'register';
+
 }) {
 
     useEffect(() => {
@@ -20,7 +25,7 @@ export default function AuthLayout({
     }, [])
 
     return (
-        <AuthLayoutTemplate title={title} description={description} {...props}>
+        <AuthLayoutTemplate title={title} description={description} subtitle={subtitle} type={type} {...props}>
             {children}
         </AuthLayoutTemplate>
     );

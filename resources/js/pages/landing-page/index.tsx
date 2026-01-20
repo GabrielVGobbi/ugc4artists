@@ -2,7 +2,7 @@ import type { SeoProps, SharedData } from '@/types'
 import { ContainerSection } from "@/components/landing-page/container";
 import { Layout } from "./layout";
 import { usePage } from "@inertiajs/react";
-import { dashboard, login, register } from "@/routes";
+import { dashboard } from "@/routes";
 import { Hero } from './components/hero';
 import { AppsLogo } from './components/apps-logo';
 import { FadeIn } from '@/components/fade-in';
@@ -28,27 +28,28 @@ export default function LandingPage({ seo, canRegister = true }: IndexPageProps)
     const { auth } = usePage<SharedData>().props
     const isAuthenticated = Boolean(auth?.user)
 
-    const heroPrimaryHref = isAuthenticated
-        ? dashboard().url
-        : canRegister
-            ? register().url
-            : login().url
+    //const heroPrimaryHref = isAuthenticated
+    //    ? dashboard().url
+    //    : canRegister
+    //        ? register().url
+    //        : login().url
+    //
+    //const heroPrimaryLabel = isAuthenticated
+    //    ? 'Ir para dashboard'
+    //    : canRegister
+    //        ? 'Comece agora'
+    //        : 'Entrar'
+    //
 
-    const heroPrimaryLabel = isAuthenticated
-        ? 'Ir para dashboard'
-        : canRegister
-            ? 'Comece agora'
-            : 'Entrar'
-
-    const headerCtaHref = heroPrimaryHref
+    const headerCtaHref = null; //heroPrimaryHref
     const headerCtaLabel = isAuthenticated
         ? 'Dashboard'
         : canRegister
             ? 'Lista de Espera'
             : 'Entrar'
 
-    const artistCtaHref = heroPrimaryHref
-    const brandCtaHref = login().url
+    //const artistCtaHref = heroPrimaryHref
+    //const brandCtaHref = login().url
 
     useEffect(() => {
         document.documentElement.classList.add('dark')

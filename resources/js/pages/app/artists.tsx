@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin-layout'
+import AdminLayout from '@/layouts/app-layout'
 import { Head } from '@inertiajs/react'
 import { Music } from 'lucide-react'
 
@@ -20,5 +20,7 @@ export default function Artists() {
 		</AdminLayout>
 	)
 }
+
+
 
 

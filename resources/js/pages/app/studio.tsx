@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin-layout'
+import AdminLayout from '@/layouts/app-layout'
 import { Head } from '@inertiajs/react'
 import { Zap, Sparkles, ArrowRight } from 'lucide-react'
 
@@ -81,5 +81,7 @@ export default function Studio() {
 		</AdminLayout>
 	)
 }
+
+
 
 

@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin-layout'
+import AdminLayout from '@/layouts/app-layout'
 import { Button } from '@headlessui/react'
 import { Head } from '@inertiajs/react'
 import { Plus, Search, Filter } from 'lucide-react'
@@ -40,5 +40,7 @@ export default function Campaigns() {
 		</AdminLayout>
 	)
 }
+
+
 
 

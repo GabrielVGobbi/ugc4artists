@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin-layout'
+import AdminLayout from '@/layouts/app-layout'
 import { Head } from '@inertiajs/react'
 import { Users } from 'lucide-react'
 
@@ -19,5 +19,7 @@ export default function Brands() {
 		</AdminLayout>
 	)
 }
+
+
 
 

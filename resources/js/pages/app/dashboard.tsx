@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin-layout'
+import AdminLayout from '@/layouts/app-layout'
 import {
     ArrowUpRight,
     ArrowDownRight,
@@ -416,5 +416,7 @@ export default function Dashboard({
         </AdminLayout>
     )
 }
+
+
 
 

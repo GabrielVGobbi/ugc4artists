@@ -52,7 +52,7 @@ export function CaseShowcaseSection() {
                         Grandes campanhas não nascem do acaso. Elas surgem quando pessoas criativas, estratégias bem definidas e conteúdo autêntico se conectam. Aqui, criadores UGC, artistas e marcas constroem narrativas que geram engajamento real, ampliam alcance e fazem a música circular onde ela realmente importa: nas pessoas.
                     </p>
                     <ul className="flex flex-wrap gap-2  ">
-                        {['spotify-icon', 'youtube-logo', 'deezer-logo', 'youtube-music-logo'].map((brand) => (
+                        {['spotify-icon', 'youtube-logo-black', 'deezer-logo', 'youtube-music-logo-black'].map((brand) => (
                             <li
                                 key={brand}
                                 className="rounded-full border border-gray-200 px-4 py-1 shadow-sm"

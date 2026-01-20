@@ -1,29 +1,29 @@
-import { Link, usePage } from '@inertiajs/react'
+import { Link, router, usePage } from '@inertiajs/react'
 import { LogOut, ArrowRight } from 'lucide-react'
-import { ADMIN_NAV_ITEMS, ADMIN_BOTTOM_NAV } from '@/lib/admin-constants'
+import { APP_NAV_ITEMS, APP_BOTTOM_NAV } from '@/lib/app-constants'
 import { cn } from '@/lib/utils'
+import { logout } from '@/routes'
 import AppLogo from '../app-logo'
 
-export const AdminSidebar = () => {
+export const AppSidebar = () => {
     const { url } = usePage()
 
     const isActive = (href: string) => {
-        if (href === '/admin/dashboard') {
-            return url === href || url === '/admin'
+        if (href === '/app/dashboard') {
+            return url === href || url === '/app'
         }
         return url.startsWith(href)
     }
 
     const handleLogout = () => {
-        // TODO: Implementar logout
-        window.location.href = '/logout'
+        router.post(logout().url)
     }
 
     return (
         <aside className="w-72 bg-[#0A0A0A] h-screen flex flex-col p-8 justify-between fixed left-0 top-0 z-50">
             <div>
                 {/* Logo Section */}
-                <Link href="/admin/dashboard" className="flex items-center mb-10" >
+                <Link href="/app/dashboard" className="flex items-center mb-10" >
                     <div>
 
                         <img
@@ -40,7 +40,7 @@ export const AdminSidebar = () => {
 
                 {/* Navigation Section */}
                 <nav className="space-y-2">
-                    {ADMIN_NAV_ITEMS.map((item) => {
+                    {APP_NAV_ITEMS.map((item) => {
                         const Icon = item.icon
                         const active = isActive(item.href)
 
@@ -98,7 +98,7 @@ export const AdminSidebar = () => {
 
                 {/* Bottom Navigation */}
                 <div className="space-y-1">
-                    {ADMIN_BOTTOM_NAV.map((item) => {
+                    {APP_BOTTOM_NAV.map((item) => {
                         const Icon = item.icon
                         const active = isActive(item.href)
 
@@ -124,7 +124,7 @@ export const AdminSidebar = () => {
 
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-zinc-500 hover:text-red-400 rounded-xl transition-all hover:bg-white/5"
+                        className="cursor-pointer w-full flex items-center gap-3 px-4 py-3 text-zinc-500 hover:text-red-400 rounded-xl transition-all hover:bg-white/5"
                     >
                         <LogOut size={20} />
                         <span className="font-medium text-[15px]">Sair</span>
@@ -134,5 +134,6 @@ export const AdminSidebar = () => {
         </aside>
     )
 }
+
 
 

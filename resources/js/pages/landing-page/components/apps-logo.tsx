@@ -46,7 +46,7 @@ export function AppsLogo() {
                                 gap={112}>
                                 <div className="flex">
                                     <img
-                                        className="mx-auto h-40 w-fit dark:invert"
+                                        className="mx-auto h-40 w-fit "
                                         src="/assets/landing_page/images/svg/youtube-logo.svg"
                                         alt="Laravel Logo"
                                         height="16"
@@ -64,7 +64,7 @@ export function AppsLogo() {
                                 </div>
                                 <div className="flex">
                                     <img
-                                        className="mx-auto h-40 w-fit dark:invert"
+                                        className="mx-auto h-40 w-fit "
                                         src="/assets/landing_page/images/svg/youtube-music-logo.svg"
                                         alt="Lemon Squeezy Logo"
                                         height="20"

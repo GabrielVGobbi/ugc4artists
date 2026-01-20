@@ -1,9 +1,9 @@
 import { Search, Bell, Command } from 'lucide-react'
 import { usePage } from '@inertiajs/react'
-import { getPageTitle } from '@/lib/admin-constants'
+import { getPageTitle } from '@/lib/app-constants'
 import { useState, useEffect } from 'react'
 
-export const AdminHeader = () => {
+export const AppHeader = () => {
 	const { url, props } = usePage()
 	const { title, subtitle } = getPageTitle(url)
 	const [searchQuery, setSearchQuery] = useState('')
@@ -16,7 +16,7 @@ export const AdminHeader = () => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
 				e.preventDefault()
-				document.getElementById('admin-search')?.focus()
+				document.getElementById('app-search')?.focus()
 			}
 		}
 
@@ -42,7 +42,7 @@ export const AdminHeader = () => {
 						<Search size={18} />
 					</div>
 					<input
-						id="admin-search"
+						id="app-search"
 						type="text"
 						placeholder="Buscar recursos..."
 						value={searchQuery}
@@ -68,19 +68,19 @@ export const AdminHeader = () => {
 				<div className="flex items-center gap-3 pl-4 border-l border-zinc-200">
 					<div className="text-right">
 						<p className="text-sm font-bold text-[#0A0A0A]">
-							{user?.name || 'Admin User'}
+							{user?.name || 'App User'}
 						</p>
 						<p className="text-xs text-zinc-400 font-medium italic">
-							{user?.role || 'Administrador'}
+							{user?.role || 'App'}
 						</p>
 					</div>
 					<div className="relative group cursor-pointer">
 						<img
 							src={
 								user?.avatar ||
-								`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Admin')}&background=FF4D00&color=fff&bold=true&size=100`
+								`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'App')}&background=FF4D00&color=fff&bold=true&size=100`
 							}
-							alt={user?.name || 'Admin'}
+							alt={user?.name || 'App'}
 							className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-lg group-hover:ring-[#FF4D00] transition-all"
 						/>
 						<div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></div>
@@ -90,5 +90,7 @@ export const AdminHeader = () => {
 		</header>
 	)
 }
+
+
 
 

@@ -38,9 +38,12 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $currentPath = $request->path();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'currentPath' => $currentPath,
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),

@@ -1,23 +1,23 @@
 # 🎨 UGC 4Artists - Admin Panel
 
-Sistema administrativo moderno e elegante inspirado no design editorial do Kreo.
+Sistema appistrativo moderno e elegante inspirado no design editorial do Kreo.
 
 ## 📐 Estrutura
 
 ```
 resources/js/
 ├── layouts/
-│   ├── admin-layout.tsx          # Layout principal do admin
+│   ├── app-layout.tsx          # Layout principal do app
 │   └── app-layout.tsx            # Layout antigo (backup)
 ├── components/
-│   └── admin/
-│       ├── admin-sidebar.tsx     # Sidebar com navegação
-│       └── admin-header.tsx      # Header com busca e perfil
+│   └── app/
+│       ├── app-sidebar.tsx     # Sidebar com navegação
+│       └── app-header.tsx      # Header com busca e perfil
 ├── pages/
-│   └── admin/
+│   └── app/
 │       └── dashboard.tsx         # Dashboard principal
 └── lib/
-    └── admin-constants.ts        # Constantes e configurações
+    └── app-constants.ts        # Constantes e configurações
 ```
 
 ## 🎨 Design System
@@ -56,19 +56,19 @@ resources/js/
 
 ## 🚀 Páginas Disponíveis
 
-### ✅ Dashboard (`/admin/dashboard`)
+### ✅ Dashboard (`/app/dashboard`)
 Dashboard principal com métricas, gráficos e insights
 
 ### 🔜 Em Desenvolvimento
-- Campanhas (`/admin/campaigns`)
-- Artistas (`/admin/artists`)
-- Marcas (`/admin/brands`)
-- Propostas (`/admin/proposals`)
-- Analytics (`/admin/analytics`)
-- Mensagens (`/admin/inbox`)
-- Pagamentos (`/admin/payments`)
-- Studio AI (`/admin/studio`)
-- Configurações (`/admin/settings`)
+- Campanhas (`/app/campaigns`)
+- Artistas (`/app/artists`)
+- Marcas (`/app/brands`)
+- Propostas (`/app/proposals`)
+- Analytics (`/app/analytics`)
+- Mensagens (`/app/inbox`)
+- Pagamentos (`/app/payments`)
+- Studio AI (`/app/studio`)
+- Configurações (`/app/settings`)
 
 ## 🎯 Features
 
@@ -106,8 +106,8 @@ Dashboard principal com métricas, gráficos e insights
 
 1. **Criar a página**:
 ```tsx
-// resources/js/pages/admin/nova-pagina.tsx
-import AdminLayout from '@/layouts/admin-layout'
+// resources/js/pages/app/nova-pagina.tsx
+import AdminLayout from '@/layouts/app-layout'
 import { Head } from '@inertiajs/react'
 
 export default function NovaPagina() {
@@ -125,19 +125,19 @@ export default function NovaPagina() {
 Route::get('/nova-pagina', [NovoController::class, 'index'])->name('nova-pagina');
 ```
 
-3. **Adicionar ao menu** em `admin-constants.ts`:
+3. **Adicionar ao menu** em `app-constants.ts`:
 ```ts
 {
     id: 'nova-pagina',
     label: 'Nova Página',
     icon: IconName,
-    href: '/admin/nova-pagina',
+    href: '/app/nova-pagina',
 }
 ```
 
 4. **Adicionar título** na função `getPageTitle`:
 ```ts
-'/admin/nova-pagina': {
+'/app/nova-pagina': {
     title: 'Título da Página',
     subtitle: 'Descrição curta da página.',
 }
@@ -172,7 +172,7 @@ Route::get('/nova-pagina', [NovoController::class, 'index'])->name('nova-pagina'
 
 ## 🔐 Autenticação
 
-O admin usa o middleware `auth` e `verified` do Laravel Fortify:
+O app usa o middleware `auth` e `verified` do Laravel Fortify:
 - Login obrigatório
 - Email verificado obrigatório
 - Logout disponível na sidebar
@@ -209,5 +209,7 @@ O admin usa o middleware `auth` e `verified` do Laravel Fortify:
 ---
 
 **Desenvolvido com 💜 pela equipe UGC 4Artists**
+
+
 
 
