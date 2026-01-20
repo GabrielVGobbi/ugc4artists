@@ -6,11 +6,16 @@ use Inertia\Inertia;
 
 Route::middleware(['auth'])->prefix('app')->name('app.')->group(function () {
 
-    Route::get('/onboarding', [DashboardAppController::class, 'onboarding'])->name('onboarding.index');
+    // Rotas de Onboarding
+    Route::prefix('onboarding')->name('onboarding.')->group(function () {
+        Route::get('/', [DashboardAppController::class, 'onboarding'])->name('index');
+        Route::post('/progress', [DashboardAppController::class, 'saveOnboardingProgress'])->name('progress');
+        Route::post('/complete', [DashboardAppController::class, 'completeOnboarding'])->name('complete');
+    });
 
+    // Rotas protegidas pelo middleware de onboarding
     Route::middleware(['onboarding'])->group(function () {
         Route::get('/dashboard', [DashboardAppController::class, 'index'])->name('dashboard');
-
         Route::get('/campaigns', fn() => Inertia::render('app/campaigns'))->name('campaigns');
         Route::get('/artists', fn() => Inertia::render('app/artists'))->name('artists');
         Route::get('/brands', fn() => Inertia::render('app/brands'))->name('brands');

@@ -9,20 +9,20 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Artisan::command('app:clear', function () {
+    $this->call('optimize:clear');
     $this->call('config:clear');
     $this->call('route:clear');
     $this->call('event:clear');
     $this->call('view:clear');
     $this->call('cache:clear');
-    //TODO quando adicionar telescope, descomentar
-    #$this->call('telescope:prune', ['--hours' => 48]);
+    $this->call('optimize');
+    $this->call('telescope:prune', ['--hours' => 48]);
     $this->info('Todos os caches foram limpos com sucesso!');
 })->purpose('Clear application caches');
 
 Artisan::command('app:clear-min', function () {
     $this->call('cache:clear');
-    //TODO quando adicionar telescope, descomentar
-    #$this->call('telescope:prune', ['--hours' => 48]);
+    $this->call('telescope:prune', ['--hours' => 48]);
     $this->info('Cache de aplicação limpo + Telescope prune!');
 })->purpose('Clear application caches');
 

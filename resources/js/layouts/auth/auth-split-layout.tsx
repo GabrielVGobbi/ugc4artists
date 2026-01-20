@@ -25,15 +25,7 @@ export default function AuthSplitLayout({
         <div className="relative grid min-h-dvh lg:grid-cols-2">
             {/* Left Panel - Visual/Branding Side */}
             <div className="relative hidden lg:flex flex-col bg-foreground overflow-hidden">
-                {/* Background Image with Overlay */}
-                <div className="absolute inset-0">
-                    <img
-                        src="/assets/landing_page/images/music.webp"
-                        alt="UGC Background"
-                        className="w-full h-full object-cover opacity-40"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground/80 to-primary/20" />
-                </div>
+
 
                 {/* Editorial Background Text - Like Admin Layout */}
                 <div className="absolute top-[-5%] left-[-5%] text-[18rem] font-black text-white/[0.03] pointer-events-none select-none z-0 rotate-[-8deg] leading-none">
@@ -41,7 +33,6 @@ export default function AuthSplitLayout({
                 </div>
 
                 {/* Decorative Elements */}
-                <div className="absolute top-20 right-20 w-32 h-32 border border-primary/20 rounded-full" />
                 <div className="absolute top-32 right-32 w-16 h-16 bg-primary/10 rounded-full blur-xl" />
                 <div className="absolute bottom-40 left-20 w-24 h-24 border border-white/10 rotate-45" />
 

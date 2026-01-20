@@ -14,10 +14,7 @@ export default function ClearLayout({ children, headerCompact = false }: AppLayo
         <div className="flex h-screen w-full bg-[#FAF9F6] text-[#0A0A0A] overflow-hidden">
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col overflow-hidden relative ml-72">
-                <div className="absolute top-[-10%] right-[-5%] text-[24rem] font-bold text-black/[0.02] pointer-events-none select-none z-0 rotate-[-5deg]">
-                    UGC
-                </div>
+            <main className="flex-1 flex flex-col overflow-hidden">
 
                 {/* Subtle gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#fc7c04]/[0.02] via-transparent to-transparent pointer-events-none z-0"></div>

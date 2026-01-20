@@ -16,6 +16,9 @@ use Laravel\Fortify\Features;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/regulamento', [HomeController::class, 'regulamento'])->name('regulamento');
+Route::get('/svg-demo', function () {
+    return Inertia::render('svg-icons-demo');
+})->name('svg.demo');
 Route::get('/waitlist', [WaitlistRegistrationController::class, 'index']);
 Route::get('/formulario', [WaitlistRegistrationController::class, 'index']);
 Route::post('/waitlist', [WaitlistRegistrationController::class, 'store'])->name('waitlist.store');
