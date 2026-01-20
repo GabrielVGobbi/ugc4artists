@@ -51,7 +51,7 @@ export function Header({ isAuthenticated, headerCtaHref, headerCtaLabel }: Heade
                         className="bg-primary px-5 font-semibold text-white hover:bg-secondary"
                     >
                         <Link prefetch href={'/waitlist'} tabIndex={0}>
-                            Lista de Espera
+                            Cadastre-se
                             <SquareArrowUpRight />
                         </Link>
                     </Button>
