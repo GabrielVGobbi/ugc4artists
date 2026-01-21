@@ -25,6 +25,7 @@ Route::post('/waitlist', [WaitlistRegistrationController::class, 'store'])->name
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/app.php';
+require __DIR__ . '/admin.php';
 require __DIR__ . '/settings.php';
 
 Route::get('/sitemap.xml', function () {

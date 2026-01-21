@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Api\AccountApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
 use App\Http\Controllers\App\DashboardAppController;
@@ -16,6 +17,11 @@ use Laravel\Fortify\Features;
 
 Route::post('auth', [AuthenticateApiController::class, 'auth'])->name('api.auth');
 
+/*
+|--------------------------------------------------------------------------
+| Routes Usuários
+|--------------------------------------------------------------------------
+*/
 Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function () {
 
     /*
@@ -33,4 +39,15 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
     |--------------------------------------------------------------------------
     */
     Route::get('account', [AccountApiController::class, 'me'])->name('account');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Routes Admin
+|--------------------------------------------------------------------------
+*/
+Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:developer'])->group(function () {
+    Route::name('admin.')->prefix('admin')->group(function () {
+        Route::apiResource('users', UsersController::class);
+    });
 });
