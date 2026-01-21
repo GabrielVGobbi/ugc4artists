@@ -6,6 +6,7 @@ namespace App\Services\Onboarding;
 
 use App\Models\OnboardingProfile;
 use App\Models\User;
+use App\Modules\Permissions\Models\Role;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -66,9 +67,9 @@ class OnboardingService
     {
         return DB::transaction(function () use ($user, $data) {
             $role = $data['role'] ?? 'artist';
-            
+
             // Para marcas, usa company_name como display_name
-            $displayName = $role === 'brand' 
+            $displayName = $role === 'brand'
                 ? ($data['company_name'] ?? $data['display_name'] ?? $user->name)
                 : ($data['display_name'] ?? $user->name);
 
@@ -100,9 +101,12 @@ class OnboardingService
             $user->update([
                 'onboarding_completed_at' => now(),
                 'name' => $displayName,
+                'account_type' => $data['role']
             ]);
 
-            // Limpa o cache de progresso
+            $role = Role::whereSlug($data['role'])->first();
+            $user->roles()->syncWithoutDetaching([$user]);
+
             $this->clearProgress($user);
 
             return $profile;
@@ -118,19 +122,38 @@ class OnboardingService
 
         // Campos que não são do profile_data
         $excludedFields = [
-            'role', 'display_name', 'country', 'state', 'city',
-            'primary_language', 'source', 'expectation', 'links',
+            'role',
+            'display_name',
+            'country',
+            'state',
+            'city',
+            'primary_language',
+            'source',
+            'expectation',
+            'links',
         ];
 
         $profileData = [];
 
         if ($role === 'artist') {
             $artistFields = [
-                'artist_type', 'primary_genre', 'subgenres', 'career_stage',
-                'released_tracks_count', 'release_frequency', 'next_release_window',
-                'release_type', 'release_stage', 'has_cover_art', 'has_release_date',
-                'release_date', 'platforms', 'audience_range', 'primary_goal',
-                'open_to', 'monetization_status',
+                'artist_type',
+                'primary_genre',
+                'subgenres',
+                'career_stage',
+                'released_tracks_count',
+                'release_frequency',
+                'next_release_window',
+                'release_type',
+                'release_stage',
+                'has_cover_art',
+                'has_release_date',
+                'release_date',
+                'platforms',
+                'audience_range',
+                'primary_goal',
+                'open_to',
+                'monetization_status',
             ];
 
             foreach ($artistFields as $field) {
@@ -140,12 +163,25 @@ class OnboardingService
             }
         } elseif ($role === 'creator') {
             $creatorFields = [
-                'primary_handle', 'creator_type', 'niches', 'audience_gender',
-                'audience_age_range', 'platforms', 'followers_range',
-                'engagement_self_assessment', 'content_formats', 'content_style',
-                'on_camera_presence', 'production_resources', 'brand_experience_level',
-                'work_models', 'monthly_capacity', 'primary_goal',
-                'disallowed_categories', 'exclusivity_preference', 'preferred_brands_text',
+                'primary_handle',
+                'creator_type',
+                'niches',
+                'audience_gender',
+                'audience_age_range',
+                'platforms',
+                'followers_range',
+                'engagement_self_assessment',
+                'content_formats',
+                'content_style',
+                'on_camera_presence',
+                'production_resources',
+                'brand_experience_level',
+                'work_models',
+                'monthly_capacity',
+                'primary_goal',
+                'disallowed_categories',
+                'exclusivity_preference',
+                'preferred_brands_text',
             ];
 
             foreach ($creatorFields as $field) {
@@ -155,12 +191,30 @@ class OnboardingService
             }
         } elseif ($role === 'brand') {
             $brandFields = [
-                'company_name', 'brand_name', 'industry', 'company_size', 'website',
-                'contact_name', 'contact_role', 'contact_email', 'contact_phone',
-                'team_size_marketing', 'primary_objective', 'kpi_focus', 'campaign_timeline',
-                'creator_types', 'platform_targets', 'target_niches', 'creator_location_preference',
-                'monthly_budget_range', 'campaigns_per_month', 'typical_deliverables',
-                'needs', 'approval_flow', 'disallowed_creator_categories', 'brand_guidelines_url',
+                'company_name',
+                'brand_name',
+                'industry',
+                'company_size',
+                'website',
+                'contact_name',
+                'contact_role',
+                'contact_email',
+                'contact_phone',
+                'team_size_marketing',
+                'primary_objective',
+                'kpi_focus',
+                'campaign_timeline',
+                'creator_types',
+                'platform_targets',
+                'target_niches',
+                'creator_location_preference',
+                'monthly_budget_range',
+                'campaigns_per_month',
+                'typical_deliverables',
+                'needs',
+                'approval_flow',
+                'disallowed_creator_categories',
+                'brand_guidelines_url',
             ];
 
             foreach ($brandFields as $field) {

@@ -138,12 +138,19 @@ class DashboardAppController extends Controller
     /**
      * Completa o onboarding e salva no banco.
      */
-    public function completeOnboarding(CompleteOnboardingRequest $request): RedirectResponse
+    public function completeOnboarding(CompleteOnboardingRequest $request)
     {
         $user = $request->user();
         $validated = $request->validated();
 
         $this->onboardingService->completeOnboarding($user, $validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Bem-vindo! Seu perfil foi configurado com sucesso.',
+            ]);
+        }
 
         return redirect()->route('app.dashboard')->with('success', 'Bem-vindo! Seu perfil foi configurado com sucesso.');
     }

@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Modules\Permissions\Traits\HasPermissionsTrait;
+use App\Supports\Enums\Users\UserRoleType;
+use App\Supports\Traits\GenerateUuidTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, GenerateUuidTrait, Notifiable, TwoFactorAuthenticatable, HasPermissionsTrait, HasApiTokens, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -28,6 +33,7 @@ class User extends Authenticatable
         'avatar',
         'email_verified_at',
         'onboarding_completed_at',
+        'account_type',
     ];
 
     /**
@@ -54,6 +60,7 @@ class User extends Authenticatable
             'onboarding_completed_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'account_type' => UserRoleType::class,
         ];
     }
 
@@ -79,5 +86,13 @@ class User extends Authenticatable
     public function getRole(): ?string
     {
         return $this->onboardingProfile?->role;
+    }
+
+    /**
+     * Scope to filter by specific type
+     */
+    public function scopeByType($query, UserRoleType $type)
+    {
+        return $query->where('account_type', $type);
     }
 }
