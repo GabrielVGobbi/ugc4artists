@@ -9,7 +9,7 @@ export default function Studio() {
 
 			<div className="space-y-8">
 				{/* Hero Card */}
-				<div className="bg-gradient-to-br from-[#FF4D00] to-[#FF6A33] rounded-[2.5rem] p-16 text-white shadow-2xl relative overflow-hidden">
+				<div className="bg-gradient-to-br from-primary to-[#FF6A33] rounded-[2.5rem] p-16 text-white shadow-2xl relative overflow-hidden">
 					<div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
 					<div className="relative z-10 max-w-2xl">
 						<div className="flex items-center gap-3 mb-6">
@@ -26,7 +26,7 @@ export default function Studio() {
 							Encontre os artistas perfeitos, gere briefings completos e otimize suas
 							estratégias automaticamente.
 						</p>
-						<button className="px-8 py-4 bg-white text-[#FF4D00] rounded-2xl font-bold flex items-center gap-3 hover:bg-zinc-100 transition-all shadow-xl">
+						<button className="px-8 py-4 bg-white text-primary rounded-2xl font-bold flex items-center gap-3 hover:bg-zinc-100 transition-all shadow-xl">
 							Começar Agora
 							<ArrowRight size={20} />
 						</button>

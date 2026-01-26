@@ -20,11 +20,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
 				</div>
 
 				{/* Subtle gradient overlay */}
-				<div className="absolute inset-0 bg-gradient-to-br from-[#FF4D00]/[0.01] via-transparent to-transparent pointer-events-none z-0"></div>
+				<div className="absolute inset-0 bg-gradient-to-br from-primary/[0.01] via-transparent to-transparent pointer-events-none z-0"></div>
 
 				<AppHeader />
 
-				<div className="flex-1 overflow-y-auto px-10 pb-12 custom-scrollbar relative z-10">
+				<div className="flex-1 overflow-y-auto px-10 pb-12 pt-2 custom-scrollbar relative z-10">
 					{children}
 				</div>
 			</main>

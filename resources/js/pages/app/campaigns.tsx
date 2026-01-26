@@ -16,7 +16,7 @@ export default function Campaigns() {
 
 						</p>
 					</div>
-					<Button className="px-6 py-3 bg-[#FF4D00] text-white rounded-2xl font-bold flex items-center gap-2 hover:bg-[#FF6A33] transition-all shadow-lg shadow-[#FF4D00]/20">
+					<Button className="px-6 py-3 bg-primary text-white rounded-2xl font-bold flex items-center gap-2 hover:bg-[#FF6A33] transition-all shadow-lg shadow-primary/20">
 						<Plus size={20} />
 						Nova Campanha
 					</Button>

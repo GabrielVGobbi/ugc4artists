@@ -14,11 +14,24 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Bavix\Wallet\Traits\HasWallet;
+use Bavix\Wallet\Interfaces\Wallet;
+use Bavix\Wallet\Interfaces\Customer;
+use Bavix\Wallet\Traits\CanPay;
+use Bavix\Wallet\Traits\HasWalletFloat;
 
-class User extends Authenticatable
+class User extends Authenticatable implements Wallet, Customer
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, GenerateUuidTrait, Notifiable, TwoFactorAuthenticatable, HasPermissionsTrait, HasApiTokens, SoftDeletes;
+    use HasFactory,
+        GenerateUuidTrait,
+        Notifiable,
+        TwoFactorAuthenticatable,
+        HasPermissionsTrait,
+        HasApiTokens,
+        SoftDeletes,
+        HasWalletFloat,
+        CanPay;
 
     /**
      * The attributes that are mass assignable.
@@ -46,6 +59,7 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
+        'balance'
     ];
 
     /**

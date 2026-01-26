@@ -20,7 +20,7 @@ export default function AuthGoogleAlternative({ status, error }: AuthGoogleProps
 					href="/auth/redirect"
 					tabIndex={0}
 					aria-label="Entrar com Google"
-					className="cursor-pointer w-full bg-white border-2 border-zinc-100 py-5 rounded-[1.5rem] flex items-center justify-center gap-4 hover:border-[#FF4D00] hover:bg-zinc-50 transition-all duration-300 group shadow-sm"
+					className="cursor-pointer w-full bg-white border-2 border-zinc-100 py-5 rounded-[1.5rem] flex items-center justify-center gap-4 hover:border-primary hover:bg-zinc-50 transition-all duration-300 group shadow-sm"
 				>
 					<svg className="w-6 h-6" viewBox="0 0 24 24" aria-hidden="true">
 						<path

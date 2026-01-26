@@ -18,8 +18,13 @@ class UserResource extends JsonResource
             'id' => $this->uuid,
             'name' => $this->name,
             'email' => $this->email,
-            'account_type' => $this->account_type->getLabelText(),
+            'account_type' => $this->account_type?->getLabelText(),
             'avatar' => $this->avatar,
+
+            'balance' => $this->when(
+                (auth()->check() && auth()->id() === $this->id) || auth()->user()->hasRole('developer'),
+                fn() => toCurrency($this->balanceFloat)
+            ),
         ];
     }
 }

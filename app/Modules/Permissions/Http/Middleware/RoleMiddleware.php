@@ -17,7 +17,7 @@ class RoleMiddleware
 
         // Verifica role
         if (!$request->user()->hasRole($role)) {
-            abort(403, 'Acesso negado: role necessária - ' . $role);
+            abort(403, 'Acesso negado');
         }
 
         // Verifica permission (se fornecida)
@@ -25,7 +25,7 @@ class RoleMiddleware
             $perm = Permission::where('slug', $permission)->first();
 
             if (!$perm || !$request->user()->hasPermissionTo($perm)) {
-                abort(403, 'Acesso negado: permissão necessária - ' . $permission);
+                abort(403, 'Acesso negado');
             }
         }
 

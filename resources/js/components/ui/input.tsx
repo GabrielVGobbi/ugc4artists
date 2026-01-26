@@ -16,8 +16,7 @@ const inputVariants = cva(
                 default: "",
                 filled: "",
                 ghost: "",
-                underline:
-                    "",
+                underline: "",
             },
             size: {
                 sm: "",

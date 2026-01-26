@@ -1,10 +1,24 @@
 <?php
 
 use App\Http\Controllers\App\DashboardAppController;
+use App\Http\Controllers\App\WalletAppController as WalletApp;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::middleware(['auth'])->prefix('app')->name('app.')->group(function () {
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Wallet
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('wallet')->name('wallet.')->group(function () {
+        Route::get('/', [WalletApp::class, 'index'])->name('index');
+        Route::get('/add-balance', [WalletApp::class, 'create'])->name('create');
+        Route::post('/deposit', [WalletApp::class, 'addBalanceCheckout'])->name('deposit');
+    });
+
 
     // Rotas de Onboarding
     Route::prefix('onboarding')->name('onboarding.')->group(function () {
@@ -13,7 +27,6 @@ Route::middleware(['auth'])->prefix('app')->name('app.')->group(function () {
         Route::post('/complete', [DashboardAppController::class, 'completeOnboarding'])->name('complete');
     });
 
-    // Rotas protegidas pelo middleware de onboarding
     Route::middleware(['onboarding'])->group(function () {
         Route::get('/dashboard', [DashboardAppController::class, 'index'])->name('dashboard');
         Route::get('/campaigns', fn() => Inertia::render('app/campaigns'))->name('campaigns');

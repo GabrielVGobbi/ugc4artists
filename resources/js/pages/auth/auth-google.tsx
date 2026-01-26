@@ -36,11 +36,11 @@ export default function AuthGoogle({ status, error }: AuthGoogleProps) {
 					disabled={isLoading}
 					tabIndex={0}
 					aria-label="Entrar com Google"
-					className="cursor-pointer w-full bg-white border-2 border-zinc-100 py-5 rounded-[1.5rem] flex items-center justify-center gap-4 hover:border-[#FF4D00] hover:bg-zinc-50 transition-all duration-300 group shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+					className="cursor-pointer w-full bg-white border-2 border-zinc-100 py-5 rounded-[1.5rem] flex items-center justify-center gap-4 hover:border-primary hover:bg-zinc-50 transition-all duration-300 group shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					{isLoading ? (
 						<div className="flex items-center gap-3">
-							<div className="w-5 h-5 border-2 border-[#FF4D00] border-t-transparent rounded-full animate-spin" />
+							<div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
 							<span className="font-black uppercase text-[11px] tracking-[0.2em] text-[#0A0A0A]">
 								Conectando...
 							</span>

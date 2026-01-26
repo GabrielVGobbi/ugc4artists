@@ -116,13 +116,7 @@ export default function Dashboard({
         },
     ],
 }: DashboardProps) {
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-            minimumFractionDigits: 0,
-        }).format(value)
-    }
+
 
     return (
         <AdminLayout>
@@ -161,7 +155,7 @@ export default function Dashboard({
                 </div>
 
                 <div className="col-span-12 lg:col-span-3">
-                    <div className="bg-[#FF4D00] rounded-[2.5rem] p-8 h-full flex flex-col justify-between text-white relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 shadow-xl shadow-orange-500/10">
+                    <div className="bg-primary rounded-[2.5rem] p-8 h-full flex flex-col justify-between text-white relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 shadow-xl shadow-orange-500/10">
                         <div className="relative z-10 flex justify-between items-start">
                             <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
                                 <Flame size={24} />
@@ -181,7 +175,7 @@ export default function Dashboard({
                 </div>
 
                 <div className="col-span-12 lg:col-span-3">
-                    <div className="bg-white rounded-[2.5rem] p-8 h-full flex flex-col justify-between shadow-sm border border-zinc-100 group hover:border-[#FF4D00]/20 transition-all duration-500">
+                    <div className="bg-white rounded-[2.5rem] p-8 h-full flex flex-col justify-between shadow-sm border border-zinc-100 group hover:border-primary/20 transition-all duration-500">
                         <div className="flex justify-between items-start">
                             <div className="p-3 bg-zinc-100 rounded-2xl text-zinc-500 group-hover:bg-[#0A0A0A] group-hover:text-white transition-all">
                                 <Clock size={24} />
@@ -206,14 +200,14 @@ export default function Dashboard({
 
                 <div className="grid grid-cols-12 gap-8 lg:col-span-12">
                     <div className="col-span-12 lg:col-span-4 group cursor-pointer">
-                        <div className="bg-white border-2 border-zinc-100 rounded-[3rem] p-5 h-full flex flex-col items-center justify-center text-center relative overflow-hidden hover:border-[#FF4D00] transition-all duration-500 group">
+                        <div className="bg-white border-2 border-zinc-100 rounded-[3rem] p-5 h-full flex flex-col items-center justify-center text-center relative overflow-hidden hover:border-primary transition-all duration-500 group">
                             {/* Animated Background Icon */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-zinc-50/50 group-hover:text-[#FF4D00]/5 transition-colors duration-500">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-zinc-50/50 group-hover:text-primary/5 transition-colors duration-500">
                                 <Plus size={300} strokeWidth={1} />
                             </div>
 
                             <div className="relative z-10 mb-8">
-                                <div className="w-24 h-24 bg-[#FAF9F6] rounded-[2rem] flex items-center justify-center text-[#FF4D00] shadow-sm group-hover:bg-[#FF4D00] group-hover:text-white transition-all duration-500 group-hover:rotate-90 group-hover:scale-110">
+                                <div className="w-24 h-24 bg-[#FAF9F6] rounded-[2rem] flex items-center justify-center text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-all duration-500 group-hover:rotate-90 group-hover:scale-110">
                                     <Plus size={40} strokeWidth={3} />
                                 </div>
                             </div>
@@ -225,7 +219,7 @@ export default function Dashboard({
                                 </p>
                             </div>
 
-                            <div className="mt-5 relative z-10 flex items-center gap-2 text-[#FF4D00] font-black uppercase text-[10px] tracking-[0.2em] opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                            <div className="mt-5 relative z-10 flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.2em] opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                                 <span>Começar agora</span>
                                 <Sparkles size={14} />
                             </div>
@@ -236,7 +230,7 @@ export default function Dashboard({
                     <div className="col-span-12 lg:col-span-8 bg-white rounded-[2.5rem] p-10 relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
                         <div className="flex justify-between items-start relative z-10">
                             <div className="space-y-6 max-w-lg">
-                                <span className="inline-block px-4 py-1.5 bg-[#FF4D00]/10 text-[#FF4D00] text-xs font-bold rounded-full uppercase tracking-wider">
+                                <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-xs font-bold rounded-full uppercase tracking-wider">
                                     Campanha em Destaque
                                 </span>
                                 <h3 className="text-5xl font-bold leading-tight">
@@ -278,7 +272,7 @@ export default function Dashboard({
                         </div>
 
                         {/* Abstract shapes */}
-                        <div className="absolute top-[-10%] left-[60%] w-[500px] h-[500px] bg-[#FF4D00]/[0.02] rounded-full blur-[100px] -z-0"></div>
+                        <div className="absolute top-[-10%] left-[60%] w-[500px] h-[500px] bg-primary/[0.02] rounded-full blur-[100px] -z-0"></div>
                     </div>
 
                 </div>
@@ -310,7 +304,7 @@ export default function Dashboard({
                                             className="w-14 h-14 rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all"
                                         />
                                         {artist.isActive && (
-                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#FF4D00] border-4 border-[#0A0A0A] rounded-full"></div>
+                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary border-4 border-[#0A0A0A] rounded-full"></div>
                                         )}
                                     </div>
                                     <div>
@@ -327,7 +321,7 @@ export default function Dashboard({
                                         </p>
                                         <div className="h-1.5 w-24 bg-zinc-800 rounded-full mt-2 overflow-hidden">
                                             <div
-                                                className="h-full bg-[#FF4D00]"
+                                                className="h-full bg-primary"
                                                 style={{ width: `${artist.matchPercentage}%` }}
                                             ></div>
                                         </div>
@@ -338,7 +332,7 @@ export default function Dashboard({
                                         </p>
                                         <p className="text-sm font-bold">{artist.engagement}</p>
                                     </div>
-                                    <button className="p-3 bg-white/5 rounded-2xl group-hover:bg-[#FF4D00] group-hover:text-white transition-all">
+                                    <button className="p-3 bg-white/5 rounded-2xl group-hover:bg-primary group-hover:text-white transition-all">
                                         <Plus size={20} />
                                     </button>
                                 </div>
@@ -369,7 +363,7 @@ export default function Dashboard({
                         {recentCampaigns.map((campaign) => (
                             <div
                                 key={campaign.id}
-                                className="group cursor-pointer border-2 border-zinc-100 rounded-3xl p-6 hover:border-[#FF4D00]/30 hover:shadow-lg transition-all"
+                                className="group cursor-pointer border-2 border-zinc-100 rounded-3xl p-6 hover:border-primary/30 hover:shadow-lg transition-all"
                             >
                                 <div className="flex gap-4">
                                     <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 bg-zinc-100">
@@ -381,7 +375,7 @@ export default function Dashboard({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between mb-2">
-                                            <h5 className="font-bold text-lg group-hover:text-[#FF4D00] transition-colors truncate">
+                                            <h5 className="font-bold text-lg group-hover:text-primary transition-colors truncate">
                                                 {campaign.title}
                                             </h5>
                                             <span
@@ -399,7 +393,7 @@ export default function Dashboard({
                                             {campaign.brand}
                                         </p>
                                         <div className="flex items-center justify-between text-xs">
-                                            <span className="font-bold text-[#FF4D00]">
+                                            <span className="font-bold text-primary">
                                                 {campaign.budget}
                                             </span>
                                             <span className="text-zinc-400">

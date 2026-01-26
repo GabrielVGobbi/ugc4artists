@@ -39,32 +39,32 @@ export const APP_NAV_ITEMS: NavItem[] = [
 		icon: Music,
 		href: '/app/artists',
 	},
-	{
-		id: 'brands',
-		label: 'Marcas',
-		icon: Users,
-		href: '/app/brands',
-	},
-	{
-		id: 'proposals',
-		label: 'Propostas',
-		icon: FileText,
-		href: '/app/proposals',
-		badge: 5,
-	},
+	//{
+	//	id: 'brands',
+	//	label: 'Marcas',
+	//	icon: Users,
+	//	href: '/app/brands',
+	//},
+	//{
+	//	id: 'proposals',
+	//	label: 'Propostas',
+	//	icon: FileText,
+	//	href: '/app/proposals',
+	//	badge: 5,
+	//},
 	{
 		id: 'analytics',
 		label: 'Analytics',
 		icon: PieChart,
 		href: '/app/analytics',
 	},
-	{
-		id: 'inbox',
-		label: 'Mensagens',
-		icon: MessageSquare,
-		href: '/app/inbox',
-		badge: 3,
-	},
+	//{
+	//	id: 'inbox',
+	//	label: 'Mensagens',
+	//	icon: MessageSquare,
+	//	href: '/app/inbox',
+	//	badge: 3,
+	//},
 	{
 		id: 'payments',
 		label: 'Pagamentos',
@@ -138,6 +138,14 @@ export const getPageTitle = (pathname: string): { title: string; subtitle: strin
 		'/app/settings': {
 			title: 'Configurações',
 			subtitle: 'Personalize sua experiência.',
+		},
+        '/app/wallet': {
+			title: 'Minha Carteira',
+			subtitle: 'Visualize saldo, histórico de transações e recebimentos.',
+		},
+        '/app/wallet/add-balance': {
+			title: 'Adicionar Saldo',
+			subtitle: 'Adicionar saldo na carteira.',
 		},
 	}
 

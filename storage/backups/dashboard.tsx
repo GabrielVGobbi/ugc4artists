@@ -130,7 +130,7 @@ export default function Dashboard({
 				<div className="col-span-12 lg:col-span-8 bg-white rounded-[2.5rem] p-10 relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
 					<div className="flex justify-between items-start relative z-10">
 						<div className="space-y-6 max-w-lg">
-							<span className="inline-block px-4 py-1.5 bg-[#FF4D00]/10 text-[#FF4D00] text-xs font-bold rounded-full uppercase tracking-wider">
+							<span className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-xs font-bold rounded-full uppercase tracking-wider">
 								Campanha em Destaque
 							</span>
 							<h3 className="text-5xl font-bold leading-tight">
@@ -172,13 +172,13 @@ export default function Dashboard({
 					</div>
 
 					{/* Abstract shapes */}
-					<div className="absolute top-[-10%] left-[60%] w-[500px] h-[500px] bg-[#FF4D00]/[0.02] rounded-full blur-[100px] -z-0"></div>
+					<div className="absolute top-[-10%] left-[60%] w-[500px] h-[500px] bg-primary/[0.02] rounded-full blur-[100px] -z-0"></div>
 				</div>
 
 				{/* Revenue Stats Card */}
-				<div className="col-span-12 lg:col-span-4 bg-white rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-between border-t-4 border-[#FF4D00] group">
+				<div className="col-span-12 lg:col-span-4 bg-white rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-between border-t-4 border-primary group">
 					<div className="flex justify-between items-center">
-						<div className="w-12 h-12 bg-zinc-100 rounded-2xl flex items-center justify-center text-[#FF4D00] group-hover:scale-110 transition-transform">
+						<div className="w-12 h-12 bg-zinc-100 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
 							<DollarSign size={24} />
 						</div>
 						<span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
@@ -196,7 +196,7 @@ export default function Dashboard({
 					<div className="pt-8">
 						<p className="text-zinc-400 text-sm font-medium leading-relaxed">
 							Seu ecossistema está gerando{' '}
-							<span className="text-[#0A0A0A] font-bold underline decoration-[#FF4D00]/30">
+							<span className="text-[#0A0A0A] font-bold underline decoration-primary/30">
 								resultados excepcionais
 							</span>{' '}
 							este trimestre.
@@ -261,7 +261,7 @@ export default function Dashboard({
 					</div>
 				</div>
 
-				<div className="col-span-12 lg:col-span-3 bg-gradient-to-br from-[#FF4D00] to-[#FF6A33] rounded-[2.5rem] p-8 shadow-lg hover:shadow-2xl transition-all group text-white relative overflow-hidden">
+				<div className="col-span-12 lg:col-span-3 bg-gradient-to-br from-primary to-[#FF6A33] rounded-[2.5rem] p-8 shadow-lg hover:shadow-2xl transition-all group text-white relative overflow-hidden">
 					<div className="absolute top-[-50%] right-[-50%] w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
 					<div className="relative z-10">
 						<div className="flex items-center justify-between mb-6">
@@ -305,7 +305,7 @@ export default function Dashboard({
 											className="w-14 h-14 rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all"
 										/>
 										{artist.isActive && (
-											<div className="absolute -top-1 -right-1 w-4 h-4 bg-[#FF4D00] border-4 border-[#0A0A0A] rounded-full"></div>
+											<div className="absolute -top-1 -right-1 w-4 h-4 bg-primary border-4 border-[#0A0A0A] rounded-full"></div>
 										)}
 									</div>
 									<div>
@@ -322,7 +322,7 @@ export default function Dashboard({
 										</p>
 										<div className="h-1.5 w-24 bg-zinc-800 rounded-full mt-2 overflow-hidden">
 											<div
-												className="h-full bg-[#FF4D00]"
+												className="h-full bg-primary"
 												style={{ width: `${artist.matchPercentage}%` }}
 											></div>
 										</div>
@@ -333,7 +333,7 @@ export default function Dashboard({
 										</p>
 										<p className="text-sm font-bold">{artist.engagement}</p>
 									</div>
-									<button className="p-3 bg-white/5 rounded-2xl group-hover:bg-[#FF4D00] group-hover:text-white transition-all">
+									<button className="p-3 bg-white/5 rounded-2xl group-hover:bg-primary group-hover:text-white transition-all">
 										<Plus size={20} />
 									</button>
 								</div>
@@ -346,13 +346,13 @@ export default function Dashboard({
 				</div>
 
 				{/* AI Studio Card */}
-				<div className="col-span-12 lg:col-span-5 bg-gradient-to-br from-zinc-50 to-zinc-100 border-2 border-zinc-200 rounded-[2.5rem] p-10 flex flex-col justify-between hover:border-[#FF4D00]/30 transition-all cursor-pointer group relative overflow-hidden">
-					<div className="absolute top-0 right-0 w-48 h-48 bg-[#FF4D00]/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+				<div className="col-span-12 lg:col-span-5 bg-gradient-to-br from-zinc-50 to-zinc-100 border-2 border-zinc-200 rounded-[2.5rem] p-10 flex flex-col justify-between hover:border-primary/30 transition-all cursor-pointer group relative overflow-hidden">
+					<div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
 					<div className="relative z-10">
-						<div className="w-16 h-16 bg-gradient-to-br from-[#FF4D00] to-[#FF6A33] rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 mb-6">
+						<div className="w-16 h-16 bg-gradient-to-br from-primary to-[#FF6A33] rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 mb-6">
 							<Play size={28} fill="white" className="text-white" />
 						</div>
-						<span className="inline-block px-3 py-1 bg-[#FF4D00]/10 text-[#FF4D00] text-xs font-bold rounded-full uppercase tracking-wider mb-4">
+						<span className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full uppercase tracking-wider mb-4">
 							Novo Recurso
 						</span>
 						<h5 className="text-3xl font-bold mb-3">Studio AI</h5>
@@ -384,7 +384,7 @@ export default function Dashboard({
 						{recentCampaigns.map((campaign) => (
 							<div
 								key={campaign.id}
-								className="group cursor-pointer border-2 border-zinc-100 rounded-3xl p-6 hover:border-[#FF4D00]/30 hover:shadow-lg transition-all"
+								className="group cursor-pointer border-2 border-zinc-100 rounded-3xl p-6 hover:border-primary/30 hover:shadow-lg transition-all"
 							>
 								<div className="flex gap-4">
 									<div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 bg-zinc-100">
@@ -396,7 +396,7 @@ export default function Dashboard({
 									</div>
 									<div className="flex-1 min-w-0">
 										<div className="flex items-start justify-between mb-2">
-											<h5 className="font-bold text-lg group-hover:text-[#FF4D00] transition-colors truncate">
+											<h5 className="font-bold text-lg group-hover:text-primary transition-colors truncate">
 												{campaign.title}
 											</h5>
 											<span
@@ -415,7 +415,7 @@ export default function Dashboard({
 											{campaign.brand}
 										</p>
 										<div className="flex items-center justify-between text-xs">
-											<span className="font-bold text-[#FF4D00]">
+											<span className="font-bold text-primary">
 												{campaign.budget}
 											</span>
 											<span className="text-zinc-400">
