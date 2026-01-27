@@ -1,13 +1,15 @@
-import { Search, Bell, Command, ArrowLeft } from 'lucide-react'
-import { router, usePage } from '@inertiajs/react'
+import { Search, Bell, Command } from 'lucide-react'
+import { usePage } from '@inertiajs/react'
 import { getPageTitle } from '@/lib/app-constants'
 import { useState, useEffect } from 'react'
-import { Button } from '../ui/button'
+import { useHeader } from '@/contexts/header-context'
+import { Button } from '@/components/ui/button'
 
 export const AppHeader = () => {
     const { url, props } = usePage()
     const { title, subtitle } = getPageTitle(url)
     const [searchQuery, setSearchQuery] = useState('')
+    const { headerActions } = useHeader()
 
     // Get user from props (Fortify/auth)
     const user = (props.auth as any)?.user.data
@@ -26,31 +28,29 @@ export const AppHeader = () => {
     }, [])
 
     return (
-        <header className="px-10 py-6 grid items-center  bg-transparent relative z-20">
+        <header className="px-10 py-6 grid items-center bg-transparent relative z-20">
             <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-5xl font-bold tracking-tight text-[#0A0A0A] capitalize">
-                        {title}
-                    </h2>
-                    <p className="text-zinc-400 text-sm font-medium tracking-wide">
-                        {subtitle}
-                    </p>
-                </div>
+                <div className="flex items-center gap-6">
 
-                {/* todo: adicionar dinamicamente nas telas */}
-                <div className=" items-center justify-between hidden">
-                    <Button
-                        size={'none'} variant={'none'}
-                        className="group flex items-center gap-3 text-zinc-500 hover:text-[#0A0A0A] transition-all font-black uppercase text-[10px] tracking-[0.3em]"
-                    >
-                        <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:border-[#0A0A0A] transition-colors">
-                            <ArrowLeft size={16} />
-                        </div>
-                        Voltar para Carteira
-                    </Button>
+                    <div>
+                        <h2 className="text-5xl font-bold tracking-tight text-[#0A0A0A] capitalize">
+                            {title}
+                        </h2>
+                        <p className="text-zinc-400 text-sm font-medium tracking-wide">
+                            {subtitle}
+                        </p>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-6">
+
+                    {/* Header Actions (botão voltar, etc) */}
+                    {headerActions && (
+                        <div className="flex items-center">
+                            {headerActions}
+                        </div>
+                    )}
+
 
                     <div className="relative group hidden">
                         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-400">

@@ -10,3 +10,6 @@ export { useClipboard } from './use-clipboard'
 export { useMobileNavigation } from './use-mobile-navigation'
 export { useTwoFactorAuth } from './use-two-factor-auth'
 export { useSvg } from './use-svg'
+
+// Layout Hooks
+export { useHeaderActions } from './use-header-actions'

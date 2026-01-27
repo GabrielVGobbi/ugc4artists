@@ -89,7 +89,7 @@ class DepositRequest extends FormRequest
 
         throw_if(
             !validarCpfCnpj($value),
-            ValidationException::withMessages(['cpf' => 'Por favor digite um cpf ou cnpj válido'])
+            ValidationException::withMessages(['cpf' => 'Por favor digite um cpf válido'])
         );
 
         return only_numbers($value);

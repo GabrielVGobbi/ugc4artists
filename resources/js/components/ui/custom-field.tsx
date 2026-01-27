@@ -18,7 +18,7 @@ type InputProps = BaseProps & NativeInputProps & {
     as?: "input"
     type?: string
     value: string | number | undefined
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 type TextareaProps = BaseProps & {
