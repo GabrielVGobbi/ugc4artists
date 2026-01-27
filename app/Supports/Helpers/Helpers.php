@@ -84,3 +84,90 @@ function amountToDec($valor)
 
     return floatval($money);
 }
+
+if (!function_exists('only_numbers')) {
+    /**
+     * Extrai apenas os números de uma string.
+     *
+     * @param string $string
+     * @return string
+     */
+    function only_numbers($string)
+    {
+        if (empty($string)) {
+            return 0;
+        }
+
+        return preg_replace('/\D/', '', $string);
+    }
+}
+
+function validarCpfCnpj($value)
+{
+    // Remove caracteres não numéricos
+    $value = preg_replace('/[^0-9]/', '', $value);
+
+    // Valida o tamanho do CPF ou CNPJ
+    if (strlen($value) === 11) {
+        return validarCpf($value);
+    } elseif (strlen($value) === 14) {
+        return validarCnpj($value);
+    }
+
+    return false;
+}
+
+function validarCpf($cpf)
+{
+    if (app()->isLocal()) {
+        return true;
+    }
+
+    // Rejeita números repetidos, como "111.111.111-11"
+    if (preg_match('/(\d)\1{10}/', $cpf)) {
+        return false;
+    }
+
+    // Calcula os dígitos verificadores
+    for ($t = 9; $t < 11; $t++) {
+        $d = 0;
+        for ($c = 0; $c < $t; $c++) {
+            $d += $cpf[$c] * (($t + 1) - $c);
+        }
+        $d = ((10 * $d) % 11) % 10;
+        if ($cpf[$c] != $d) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function validarCnpj($cnpj)
+{
+    // Rejeita números repetidos, como "11.111.111/1111-11"
+    if (preg_match('/(\d)\1{13}/', $cnpj)) {
+        return false;
+    }
+
+    // Pesos para o cálculo do primeiro e segundo dígito verificador
+    $pesos1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    $pesos2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+    // Calcula o primeiro dígito verificador
+    $d1 = 0;
+    for ($i = 0; $i < 12; $i++) {
+        $d1 += $cnpj[$i] * $pesos1[$i];
+    }
+    $d1 = ($d1 % 11 < 2) ? 0 : 11 - ($d1 % 11);
+
+    // Calcula o segundo dígito verificador
+    $d2 = 0;
+    for ($i = 0; $i < 13; $i++) {
+        $d2 += $cnpj[$i] * $pesos2[$i];
+    }
+    $d2 = ($d2 % 11 < 2) ? 0 : 11 - ($d2 % 11);
+
+    // Verifica os dígitos
+    return $cnpj[12] == $d1 && $cnpj[13] == $d2;
+}

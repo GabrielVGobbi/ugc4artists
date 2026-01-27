@@ -1,41 +1,45 @@
-import './bootstrap';
-import '../css/app.css';
+import './bootstrap'
+import '../css/app.css'
 
-import { createInertiaApp } from '@inertiajs/react';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { initializeTheme } from './hooks/use-appearance';
-//import { installTwicpics } from "@twicpics/components/react";
-//import "@twicpics/components/style.css";
+import { createInertiaApp } from '@inertiajs/react'
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { initializeTheme } from './hooks/use-appearance'
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-//installTwicpics({
-//    // domain is mandatory
-//    "domain": "https://ugc4artists.twic.pics"
-//});
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel'
+
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: 1,
+            refetchOnWindowFocus: false,
+            staleTime: 1000 * 60 * 5, // 5 min
+        },
+    },
+})
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) =>
-        resolvePageComponent(
-            `./pages/${name}.tsx`,
-            import.meta.glob('./pages/**/*.tsx'),
-        ),
+        resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
-        const root = createRoot(el);
+        const root = createRoot(el)
 
         root.render(
-            <StrictMode>
-                <App {...props} />
-            </StrictMode>,
-        );
+            <QueryClientProvider client={queryClient}>
+                <StrictMode>
+                    <App {...props} />
+                </StrictMode>
+            </QueryClientProvider>,
+        )
     },
     progress: {
         color: '#4B5563',
     },
-});
+})
 
 // This will set light / dark mode on load...
-initializeTheme();
+initializeTheme()

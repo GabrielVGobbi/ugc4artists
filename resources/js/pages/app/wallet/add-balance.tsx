@@ -21,12 +21,14 @@ import { Input } from '@/components/ui/input'
 import { CustomField } from '@/components/ui/custom-field'
 import { Button } from '@/components/ui/button'
 import { SharedData } from '@/types'
+import { AddressSelector } from '@/components/app/address-selector'
 
 interface FormData {
     amount: number
     payment_method: 'pix' | 'card'
     name: string
     cpf: string
+    address_id: string
     address: string
     card_number?: string
     card_expiry?: string
@@ -46,6 +48,7 @@ export default function AddBalance() {
         payment_method: 'pix',
         name: user.name,
         cpf: '',
+        address_id: '',
         address: '',
         card_number: '',
         card_expiry: '',
@@ -53,7 +56,7 @@ export default function AddBalance() {
     })
 
     const isFormValid = () => {
-        const basicInfo = data.name && data.cpf && data.address && data.amount > 0
+        const basicInfo = data.name && data.cpf && data.address_id && data.amount > 0
 
 
         if (data.payment_method === 'card') {
@@ -198,17 +201,15 @@ export default function AddBalance() {
                                             <p className="text-red-500 text-xs font-medium">{errors.cpf}</p>
                                         )}
                                     </div>
-                                    <div className="md:col-span-2 space-y-2">
-
-                                        <CustomField
-                                            label="Endereço de Cobrança"
-                                            placeholder="Alameda / Rua / Endereço, Nº"
-                                            value={data.address}
-                                            onChange={(e) => setData('address', e.target.value)}
+                                    <div className="md:col-span-2">
+                                        <AddressSelector
+                                            value={data.address_id}
+                                            onChange={(addressId, fullAddress) => {
+                                                setData('address_id', addressId)
+                                                setData('address', fullAddress)
+                                            }}
+                                            error={errors.address_id || errors.address}
                                         />
-                                        {errors.address && (
-                                            <p className="text-red-500 text-xs font-medium">{errors.address}</p>
-                                        )}
                                     </div>
                                 </div>
                             </section>

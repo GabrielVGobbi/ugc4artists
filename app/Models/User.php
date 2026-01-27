@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Modules\Permissions\Traits\HasPermissionsTrait;
 use App\Supports\Enums\Users\UserRoleType;
 use App\Supports\Traits\GenerateUuidTrait;
+use App\Supports\Traits\HasAddresses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -31,6 +32,7 @@ class User extends Authenticatable implements Wallet, Customer
         HasApiTokens,
         SoftDeletes,
         HasWalletFloat,
+        HasAddresses,
         CanPay;
 
     /**

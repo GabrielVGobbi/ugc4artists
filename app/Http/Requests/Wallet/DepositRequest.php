@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Wallet;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class DepositRequest extends FormRequest
 {
@@ -25,6 +26,7 @@ class DepositRequest extends FormRequest
     {
         //TODO: colocar o min / max via constante de Item (Serviço)
         //      colocar o payment_method Enum
+        //      validar cpf
         $rules = [
             'amount' => ['required',  'min:1'],
             'payment_method' => ['required', 'in:pix,card'],
@@ -51,6 +53,7 @@ class DepositRequest extends FormRequest
     {
         $this->merge([
             'amount' => amountToDec($this->amount),
+            'cpf' => $this->validateCpfCnpj($this->cpf),
         ]);
     }
 
@@ -75,5 +78,20 @@ class DepositRequest extends FormRequest
             'card_expiry.required' => 'A validade do cartão é obrigatória.',
             'card_cvv.required' => 'O CVV é obrigatório.',
         ];
+    }
+
+
+    private function validateCpfCnpj($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        throw_if(
+            !validarCpfCnpj($value),
+            ValidationException::withMessages(['cpf' => 'Por favor digite um cpf ou cnpj válido'])
+        );
+
+        return only_numbers($value);
     }
 }
