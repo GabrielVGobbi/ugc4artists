@@ -18,7 +18,8 @@
         "laravel/socialite": "^5.24",
         "laravel/telescope": "^5.16",
         "laravel/tinker": "^2.10.1",
-        "laravel/wayfinder": "^0.1.9"
+        "laravel/wayfinder": "^0.1.9",
+        "laravellegends/pt-br-validator": "^12.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -39,6 +40,7 @@
         },
         "files": [
             "app/Supports/Helpers/Helpers.php",
+            "app/Supports/Helpers/Masks.php",
             "app/Supports/Helpers/DateHelper.php"
         ]
     },

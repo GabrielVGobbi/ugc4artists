@@ -4,10 +4,18 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\OnlyNumber;
+use App\Modules\Payments\Core\Traits\HasPayments;
 use App\Modules\Permissions\Traits\HasPermissionsTrait;
 use App\Supports\Enums\Users\UserRoleType;
 use App\Supports\Traits\GenerateUuidTrait;
 use App\Supports\Traits\HasAddresses;
+use Bavix\Wallet\Interfaces\Customer;
+use Bavix\Wallet\Interfaces\Wallet;
+use Bavix\Wallet\Traits\CanConfirm;
+use Bavix\Wallet\Traits\CanPay;
+use Bavix\Wallet\Traits\HasWallet;
+use Bavix\Wallet\Traits\HasWalletFloat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,11 +23,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
-use Bavix\Wallet\Traits\HasWallet;
-use Bavix\Wallet\Interfaces\Wallet;
-use Bavix\Wallet\Interfaces\Customer;
-use Bavix\Wallet\Traits\CanPay;
-use Bavix\Wallet\Traits\HasWalletFloat;
 
 class User extends Authenticatable implements Wallet, Customer
 {
@@ -31,9 +34,13 @@ class User extends Authenticatable implements Wallet, Customer
         HasPermissionsTrait,
         HasApiTokens,
         SoftDeletes,
-        HasWalletFloat,
+
+        HasPayments,
         HasAddresses,
-        CanPay;
+        HasWalletFloat,
+        HasWallet,
+        CanPay,
+        CanConfirm;
 
     /**
      * The attributes that are mass assignable.
@@ -43,9 +50,12 @@ class User extends Authenticatable implements Wallet, Customer
     protected $fillable = [
         'name',
         'email',
+        'phone',
+        'document',
         'password',
         'google_id',
         'avatar',
+        'asaas_id',
         'email_verified_at',
         'onboarding_completed_at',
         'account_type',
@@ -77,6 +87,8 @@ class User extends Authenticatable implements Wallet, Customer
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'account_type' => UserRoleType::class,
+            'document' => OnlyNumber::class,
+            'phone' => OnlyNumber::class,
         ];
     }
 
@@ -110,5 +122,10 @@ class User extends Authenticatable implements Wallet, Customer
     public function scopeByType($query, UserRoleType $type)
     {
         return $query->where('account_type', $type);
+    }
+
+    public function hasValidDocumentAndPhone(): bool
+    {
+        return filled($this->document) && filled($this->phone);
     }
 }

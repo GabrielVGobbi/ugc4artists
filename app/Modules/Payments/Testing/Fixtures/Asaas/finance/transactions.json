@@ -1,0 +1,36 @@
+{
+    "object": "list",
+    "hasMore": false,
+    "totalCount": 3,
+    "limit": 10,
+    "offset": 0,
+    "data": [
+        {
+            "object": "financialTransaction",
+            "id": "ft_mock_001",
+            "value": 100.00,
+            "balance": 10000.00,
+            "type": "PAYMENT_RECEIVED",
+            "date": "2024-01-15",
+            "description": "Recebimento de pagamento mock"
+        },
+        {
+            "object": "financialTransaction",
+            "id": "ft_mock_002",
+            "value": -50.00,
+            "balance": 9950.00,
+            "type": "TRANSFER",
+            "date": "2024-01-16",
+            "description": "Transferência realizada mock"
+        },
+        {
+            "object": "financialTransaction",
+            "id": "ft_mock_003",
+            "value": 250.00,
+            "balance": 10200.00,
+            "type": "PAYMENT_RECEIVED",
+            "date": "2024-01-17",
+            "description": "Recebimento de pagamento mock 2"
+        }
+    ]
+}

@@ -1,0 +1,33 @@
+{
+    "object": "transfer",
+    "id": "{id}",
+    "dateCreated": "2024-01-15",
+    "status": "DONE",
+    "effectiveDate": "2024-01-15",
+    "endToEndIdentifier": "E00000000202401151234mock",
+    "type": "PIX",
+    "value": 500.00,
+    "netValue": 500.00,
+    "transferFee": 0,
+    "scheduleDate": "2024-01-15",
+    "authorized": true,
+    "failReason": null,
+    "transactionReceiptUrl": "https://sandbox.asaas.com/receipt/transfer_mock",
+    "bankAccount": {
+        "bank": {
+            "ispb": "00000000",
+            "code": "001",
+            "name": "Banco do Brasil"
+        },
+        "accountName": "Conta Destino Mock",
+        "ownerName": "Destinatário Mock",
+        "cpfCnpj": "12345678901",
+        "agency": "0001",
+        "agencyDigit": "0",
+        "account": "12345",
+        "accountDigit": "6",
+        "pixAddressKey": null
+    },
+    "operationType": "PIX",
+    "description": "Transferência Mock"
+}

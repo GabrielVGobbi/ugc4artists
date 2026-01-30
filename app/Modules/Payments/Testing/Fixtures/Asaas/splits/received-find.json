@@ -1,0 +1,13 @@
+{
+    "object": "paymentSplit",
+    "id": "{id}",
+    "payment": "pay_mock_001",
+    "walletId": "wallet_mock_main",
+    "fixedValue": 50.00,
+    "percentualValue": null,
+    "totalValue": 50.00,
+    "status": "DONE",
+    "cancellationReason": null,
+    "externalReference": "split_received_ref_001",
+    "description": "Split Mock Recebido"
+}

@@ -1,0 +1,18 @@
+{
+    "object": "subscription",
+    "id": "sub_mock_{uuid}",
+    "dateCreated": "{date}",
+    "customer": "{request.customer}",
+    "paymentLink": null,
+    "billingType": "{request.billingType}",
+    "cycle": "{request.cycle}",
+    "value": "{request.value}",
+    "nextDueDate": "{request.nextDueDate}",
+    "description": "{request.description}",
+    "endDate": "{request.endDate}",
+    "maxPayments": "{request.maxPayments}",
+    "status": "ACTIVE",
+    "externalReference": "{request.externalReference}",
+    "split": null,
+    "deleted": false
+}

@@ -1,0 +1,35 @@
+{
+    "object": "list",
+    "hasMore": false,
+    "totalCount": 2,
+    "limit": 10,
+    "offset": 0,
+    "data": [
+        {
+            "object": "paymentSplit",
+            "id": "split_mock_001",
+            "payment": "pay_mock_001",
+            "walletId": "wallet_mock_001",
+            "fixedValue": 50.00,
+            "percentualValue": null,
+            "totalValue": 50.00,
+            "status": "DONE",
+            "cancellationReason": null,
+            "externalReference": "split_ref_001",
+            "description": "Split Mock Pago 1"
+        },
+        {
+            "object": "paymentSplit",
+            "id": "split_mock_002",
+            "payment": "pay_mock_002",
+            "walletId": "wallet_mock_002",
+            "fixedValue": null,
+            "percentualValue": 10.00,
+            "totalValue": 25.00,
+            "status": "DONE",
+            "cancellationReason": null,
+            "externalReference": "split_ref_002",
+            "description": "Split Mock Pago 2"
+        }
+    ]
+}

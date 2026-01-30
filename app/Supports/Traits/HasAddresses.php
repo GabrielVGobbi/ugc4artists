@@ -15,4 +15,12 @@ trait HasAddresses
     {
         return $this->morphMany(Address::class, 'addressable');
     }
+
+    /**
+     * Relacionamento: um serviço pode ter vários endereços.
+     */
+    public function defaultAddress()
+    {
+        return $this->addresses->where('is_default', true)->first();
+    }
 }

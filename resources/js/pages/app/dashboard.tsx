@@ -221,7 +221,6 @@ export default function Dashboard({
 
                             <div className="mt-5 relative z-10 flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.2em] opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                                 <span>Começar agora</span>
-                                <Sparkles size={14} />
                             </div>
                         </div>
                     </div>

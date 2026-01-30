@@ -1,0 +1,31 @@
+{
+    "object": "list",
+    "hasMore": false,
+    "totalCount": 1,
+    "limit": 10,
+    "offset": 0,
+    "data": [
+        {
+            "id": "wh_mock_001",
+            "name": "UGC App Webhook",
+            "url": "https://example.com/webhook/asaas",
+            "email": null,
+            "enabled": true,
+            "interrupted": false,
+            "apiVersion": 3,
+            "hasAuthToken": true,
+            "sendType": "SEQUENTIALLY",
+            "penalizedRequestsCount": 0,
+            "events": [
+                "PAYMENT_CREATED",
+                "PAYMENT_UPDATED",
+                "PAYMENT_CONFIRMED",
+                "PAYMENT_RECEIVED",
+                "PAYMENT_OVERDUE",
+                "PAYMENT_DELETED",
+                "PAYMENT_RESTORED",
+                "PAYMENT_REFUNDED"
+            ]
+        }
+    ]
+}

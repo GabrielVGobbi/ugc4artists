@@ -18,6 +18,8 @@ class UserResource extends JsonResource
             'id' => $this->uuid,
             'name' => $this->name,
             'email' => $this->email,
+            'document' => mask_cpf($this->document, true),
+            'phone' => mask_phone($this->phone, true),
             'account_type' => $this->account_type?->getLabelText(),
             'avatar' => $this->avatar,
 

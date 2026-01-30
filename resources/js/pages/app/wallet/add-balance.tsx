@@ -34,20 +34,24 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { formatCPF } from '@/lib/utils'
+import { formatCPF, validateCPF, isCPFComplete, formatPhone, formatCardDate, formatCardNumber, isMaskedCPF, formatPhoneFromDigits } from '@/lib/utils'
 import { useHeaderActions } from '@/hooks/use-header-actions'
+import { PaymentHelpModal } from '@/components/app/payment-help-modal'
+import { useWhatsAppMessages } from '@/hooks'
 
 interface FormData {
     amount: number
     payment_method: 'pix' | 'card'
     name: string
-    cpf: string
+    document: string
+    phone: string
     address_id: string
     address: string
     save_cpf: boolean
     card_number?: string
     card_expiry?: string
     card_cvv?: string
+    card_holder_name: string
 }
 
 type Step = 1 | 2 | 3
@@ -57,6 +61,7 @@ export default function AddBalance() {
     const [isSuccess, setIsSuccess] = useState(false)
     const [currentStep, setCurrentStep] = useState<Step>(1)
     const [showPrivacyDialog, setShowPrivacyDialog] = useState(false)
+    const [cpfError, setCpfError] = useState<string | null>(null)
 
     const { url, props } = usePage<SharedData>()
     const user = props.auth?.user.data as UserAuth
@@ -77,14 +82,18 @@ export default function AddBalance() {
             </Button>
 
             <div className="flex items-center gap-4">
-                <Button
-                    size={'none'}
-                    variant={'none'}
-                    onClick={() => setShowHelp(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-white rounded-xl border border-zinc-100 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-primary transition-all shadow-sm"
-                >
-                    <HelpCircle size={16} /> Autoajuda
-                </Button>
+                <PaymentHelpModal
+                    trigger={
+                        <Button
+                            size={'none'}
+                            variant={'none'}
+                            onClick={() => setShowHelp(true)}
+                            className="flex items-center gap-2 px-6 py-3 bg-white rounded-xl border border-zinc-100 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-primary transition-all shadow-sm"
+                        >
+                            <HelpCircle size={16} /> Autoajuda
+                        </Button>
+                    }
+                />
             </div>
         </div>
     ), [])
@@ -95,18 +104,46 @@ export default function AddBalance() {
         amount: 0,
         payment_method: 'pix',
         name: user.name,
-        cpf: '',
+        phone: user.phone,
+        document: user.document,
         address_id: '',
         address: '',
         save_cpf: false,
         card_number: '',
         card_expiry: '',
         card_cvv: '',
+        card_holder_name: '',
     })
 
     const isStep1Valid = () => {
-        return data.name.trim() !== '' && data.cpf.trim() !== '' && data.address_id.trim() !== ''
-    }
+        setCpfError(null);
+
+        if (!data.document || !data.phone) {
+            return false;
+        }
+
+        if (!data.name.trim() || !data.document.trim() || !data.address_id.trim() || !data.phone.trim()) {
+            return false;
+        }
+
+        if (isMaskedCPF(data.document)) {
+            return true;
+        }
+
+        if (!isCPFComplete(data.document)) {
+            return false;
+        }
+
+        const validation = validateCPF(data.document);
+
+        if (!validation.isValid) {
+            setCpfError(validation.error ?? 'Documento inválido');
+            return false;
+        }
+
+        return true;
+    };
+
 
     const isStep2Valid = () => {
         return data.amount > 0
@@ -169,14 +206,15 @@ export default function AddBalance() {
                         <div className="flex flex-col gap-4 pt-4">
                             <button
                                 onClick={() => router.visit(dashboard.url())}
-                                className="w-full bg-[#0A0A0A] text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary transition-all shadow-xl"
+                                className="cursor-pointer w-full bg-[#0A0A0A] text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary transition-all shadow-xl"
                             >
-                                Criar Campanha Agora <Zap size={18} />
+                                Criar Campanha Agora
                             </button>
                             <button
                                 onClick={() => router.visit(wallet.index.url())}
-                                className="w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-[#0A0A0A] hover:text-[#0A0A0A] transition-all"
+                                className="cursor-pointer w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-[#0A0A0A] hover:text-[#0A0A0A] transition-all"
                             >
+                                <ArrowLeft size={18} className="group-hover:translate-x-1 transition-transform" />
                                 Voltar à Carteira
                             </button>
                         </div>
@@ -254,7 +292,7 @@ export default function AddBalance() {
                                         </p>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-1">
                                         <div className="space-y-2">
                                             <CustomField
                                                 label="Nome Completo"
@@ -266,20 +304,50 @@ export default function AddBalance() {
                                                 <p className="text-red-500 text-xs font-medium">{errors.name}</p>
                                             )}
                                         </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="space-y-2">
                                             <CustomField
                                                 label="CPF"
                                                 placeholder="000.000.000-00"
-                                                value={data.cpf}
+                                                value={data.document}
+                                                disabled={isMaskedCPF(data.document)}
                                                 onChange={(e) => {
+                                                    if (isMaskedCPF(data.document)) return;
+
                                                     const formatted = formatCPF(e.target.value);
-                                                    setData('cpf', formatted)
+                                                    setData('document', formatted);
+
+                                                    if (isCPFComplete(formatted)) {
+                                                        const validation = validateCPF(formatted);
+                                                        setCpfError(validation.isValid ? null : (validation.error ?? 'Documento inválido'));
+                                                    } else {
+                                                        setCpfError(null);
+                                                    }
                                                 }}
+                                                error={errors.document}
+
                                             />
-                                            {errors.cpf && (
-                                                <p className="text-red-500 text-xs font-medium">{errors.cpf}</p>
+
+                                            {(cpfError) && (
+                                                <p className="text-red-500 text-xs font-medium">{cpfError || errors.document}</p>
                                             )}
                                         </div>
+
+                                        <div className="space-y-2">
+                                            <CustomField
+                                                label="Celular com DDD"
+                                                placeholder="(00) 00000-0000"
+                                                value={formatPhoneFromDigits(data.phone)}
+                                                onChange={(e) => {
+                                                    const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+                                                    setData('phone', digits);
+                                                }}
+                                                error={errors.phone}
+                                            />
+                                        </div>
+
                                         <div className="md:col-span-2">
                                             <AddressSelector
                                                 value={data.address_id}
@@ -292,8 +360,7 @@ export default function AddBalance() {
                                         </div>
                                     </div>
 
-
-                                    <div className="relative z-10 flex items-center justify-between gap-6">
+                                    <div className="relative z-10 flex items-center justify-between gap-6 hidden">
                                         <div className="flex items-start gap-4 flex-1">
 
                                             <div className="space-y-2 flex-1">
@@ -340,7 +407,7 @@ export default function AddBalance() {
                                         <Button
                                             size={'none'}
                                             variant={'none'}
-                                            disabled={!isStep1Valid()}
+                                            disabled={!isStep1Valid() || !!cpfError}
                                             onClick={handleNextStep}
                                             className="bg-[#0A0A0A] text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 hover:bg-primary transition-all shadow-xl disabled:opacity-30 disabled:cursor-not-allowed group"
                                         >
@@ -367,7 +434,7 @@ export default function AddBalance() {
                                     </div>
 
                                     <div className="space-y-6">
-                                        <div className="flex flex-wrap gap-4">
+                                        <div className="flex flex-wrap justify-between ">
                                             {[200, 500, 1000, 2000].map((val) => (
                                                 <Button
                                                     variant={'none'}
@@ -528,9 +595,9 @@ export default function AddBalance() {
                                                     <CustomField
                                                         label="Nome Completo (Como está no cartão)"
                                                         placeholder=""
-                                                        value={data.card_number}
-                                                        onChange={(e) => setData('card_number', e.target.value)}
-                                                        error={errors.card_number}
+                                                        value={data.card_holder_name}
+                                                        onChange={(e) => setData('card_holder_name', e.target.value)}
+                                                        error={errors.card_holder_name}
                                                     />
                                                 </div>
                                                 <div className="md:col-span-3 space-y-2">
@@ -538,7 +605,10 @@ export default function AddBalance() {
                                                         label="Número do Cartão"
                                                         placeholder="0000 0000 0000 0000"
                                                         value={data.card_number}
-                                                        onChange={(e) => setData('card_number', e.target.value)}
+                                                        onChange={(e) => {
+                                                            const formatted = formatCardNumber(e.target.value);
+                                                            setData('card_number', formatted);
+                                                        }}
                                                         error={errors.card_number}
                                                     />
                                                 </div>
@@ -547,7 +617,11 @@ export default function AddBalance() {
                                                         label="Validade"
                                                         placeholder="MM/AAAA"
                                                         value={data.card_expiry}
-                                                        onChange={(e) => setData('card_expiry', e.target.value)}
+                                                        onChange={(e) => {
+                                                            const formatted = formatCardDate(e.target.value);
+                                                            setData('card_expiry', formatted);
+                                                        }}
+
                                                         error={errors.card_expiry}
                                                     />
                                                 </div>
@@ -639,14 +713,14 @@ export default function AddBalance() {
                                 <div className="relative z-10 p-6 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-4">
                                     <ShieldCheck className="text-emerald-500" size={24} />
                                     <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
-                                        Ambiente 100% criptografado e seguro por KREO Finance.
+                                        Ambiente 100% criptografado e seguro
                                     </p>
                                 </div>
 
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
                             </div>
 
-                            <div className="flex flex-col gap-3">
+                            <div className=" gap-3 hidden">
                                 <a
                                     href="https://wa.me/550000000000"
                                     target="_blank"
@@ -659,75 +733,6 @@ export default function AddBalance() {
                         </div>
                     </div>
                 </div>
-
-                {showHelp && (
-                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-8 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-                        <div className="bg-white rounded-[4rem] w-full max-w-2xl overflow-hidden shadow-2xl relative">
-                            <div className="p-10 border-b border-zinc-100 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-                                        <HelpCircle size={20} />
-                                    </div>
-                                    <h3 className="text-2xl font-black tracking-tighter">Central de Pagamentos</h3>
-                                </div>
-                                <button
-                                    onClick={() => setShowHelp(false)}
-                                    className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-600 hover:text-black transition-all"
-                                >
-                                    X
-                                </button>
-                            </div>
-
-                            <div className="p-10 space-y-8">
-                                <div className="grid grid-cols-2 gap-8">
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2 text-primary">
-                                            <QrCode size={20} />
-                                            <span className="font-black uppercase text-[10px] tracking-widest">
-                                                PIX
-                                            </span>
-                                        </div>
-                                        <p className="text-sm font-medium text-zinc-500 leading-relaxed">
-                                            Liberação <strong>Imediata</strong>. O método mais recomendado para quem
-                                            precisa lançar campanhas agora.
-                                        </p>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2 text-zinc-600">
-                                            <CreditCard size={20} />
-                                            <span className="font-black uppercase text-[10px] tracking-widest">
-                                                Cartão
-                                            </span>
-                                        </div>
-                                        <p className="text-sm font-medium text-zinc-500 leading-relaxed">
-                                            Liberação em até <strong>15 minutos</strong>. Sujeito à análise da
-                                            operadora de cartão.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100 flex items-start gap-4">
-                                    <AlertCircle className="text-primary shrink-0" size={24} />
-                                    <p className="text-xs font-medium text-orange-900 leading-relaxed">
-                                        <strong>Importante:</strong> Depósitos via boleto não estão disponíveis para
-                                        garantir a agilidade do ecossistema. Use Pix para rapidez total.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="p-10 bg-zinc-50 flex justify-end">
-                                <button
-                                    onClick={() => setShowHelp(false)}
-                                    className="bg-[#0A0A0A] text-white px-10 py-4 rounded-2xl font-bold hover:bg-primary transition-colors"
-                                >
-                                    Entendido
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-
 
                 <Dialog open={showPrivacyDialog} onOpenChange={setShowPrivacyDialog}>
                     <DialogContent

@@ -123,15 +123,7 @@ export function AddressModal({ isOpen, onClose, address, onSuccess }: AddressMod
             <DialogContent className="p-0 border-0 bg-transparent shadow-none w-[calc(100vw-2rem)] max-w-3xl">
                 <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl relative">
                     <DialogHeader className="relative p-8  bg-gradient-to-br from-zinc-50 to-white border-b border-zinc-100">
-                        <button
-                            type="button"
-                            onClick={handleClose}
-                            className="cursor-pointer absolute top-6 right-6 w-10 h-10 bg-white rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-all disabled:opacity-50 shadow-sm border border-zinc-100"
-                            aria-label="Fechar modal"
-                            disabled={processing}
-                        >
-                            <X size={18} />
-                        </button>
+
 
                         <div className="flex items-center gap-4 pr-12">
                             <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary/80 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">

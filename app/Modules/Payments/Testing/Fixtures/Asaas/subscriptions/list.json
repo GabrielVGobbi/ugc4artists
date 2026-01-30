@@ -1,0 +1,45 @@
+{
+    "object": "list",
+    "hasMore": false,
+    "totalCount": 2,
+    "limit": 10,
+    "offset": 0,
+    "data": [
+        {
+            "object": "subscription",
+            "id": "sub_mock_001",
+            "dateCreated": "2024-01-15",
+            "customer": "cus_mock_001",
+            "paymentLink": null,
+            "billingType": "PIX",
+            "cycle": "MONTHLY",
+            "value": 99.90,
+            "nextDueDate": "2024-02-15",
+            "description": "Assinatura Mock 1",
+            "endDate": null,
+            "maxPayments": null,
+            "status": "ACTIVE",
+            "externalReference": "mock_sub_ref_001",
+            "split": null,
+            "deleted": false
+        },
+        {
+            "object": "subscription",
+            "id": "sub_mock_002",
+            "dateCreated": "2024-01-16",
+            "customer": "cus_mock_002",
+            "paymentLink": null,
+            "billingType": "CREDIT_CARD",
+            "cycle": "WEEKLY",
+            "value": 29.90,
+            "nextDueDate": "2024-01-23",
+            "description": "Assinatura Mock 2",
+            "endDate": "2024-12-31",
+            "maxPayments": 52,
+            "status": "ACTIVE",
+            "externalReference": "mock_sub_ref_002",
+            "split": null,
+            "deleted": false
+        }
+    ]
+}

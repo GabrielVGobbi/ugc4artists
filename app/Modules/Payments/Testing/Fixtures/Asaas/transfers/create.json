@@ -1,0 +1,33 @@
+{
+    "object": "transfer",
+    "id": "trans_mock_{uuid}",
+    "dateCreated": "{date}",
+    "status": "PENDING",
+    "effectiveDate": null,
+    "endToEndIdentifier": null,
+    "type": "{request.type}",
+    "value": "{request.value}",
+    "netValue": "{request.value}",
+    "transferFee": 0,
+    "scheduleDate": "{request.scheduleDate}",
+    "authorized": true,
+    "failReason": null,
+    "transactionReceiptUrl": null,
+    "bankAccount": {
+        "bank": {
+            "ispb": "00000000",
+            "code": "001",
+            "name": "Banco Mock"
+        },
+        "accountName": "Conta Mock",
+        "ownerName": "{request.bankAccount.ownerName}",
+        "cpfCnpj": "{request.bankAccount.cpfCnpj}",
+        "agency": "{request.bankAccount.agency}",
+        "agencyDigit": "{request.bankAccount.agencyDigit}",
+        "account": "{request.bankAccount.account}",
+        "accountDigit": "{request.bankAccount.accountDigit}",
+        "pixAddressKey": null
+    },
+    "operationType": "PIX",
+    "description": "{request.description}"
+}

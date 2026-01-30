@@ -4,6 +4,7 @@ use App\Http\Controllers\App\AccountController;
 use App\Http\Controllers\App\AddressController;
 use App\Http\Controllers\App\DashboardAppController;
 use App\Http\Controllers\App\WalletAppController as WalletApp;
+use App\Modules\Payments\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -50,6 +51,19 @@ Route::middleware(['auth'])->prefix('app')->name('app.')->group(function () {
             Route::get('/', [WalletApp::class, 'index'])->name('index');
             Route::get('/add-balance', [WalletApp::class, 'create'])->name('create');
             Route::post('/deposit', [WalletApp::class, 'addBalanceCheckout'])->name('deposit');
+            Route::get('/payments', [WalletApp::class, 'payments'])->name('payments');
+            Route::get('/payments/export', [WalletApp::class, 'exportPayments'])->name('payments.export');
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Payments
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('payments')->name('payments.')->group(function () {
+            Route::get('/', [PaymentController::class, 'payments'])->name('payments');
+            Route::get('/{uuid}', [PaymentController::class, 'show'])->name('show');
+            Route::get('/{uuid}/status', [PaymentController::class, 'status'])->name('status');
         });
     });
 });

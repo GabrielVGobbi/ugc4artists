@@ -104,6 +104,10 @@ if (!function_exists('only_numbers')) {
 
 function validarCpfCnpj($value)
 {
+    if (strpos($value, '*') !== false) {
+        return true;
+    }
+
     // Remove caracteres não numéricos
     $value = preg_replace('/[^0-9]/', '', $value);
 
@@ -170,4 +174,9 @@ function validarCnpj($cnpj)
 
     // Verifica os dígitos
     return $cnpj[12] == $d1 && $cnpj[13] == $d2;
+}
+
+function slug($value, $separator = '_')
+{
+    return Str::slug(mb_strtolower($value, 'UTF-8'), $separator);
 }

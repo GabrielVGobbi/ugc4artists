@@ -1,0 +1,17 @@
+{
+    "object": "transfer",
+    "id": "{id}",
+    "dateCreated": "2024-01-15",
+    "status": "CANCELLED",
+    "effectiveDate": null,
+    "endToEndIdentifier": null,
+    "type": "PIX",
+    "value": 500.00,
+    "netValue": 500.00,
+    "transferFee": 0,
+    "scheduleDate": "2024-01-20",
+    "authorized": false,
+    "failReason": "Cancelado pelo usuário",
+    "transactionReceiptUrl": null,
+    "description": "Transferência Cancelada Mock"
+}

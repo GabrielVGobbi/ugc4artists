@@ -1,0 +1,35 @@
+{
+    "object": "list",
+    "hasMore": false,
+    "totalCount": 2,
+    "limit": 10,
+    "offset": 0,
+    "data": [
+        {
+            "object": "paymentSplit",
+            "id": "split_received_mock_001",
+            "payment": "pay_mock_001",
+            "walletId": "wallet_mock_main",
+            "fixedValue": 50.00,
+            "percentualValue": null,
+            "totalValue": 50.00,
+            "status": "DONE",
+            "cancellationReason": null,
+            "externalReference": "split_received_ref_001",
+            "description": "Split Mock Recebido 1"
+        },
+        {
+            "object": "paymentSplit",
+            "id": "split_received_mock_002",
+            "payment": "pay_mock_002",
+            "walletId": "wallet_mock_main",
+            "fixedValue": null,
+            "percentualValue": 15.00,
+            "totalValue": 37.50,
+            "status": "DONE",
+            "cancellationReason": null,
+            "externalReference": "split_received_ref_002",
+            "description": "Split Mock Recebido 2"
+        }
+    ]
+}

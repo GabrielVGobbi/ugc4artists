@@ -3,10 +3,17 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\WaitlistRegistrationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Modules\Payments\Http\Controllers\WebhookController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+
+// Webhook routes (excluded from CSRF in bootstrap/app.php)
+Route::post('webhook/{provider}', [WebhookController::class, 'handle'])
+    ->name('webhook.handle');
+Route::get('webhook/{provider}/health', [WebhookController::class, 'health'])
+    ->name('webhook.health');
 
 /*
 |--------------------------------------------------------------------------

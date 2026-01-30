@@ -1,0 +1,54 @@
+{
+    "object": "list",
+    "hasMore": false,
+    "totalCount": 3,
+    "limit": 10,
+    "offset": 0,
+    "data": [
+        {
+            "object": "payment",
+            "id": "pay_sub_mock_001",
+            "dateCreated": "2024-01-15",
+            "customer": "cus_mock_001",
+            "subscription": "{id}",
+            "value": 99.90,
+            "netValue": 97.40,
+            "description": "Assinatura Mock - Parcela 1",
+            "billingType": "PIX",
+            "status": "RECEIVED",
+            "dueDate": "2024-01-15",
+            "paymentDate": "2024-01-15",
+            "deleted": false
+        },
+        {
+            "object": "payment",
+            "id": "pay_sub_mock_002",
+            "dateCreated": "2024-02-15",
+            "customer": "cus_mock_001",
+            "subscription": "{id}",
+            "value": 99.90,
+            "netValue": 97.40,
+            "description": "Assinatura Mock - Parcela 2",
+            "billingType": "PIX",
+            "status": "RECEIVED",
+            "dueDate": "2024-02-15",
+            "paymentDate": "2024-02-15",
+            "deleted": false
+        },
+        {
+            "object": "payment",
+            "id": "pay_sub_mock_003",
+            "dateCreated": "2024-03-15",
+            "customer": "cus_mock_001",
+            "subscription": "{id}",
+            "value": 99.90,
+            "netValue": 97.40,
+            "description": "Assinatura Mock - Parcela 3",
+            "billingType": "PIX",
+            "status": "PENDING",
+            "dueDate": "2024-03-15",
+            "paymentDate": null,
+            "deleted": false
+        }
+    ]
+}

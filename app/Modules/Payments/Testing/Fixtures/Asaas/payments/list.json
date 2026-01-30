@@ -1,0 +1,47 @@
+{
+    "object": "list",
+    "hasMore": false,
+    "totalCount": 2,
+    "limit": 10,
+    "offset": 0,
+    "data": [
+        {
+            "object": "payment",
+            "id": "pay_mock_001",
+            "dateCreated": "2024-01-15",
+            "customer": "cus_mock_001",
+            "subscription": null,
+            "installment": null,
+            "value": 100.00,
+            "netValue": 97.50,
+            "description": "Pagamento Mock 1",
+            "billingType": "PIX",
+            "status": "PENDING",
+            "dueDate": "2024-01-20",
+            "originalDueDate": "2024-01-20",
+            "externalReference": "mock_ref_001",
+            "deleted": false,
+            "anticipated": false,
+            "anticipable": false
+        },
+        {
+            "object": "payment",
+            "id": "pay_mock_002",
+            "dateCreated": "2024-01-16",
+            "customer": "cus_mock_002",
+            "subscription": null,
+            "installment": null,
+            "value": 250.00,
+            "netValue": 245.00,
+            "description": "Pagamento Mock 2",
+            "billingType": "CREDIT_CARD",
+            "status": "CONFIRMED",
+            "dueDate": "2024-01-21",
+            "originalDueDate": "2024-01-21",
+            "externalReference": "mock_ref_002",
+            "deleted": false,
+            "anticipated": false,
+            "anticipable": true
+        }
+    ]
+}

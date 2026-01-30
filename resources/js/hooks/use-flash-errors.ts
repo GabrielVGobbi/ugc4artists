@@ -47,6 +47,7 @@ export function useFlashErrors() {
 
 function showErrors(props: FlashProps) {
     // Exibir erros de validação do Laravel
+    console.log(props.errors);
     if (props.errors && Object.keys(props.errors).length > 0) {
         Object.entries(props.errors).forEach(([field, message]) => {
             toast.error(message, {

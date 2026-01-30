@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Supports\Traits;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -49,5 +50,27 @@ trait GenerateUuidTrait
         #self::deleted(function($model){
         #    // ... code here
         #});
+    }
+
+    /**
+     * Scope para buscar por UUID ou ID
+     *
+     * @example User::byToken($value)->first();
+     */
+    public function scopeByToken(Builder $query, string|int $value): Builder
+    {
+        return $query->where(function ($q) use ($value) {
+            if (is_numeric($value)) {
+                $q->orWhere('id', (int) $value);
+            }
+
+            if (Schema::hasColumn($this->getTable(), 'uuid') && Str::isUuid($value)) {
+                $q->orWhere('uuid', $value);
+            }
+
+            if (Schema::hasColumn($this->getTable(), 'identify') && Str::isUuid($value)) {
+                $q->orWhere('identify', $value);
+            }
+        });
     }
 }

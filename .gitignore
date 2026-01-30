@@ -32,3 +32,4 @@ todo.md
 /storage/docs
 .docs
 .claude
+storage/backups/*

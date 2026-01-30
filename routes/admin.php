@@ -14,6 +14,9 @@ use Laravel\Fortify\Features;
 | Admin Routes
 |--------------------------------------------------------------------------
 */
+
 Route::name('admin.')->prefix('admin')->middleware(['auth', 'role:developer'])->group(function () {
     Route::resource('users', UsersController::class);
+
+
 });

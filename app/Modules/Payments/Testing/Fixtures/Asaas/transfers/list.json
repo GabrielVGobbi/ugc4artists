@@ -1,0 +1,35 @@
+{
+    "object": "list",
+    "hasMore": false,
+    "totalCount": 2,
+    "limit": 10,
+    "offset": 0,
+    "data": [
+        {
+            "object": "transfer",
+            "id": "trans_mock_001",
+            "dateCreated": "2024-01-15",
+            "status": "DONE",
+            "effectiveDate": "2024-01-15",
+            "type": "PIX",
+            "value": 500.00,
+            "netValue": 500.00,
+            "transferFee": 0,
+            "authorized": true,
+            "description": "Transferência Mock 1"
+        },
+        {
+            "object": "transfer",
+            "id": "trans_mock_002",
+            "dateCreated": "2024-01-16",
+            "status": "PENDING",
+            "effectiveDate": null,
+            "type": "TED",
+            "value": 1000.00,
+            "netValue": 995.00,
+            "transferFee": 5.00,
+            "authorized": true,
+            "description": "Transferência Mock 2"
+        }
+    ]
+}

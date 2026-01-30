@@ -1,0 +1,18 @@
+{
+    "object": "subscription",
+    "id": "{id}",
+    "dateCreated": "2024-01-15",
+    "customer": "cus_mock_001",
+    "paymentLink": null,
+    "billingType": "PIX",
+    "cycle": "MONTHLY",
+    "value": 99.90,
+    "nextDueDate": "2024-02-15",
+    "description": "Assinatura Mock",
+    "endDate": null,
+    "maxPayments": null,
+    "status": "ACTIVE",
+    "externalReference": "mock_sub_ref",
+    "split": null,
+    "deleted": false
+}

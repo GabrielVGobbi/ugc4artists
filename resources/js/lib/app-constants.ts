@@ -65,12 +65,12 @@ export const APP_NAV_ITEMS: NavItem[] = [
 	//	href: '/app/inbox',
 	//	badge: 3,
 	//},
-	{
-		id: 'payments',
-		label: 'Pagamentos',
-		icon: DollarSign,
-		href: '/app/payments',
-	},
+	//{
+	//	id: 'payments',
+	//	label: 'Pagamentos',
+	//	icon: DollarSign,
+	//	href: '/app/payments',
+	//},
 ]
 
 export const APP_BOTTOM_NAV: NavItem[] = [
@@ -149,7 +149,7 @@ export const getPageTitle = (pathname: string): { title: string; subtitle: strin
 		},
 	}
 
-	return titles[pathname] || { title: 'Admin', subtitle: 'Plataforma UGC 4Artists' }
+	return titles[pathname] || { title: '', subtitle: '' }
 }
 
 

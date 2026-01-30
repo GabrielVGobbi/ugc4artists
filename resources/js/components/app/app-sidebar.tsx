@@ -84,7 +84,7 @@ export const AppSidebar = () => {
             </div>
 
             {/* Bottom Section */}
-            <div className="space-y-6  border-t  ">
+            <div className="space-y-6   ">
                 {/* Featured Card in Sidebar
                 <div className="bg-primary p-6 rounded-3xl relative overflow-hidden group cursor-pointer hover:shadow-2xl hover:shadow-primary/20 transition-all duration-500">
                     <div className="absolute top-[-20px] right-[-20px] w-24 h-24 bg-white/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
