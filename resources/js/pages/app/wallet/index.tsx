@@ -124,7 +124,7 @@ export default function WalletPage({ wallet, chart }: Props) {
                 {/* Balance Hero Section */}
                 <div className="grid grid-cols-12 gap-8">
                     <div className="col-span-12 lg:col-span-7">
-                        <div className="bg-[#0A0A0A] rounded-[3.5rem] p-12 text-white relative overflow-hidden group shadow-2xl">
+                        <div className="bg-secondary rounded-[3.5rem] p-12 text-white relative overflow-hidden group shadow-2xl">
                             <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
 
                             <div className="relative z-10 flex flex-col h-full justify-between">
@@ -155,7 +155,7 @@ export default function WalletPage({ wallet, chart }: Props) {
                                     </Button>
                                     <Button
                                         size="none"
-                                        className="bg-white/5 border border-white/10 text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 hover:bg-white/10 transition-all"
+                                        className="hidden bg-white/5 border border-white/10 text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 hover:bg-white/10 transition-all"
                                     >
                                         <ArrowUpRight size={18} /> Solicitar Saque
                                     </Button>
@@ -168,7 +168,7 @@ export default function WalletPage({ wallet, chart }: Props) {
                         <div className="bg-white rounded-[3.5rem] p-10 shadow-sm border border-zinc-100 flex flex-col h-full relative overflow-hidden group">
                             <div className="space-y-1 mb-8">
                                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
-                                    Evolução do Saldo
+                                    Evolução do Saldo nos últimos 4 meses
                                 </p>
                                 <h4 className={`text-3xl font-bold tracking-tight ${growth >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                     {growth >= 0 ? '+' : ''}{growth}%
@@ -218,7 +218,7 @@ export default function WalletPage({ wallet, chart }: Props) {
                 <div className="space-y-6">
                     <div className="flex items-center justify-between px-4">
                         <div className="space-y-1">
-                            <h3 className="text-3xl font-bold tracking-tighter text-[#0A0A0A]">Extrato de Pagamentos</h3>
+                            <h3 className="text-3xl font-bold tracking-tighter text-secondary">Extrato de Pagamentos</h3>
                             <p className="text-sm font-medium text-zinc-400">
                                 Histórico de pagamentos e movimentações da sua conta.
                                 {meta && (
@@ -256,7 +256,7 @@ export default function WalletPage({ wallet, chart }: Props) {
                             <button
                                 onClick={handleExport}
                                 disabled={!meta || meta.total === 0}
-                                className="cursor-pointer flex items-center gap-2 px-6 py-3 bg-white border border-zinc-100 rounded-xl text-xs font-bold text-zinc-500 hover:bg-[#0A0A0A] hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="cursor-pointer flex items-center gap-2 px-6 py-3 bg-white border border-zinc-100 rounded-xl text-xs font-bold text-zinc-500 hover:bg-secondary hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Download size={16} /> Exportar
                             </button>
@@ -343,7 +343,7 @@ export default function WalletPage({ wallet, chart }: Props) {
                                 size="none"
                                 onClick={loadMore}
                                 disabled={isFetchingMore}
-                                className="group flex items-center gap-3 px-7 py-5 bg-white border border-zinc-100 rounded-3xl text-[0.7em] font-black uppercase tracking-[0.4em] text-zinc-400 hover:text-[#0A0A0A] hover:border-zinc-200 transition-all shadow-sm disabled:opacity-50"
+                                className="group flex items-center gap-3 px-7 py-5 bg-white border border-zinc-100 rounded-3xl text-[0.7em] font-black uppercase tracking-[0.4em] text-zinc-400 hover:text-secondary hover:border-zinc-200 transition-all shadow-sm disabled:opacity-50"
                             >
                                 {isFetchingMore ? (
                                     <>
@@ -393,7 +393,7 @@ function PaymentRow({ payment }: { payment: Payment }) {
                         {isDeposit ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
                     </div>
                     <div className="min-w-0">
-                        <p className="font-bold text-[#0A0A0A] truncate">
+                        <p className="font-bold text-secondary truncate">
                             {payment.meta?.description || (isDeposit ? 'Depósito' : 'Saque')}
                         </p>
                         <p className="text-xs text-zinc-400 flex items-center gap-1.5">
@@ -446,7 +446,7 @@ function PaymentRow({ payment }: { payment: Payment }) {
                         onClick={() => router.visit(payments.show(payment.uuid))}
                         variant="ghost"
                         size="icon"
-                        className="text-zinc-300 hover:text-[#0A0A0A] hover:bg-white"
+                        className="text-zinc-300 hover:text-secondary hover:bg-white"
                     >
                         <ChevronRight size={18} />
                     </Button>
@@ -467,7 +467,7 @@ function PaymentRow({ payment }: { payment: Payment }) {
                             {isDeposit ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
                         </div>
                         <div className="min-w-0">
-                            <p className="font-bold text-sm text-[#0A0A0A] truncate">
+                            <p className="font-bold text-sm text-secondary truncate">
                                 {payment.meta?.description || (isDeposit ? 'Depósito' : 'Saque')}
                             </p>
                             <div className="flex items-center gap-2 mt-1">

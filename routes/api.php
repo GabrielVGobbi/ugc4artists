@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\App\WalletAppController as WalletApp;
 use App\Http\Controllers\Api\AccountApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\App\AddressController;
 use App\Http\Controllers\App\DashboardAppController;
 use App\Modules\Payments\Http\Controllers\CheckoutController;
@@ -49,6 +50,20 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
         |--------------------------------------------------------------------------
         */
         Route::apiResource('addresses', AddressController::class);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notifications
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('mark-read');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        Route::delete('/clear-read', [NotificationController::class, 'clearRead'])->name('clear-read');
+        Route::delete('/{notification}', [NotificationController::class, 'destroy'])->name('destroy');
     });
 
     /*

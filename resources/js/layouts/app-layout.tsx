@@ -42,7 +42,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <HeaderProvider>
             <WhatsAppProvider phoneNumber="5500000000000">
                 <ToastProvider>
-                    <div className="flex h-screen w-full bg-[#FAF9F6] text-[#0A0A0A] overflow-hidden">
+                    <div className="flex h-screen w-full bg-background overflow-hidden">
                         <Toaster />
 
                         <WhatsAppButton />
@@ -51,8 +51,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         <AppSidebar />
 
                         {/* Main Content Area */}
-                        <main className="flex-1 flex flex-col overflow-hidden relative ml-72">
-                            {/* Editorial Background Text - Intentional Asymmetry */}
+                        <main className="flex-1 flex flex-col overflow-hidden relative ml-72 px-8 overflow-y-auto custom-scrollbar ">
+                            {/* Editorial Background Text */}
                             <div className="absolute top-[-10%] right-[-5%] text-[24rem] font-bold text-black/[0.02] pointer-events-none select-none z-0 rotate-[-5deg]">
                                 UGC
                             </div>
@@ -62,7 +62,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
                             <AppHeader />
 
-                            <div className="flex-1 overflow-y-auto px-10 pb-12 pt-2 custom-scrollbar relative z-10">
+                            <div className="flex-1 z-10">
                                 {children}
                             </div>
                         </main>

@@ -345,9 +345,9 @@ class WalletService
 
     /**
      * Get chart data for wallet balance evolution.
-     * Returns monthly aggregated data for the last 6 months.
+     * Returns monthly aggregated data for the last 4 months.
      */
-    public function getChartData(User $user, int $months = 6): array
+    public function getChartData(User $user, int $months = 4): array
     {
         $startDate = now()->subMonths($months)->startOfMonth();
 

@@ -33,13 +33,13 @@ export function AppsLogo() {
 
     return (
         <>
-            <section className="bg-background overflow-hidden">
+            <section className="bg-secondary overflow-hidden text-white">
                 <div className="group relative m-auto max-w-7xl px-6">
                     <div className="flex flex-col items-center md:flex-row">
                         <div className="md:max-w-44 md:border-r md:pr-6">
                             <p className="text-end text-sm">Integrado com as melhores plataformas</p>
                         </div>
-                        <div className="relative py-6 md:w-[calc(100%-11rem)]">
+                        <div className="relative py-6 md:w-[calc(100%-11rem)] text-white">
                             <InfiniteSlider
                                 speedOnHover={40}
                                 speed={70}
@@ -91,8 +91,8 @@ export function AppsLogo() {
                                 </div>
                             </InfiniteSlider>
 
-                            <div className="bg-linear-to-r from-background absolute inset-y-0 left-0 w-20"></div>
-                            <div className="bg-linear-to-l from-background absolute inset-y-0 right-0 w-20"></div>
+                            <div className="bg-linear-to-r from-secondary absolute inset-y-0 left-0 w-20"></div>
+                            <div className="bg-linear-to-l from-secondary absolute inset-y-0 right-0 w-20"></div>
                             <ProgressiveBlur
                                 className="pointer-events-none absolute left-0 top-0 h-full w-20"
                                 direction="left"

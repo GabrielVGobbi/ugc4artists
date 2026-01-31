@@ -7,7 +7,7 @@ import AppLogo, { AppLogoIcon } from "../app-logo"
 
 function StackedCircularFooter() {
     return (
-        <footer className="bg-background py-12">
+        <footer className="bg-secondary py-12">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="flex flex-col items-center">
                     <div className="mb-8 rounded-full bg-white p-8">
@@ -39,7 +39,7 @@ function StackedCircularFooter() {
                                 <Label htmlFor="email" className="sr-only">Email</Label>
                                 <Input id="email" placeholder="Seu email" type="email" className="rounded-full" />
                             </div>
-                            <Button type="submit" className="rounded-full">Se-inscreva</Button>
+                            <Button size={"none"} type="submit" className="rounded-full h-9 px-5">Se-inscreva</Button>
                         </form>
                     </div>
                     <div className="text-center">

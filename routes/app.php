@@ -25,6 +25,13 @@ Route::middleware(['auth'])->prefix('app')->name('app.')->group(function () {
         Route::get('/campaigns', fn() => Inertia::render('app/campaigns'))->name('campaigns');
         Route::get('/artists', fn() => Inertia::render('app/artists'))->name('artists');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Notificações
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/notifications', fn() => Inertia::render('app/notifications/index'))->name('notifications.index');
+
 
         /*
         |--------------------------------------------------------------------------
@@ -65,5 +72,12 @@ Route::middleware(['auth'])->prefix('app')->name('app.')->group(function () {
             Route::get('/{uuid}', [PaymentController::class, 'show'])->name('show');
             Route::get('/{uuid}/status', [PaymentController::class, 'status'])->name('status');
         });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Studio (Futuro)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('studio', [DashboardAppController::class, 'studio'])->name('studio');
     });
 });

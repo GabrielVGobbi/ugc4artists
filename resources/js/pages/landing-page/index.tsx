@@ -52,9 +52,11 @@ export default function LandingPage({ seo, canRegister = true }: IndexPageProps)
     //const brandCtaHref = login().url
 
     useEffect(() => {
-        document.documentElement.classList.add('dark')
+        document.documentElement.classList.remove('dark')
+        document.documentElement.classList.add('light')
         return () => {
             document.documentElement.classList.add('dark')
+        document.documentElement.classList.remove('light')
         }
     }, [])
 

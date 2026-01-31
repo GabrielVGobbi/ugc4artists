@@ -1,5 +1,5 @@
+import { Button } from '@/components/ui/button'
 import AdminLayout from '@/layouts/app-layout'
-import { Button } from '@headlessui/react'
 import { Head } from '@inertiajs/react'
 import { Plus, Search, Filter } from 'lucide-react'
 
@@ -12,19 +12,17 @@ export default function Campaigns() {
 				{/* Header Actions */}
 				<div className="flex items-center justify-between">
 					<div>
-						<p className="text-zinc-500 text-sm font-medium">
-
-						</p>
+						<p className="text-zinc-500 text-sm font-medium"></p>
 					</div>
-					<Button className="px-6 py-3 bg-primary text-white rounded-2xl font-bold flex items-center gap-2 hover:bg-[#FF6A33] transition-all shadow-lg shadow-primary/20">
-						<Plus size={20} />
+					<Button className="bg-primary text-white rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
 						Nova Campanha
+						<Plus size={20} />
 					</Button>
 				</div>
 
 				{/* Coming Soon Card */}
 				<div className="bg-white rounded-[2.5rem] p-20 text-center shadow-sm">
-					<div className="max-w-md mx-auto space-y-6">
+					<div className="space-y-6">
 						<div className="w-24 h-24 bg-zinc-100 rounded-full flex items-center justify-center mx-auto">
 							<Search size={40} className="text-zinc-400" />
 						</div>

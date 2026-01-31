@@ -10,6 +10,7 @@ use App\Modules\Permissions\Traits\HasPermissionsTrait;
 use App\Supports\Enums\Users\UserRoleType;
 use App\Supports\Traits\GenerateUuidTrait;
 use App\Supports\Traits\HasAddresses;
+use App\Supports\Traits\HasNotificationSettings;
 use Bavix\Wallet\Interfaces\Customer;
 use Bavix\Wallet\Interfaces\Wallet;
 use Bavix\Wallet\Traits\CanConfirm;
@@ -37,6 +38,7 @@ class User extends Authenticatable implements Wallet, Customer
 
         HasPayments,
         HasAddresses,
+        HasNotificationSettings,
         HasWalletFloat,
         HasWallet,
         CanPay,
@@ -55,6 +57,7 @@ class User extends Authenticatable implements Wallet, Customer
         'password',
         'google_id',
         'avatar',
+        'bio',
         'asaas_id',
         'email_verified_at',
         'onboarding_completed_at',

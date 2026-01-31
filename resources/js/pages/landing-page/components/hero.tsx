@@ -11,7 +11,7 @@ export function Hero() {
 
     return (
         <>
-            <ContainerSection>
+            <ContainerSection className="bg-background">
                 <div className="pt-20 pb-19 sm:pt-60 lg:pt-16 grid lg:grid-cols-2 gap-12 items-center">
                     <div className="space-y-8">
                         <div>
@@ -20,7 +20,7 @@ export function Hero() {
                                     A plataforma #1 para marcas e creators
                                 </span>
                                 */}
-                            <h1 className="font-roboto text-3xl sm:text-5xl lg:text-6xl font-medium text-primary-foreground leading-tight tracking-tight text-balance">
+                            <h1 className="font-roboto text-3xl sm:text-5xl lg:text-6xl font-medium text-foreground leading-tight tracking-tight text-balance">
                                 Campanhas <span className="text-primary">profissionais</span>, conteúdo autêntico. Tudo em um só <span className="text-primary">lugar</span>
                             </h1>
                         </div>

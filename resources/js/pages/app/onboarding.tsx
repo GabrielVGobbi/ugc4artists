@@ -336,7 +336,7 @@ const SelectionCard = ({ active, onClick, label, icon: Icon, description, subLab
                 <div className="flex items-center gap-2">
                     {active && <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></div>}
                     <span
-                        className={`block text-3xl leading-none font-black tracking-tighter uppercase transition-colors ${active ? 'text-[#0A0A0A]' : 'text-zinc-300 group-hover:text-zinc-600'
+                        className={`block text-3xl leading-none font-black tracking-tighter uppercase transition-colors ${active ? 'text-secondary' : 'text-zinc-300 group-hover:text-zinc-600'
                             }`}
                     >
                         {label}
@@ -425,7 +425,7 @@ const StepWrapper = ({
                     <span className="text-[10px] font-black tracking-[0.2em] uppercase text-primary">{tag}</span>
                 </div>
             )}
-            <h2 className="text-6xl font-black tracking-tighter text-[#0A0A0A]">{title}</h2>
+            <h2 className="text-6xl font-black tracking-tighter text-secondary">{title}</h2>
             {subtitle && <p className="text-xl font-medium text-zinc-500">{subtitle}</p>}
         </div>
 
@@ -449,7 +449,7 @@ const StepWrapper = ({
                 onClick={onNext}
                 className={`cursor-pointer flex items-center gap-3 rounded-2xl px-12 py-6 text-xs font-black tracking-[0.2em] uppercase text-white shadow-xl transition-all disabled:opacity-30 ${showFinalCta
                     ? 'bg-primary shadow-[0_20px_60px_rgba(255,77,0,0.4)] hover:scale-105 hover:bg-[#E64500] active:scale-95'
-                    : 'bg-[#0A0A0A] hover:bg-primary'
+                    : 'bg-secondary hover:bg-primary'
                     }`}
             >
                 {isSubmitting ? 'Salvando...' : nextLabel} {!isSubmitting && (showFinalCta ? <></> : <ArrowRight size={18} />)}
@@ -478,7 +478,7 @@ const MultiSelectChips = ({
                 className={`cursor-pointer flex items-center gap-2 rounded-full border-2 px-7 py-4 text-[10px] font-black tracking-widest uppercase transition-all duration-300 ${selected.includes(opt.value)
                     ? variant === 'orange'
                         ? 'border-primary bg-primary text-white shadow-xl shadow-orange-500/20'
-                        : 'border-[#0A0A0A] bg-[#0A0A0A] text-white shadow-xl'
+                        : 'border-secondary bg-secondary text-white shadow-xl'
                     : 'border-zinc-100 bg-zinc-50/50 text-zinc-400 hover:border-zinc-200'
                     }`}
             >
@@ -526,7 +526,7 @@ const StepRoleSelect = ({ formData, setFormData, onNext }: StepComponentProps) =
     return (
         <div className="space-y-10 mt-10">
             <div className="mx-auto max-w-4xl space-y-2 text-center">
-                <h1 className="leading-[0.8] font-black tracking-tighter text-[#0A0A0A] text-7xl">
+                <h1 className="leading-[0.8] font-black tracking-tighter text-secondary text-7xl">
                     Vamos começar pelo seu  <span className="font-light text-primary italic">Perfil.</span>
                 </h1>
                 <p className="mx-auto max-w-xl text-xl leading-relaxed font-medium text-zinc-500">
@@ -566,7 +566,7 @@ const StepRoleSelect = ({ formData, setFormData, onNext }: StepComponentProps) =
                     type="button"
                     disabled={!formData.role}
                     onClick={onNext}
-                    className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] bg-[#0A0A0A] px-16 py-7 text-[0.7rem] font-black tracking-[0.3em] uppercase text-white shadow-2xl transition-all hover:bg-primary disabled:opacity-30"
+                    className="cursor-pointer group relative overflow-hidden rounded-[2.5rem] bg-secondary px-16 py-7 text-[0.7rem] font-black tracking-[0.3em] uppercase text-white shadow-2xl transition-all hover:bg-primary disabled:opacity-30"
                 >
                     <div className="relative z-10 flex items-center gap-4">
                         {getButtonText()} <ArrowRight size={20} className="transition-transform group-hover:translate-x-2" />
@@ -2081,7 +2081,7 @@ const StepFinal = ({
                     <ShieldCheck size={36} />
                 </div>
                 <div className="space-y-3 pt-2">
-                    <p className="text-[0.7rem] font-black tracking-[0.2em] uppercase text-[#0A0A0A]">Seu perfil está pronto!</p>
+                    <p className="text-[0.7rem] font-black tracking-[0.2em] uppercase text-secondary">Seu perfil está pronto!</p>
                     <p className="max-w-xl text-base leading-relaxed font-medium text-zinc-500">
                         Ao finalizar, nosso <strong>Match Engine</strong> processará seus dados para personalizar seu dashboard. Você
                         terá acesso imediato a oportunidades exclusivas.

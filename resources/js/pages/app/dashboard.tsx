@@ -125,7 +125,7 @@ export default function Dashboard({
             <div className="grid grid-cols-12 gap-8 pb-12">
 
                 <div className="col-span-12 lg:col-span-6">
-                    <div className="bg-[#0A0A0A] rounded-[2.5rem] p-8 h-full flex items-center justify-between text-white relative overflow-hidden group shadow-2xl">
+                    <div className="bg-foreground rounded-[2.5rem] p-8 h-full flex items-center justify-between text-white relative overflow-hidden group shadow-2xl">
                         <div className="relative z-10">
                             <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-2">Artistas Ativos</h4>
                             <div className="flex items-center gap-4">
@@ -144,7 +144,7 @@ export default function Dashboard({
                                 <img
                                     key={i}
                                     src={`https://picsum.photos/seed/creator${i}/100/100`}
-                                    className="w-16 h-16 rounded-3xl border-4 border-[#0A0A0A] object-cover hover:-translate-y-2 transition-transform cursor-pointer"
+                                    className="w-16 h-16 rounded-3xl border-4 border-secondary object-cover hover:-translate-y-2 transition-transform cursor-pointer"
                                     alt="Creator"
                                 />
                             ))}
@@ -177,7 +177,7 @@ export default function Dashboard({
                 <div className="col-span-12 lg:col-span-3">
                     <div className="bg-white rounded-[2.5rem] p-8 h-full flex flex-col justify-between shadow-sm border border-zinc-100 group hover:border-primary/20 transition-all duration-500">
                         <div className="flex justify-between items-start">
-                            <div className="p-3 bg-zinc-100 rounded-2xl text-zinc-500 group-hover:bg-[#0A0A0A] group-hover:text-white transition-all">
+                            <div className="p-3 bg-zinc-100 rounded-2xl text-zinc-500 group-hover:bg-secondary group-hover:text-white transition-all">
                                 <Clock size={24} />
                             </div>
                             <div className="flex -space-x-2">
@@ -191,7 +191,7 @@ export default function Dashboard({
                         <div className="mt-8">
                             <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-1">Em Análise</h4>
                             <div className="flex items-end gap-2">
-                                <span className="text-6xl font-bold tracking-tighter text-[#0A0A0A]">12</span>
+                                <span className="text-6xl font-bold tracking-tighter text-foreground">12</span>
                                 <span className="text-xs font-bold mb-2 text-orange-500 italic">Reviewing</span>
                             </div>
                         </div>
@@ -213,7 +213,7 @@ export default function Dashboard({
                             </div>
 
                             <div className="relative z-10">
-                                <h3 className="text-3xl font-bold tracking-tight text-[#0A0A0A] mb-3">Nova Campanha</h3>
+                                <h3 className="text-3xl font-bold tracking-tight text-foreground mb-3">Nova Campanha</h3>
                                 <p className="text-zinc-400 text-sm font-medium max-w-[200px] mx-auto leading-relaxed">
                                     Crie um novo briefing criativo e conecte-se com os melhores talentos UGC.
                                 </p>
@@ -240,7 +240,7 @@ export default function Dashboard({
                                     que inspira e engaja audiências reais.
                                 </p>
                                 <div className="flex items-center gap-4 pt-4">
-                                    <Button size={"none"} className="px-10 py-4 bg-[#0A0A0A] text-white rounded-2xl font-bold flex items-center gap-3 hover:bg-zinc-800 transition-colors">
+                                    <Button variant={"secondary"}  className=" rounded-2xl font-bold flex items-center gap-3  transition-colors">
                                         Gerenciar Campanha <ArrowUpRight size={20} />
                                     </Button>
                                     <Button size={"none"} className="p-4 border-2 border-zinc-100 rounded-2xl hover:border-zinc-200 transition-colors">
@@ -279,12 +279,12 @@ export default function Dashboard({
 
 
                 {/* Top Artists Card */}
-                <div className="col-span-12 lg:col-span-7 bg-[#0A0A0A] rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
+                <div className="col-span-12 lg:col-span-7 bg-foreground rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
                     <div className="flex justify-between items-center mb-10 relative z-10">
                         <h4 className="text-2xl font-bold tracking-tight">
                             Top Artistas em Destaque
                         </h4>
-                        <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-full transition-all text-sm font-medium">
+                        <button className="cursor-pointer flex items-center gap-2 bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-full transition-all text-sm font-medium">
                             <Filter size={16} /> Filtrar
                         </button>
                     </div>
@@ -293,7 +293,7 @@ export default function Dashboard({
                         {topArtists.map((artist, i) => (
                             <div
                                 key={artist.id}
-                                className="flex items-center justify-between p-4 rounded-3xl hover:bg-white/5 transition-all group cursor-pointer border border-transparent hover:border-white/10"
+                                className="flex items-center justify-between p-4 rounded-3xl hover:bg-white/5 transition-all group cursor-pointer border border-primary/35 hover:border-white/10"
                             >
                                 <div className="flex items-center gap-5">
                                     <div className="relative">
@@ -303,7 +303,7 @@ export default function Dashboard({
                                             className="w-14 h-14 rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all"
                                         />
                                         {artist.isActive && (
-                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary border-4 border-[#0A0A0A] rounded-full"></div>
+                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary border-4 border-primary rounded-full"></div>
                                         )}
                                     </div>
                                     <div>
@@ -353,7 +353,7 @@ export default function Dashboard({
                                 Atividades Recentes
                             </h4>
                         </div>
-                        <Button className="px-6 py-3 bg-zinc-50 hover:bg-zinc-100 rounded-xl font-medium text-sm transition-all border border-zinc-200">
+                        <Button size={"none"} className="px-6 py-3 bg-zinc-50 hover:bg-zinc-100 rounded-xl font-medium text-sm transition-all border border-zinc-200 text-foreground">
                             Ver Todas
                         </Button>
                     </div>

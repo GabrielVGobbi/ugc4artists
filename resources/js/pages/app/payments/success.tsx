@@ -36,7 +36,7 @@ export default function PaymentSuccess({ payment }: Props) {
                 </div>
 
                 <div className="space-y-3">
-                    <h2 className="text-5xl font-black tracking-tighter text-[#0A0A0A]">
+                    <h2 className="text-5xl font-black tracking-tighter text-secondary">
                         PAGAMENTO CONFIRMADO!
                     </h2>
                     <p className="text-zinc-500 font-medium text-lg">
@@ -62,13 +62,13 @@ export default function PaymentSuccess({ payment }: Props) {
                 <div className="flex flex-col gap-4 pt-4">
                     <button
                         onClick={() => router.visit(dashboard.url())}
-                        className="cursor-pointer w-full bg-[#0A0A0A] text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary transition-all shadow-xl group"
+                        className="cursor-pointer w-full bg-secondary text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary transition-all shadow-xl group"
                     >
                         Criar Campanha Agora
                     </button>
                     <button
                         onClick={() => router.visit(wallet.index.url())}
-                        className="cursor-pointer w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-[#0A0A0A] hover:text-[#0A0A0A] transition-all flex items-center justify-center gap-3 group"
+                        className="cursor-pointer w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-secondary hover:text-secondary transition-all flex items-center justify-center gap-3 group"
                     >
                         <ArrowLeft size={18} className="group-hover:translate-x-1 transition-transform" />
                         Voltar à Carteira

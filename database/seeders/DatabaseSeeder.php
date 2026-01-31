@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             RolesSeeder::class,
             PermissionsSeeder::class,
             AddressSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }

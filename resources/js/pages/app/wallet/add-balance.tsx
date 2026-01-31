@@ -73,9 +73,9 @@ export default function AddBalance() {
                 size={'none'}
                 variant={'none'}
                 onClick={() => router.visit(wallet.index.url())}
-                className="group flex items-center gap-3 text-zinc-500 hover:text-[#0A0A0A] transition-all font-black uppercase text-[10px] tracking-[0.3em]"
+                className="group flex items-center gap-3 text-zinc-500 hover:text-secondary transition-all font-black uppercase text-[10px] tracking-[0.3em]"
             >
-                <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:border-[#0A0A0A] transition-colors">
+                <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:border-secondary transition-colors">
                     <ArrowLeft size={16} />
                 </div>
                 Voltar para Carteira
@@ -196,7 +196,7 @@ export default function AddBalance() {
                         </div>
 
                         <div className="space-y-3">
-                            <h2 className="text-5xl font-black tracking-tighter text-[#0A0A0A]">SALDO ATIVADO!</h2>
+                            <h2 className="text-5xl font-black tracking-tighter text-secondary">SALDO ATIVADO!</h2>
                             <p className="text-zinc-500 font-medium text-lg">
                                 R$ {data.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} foram
                                 adicionados à sua carteira KREO com sucesso.
@@ -206,13 +206,13 @@ export default function AddBalance() {
                         <div className="flex flex-col gap-4 pt-4">
                             <button
                                 onClick={() => router.visit(dashboard.url())}
-                                className="cursor-pointer w-full bg-[#0A0A0A] text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary transition-all shadow-xl"
+                                className="cursor-pointer w-full bg-secondary text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary transition-all shadow-xl"
                             >
                                 Criar Campanha Agora
                             </button>
                             <button
                                 onClick={() => router.visit(wallet.index.url())}
-                                className="cursor-pointer w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-[#0A0A0A] hover:text-[#0A0A0A] transition-all"
+                                className="cursor-pointer w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-secondary hover:text-secondary transition-all"
                             >
                                 <ArrowLeft size={18} className="group-hover:translate-x-1 transition-transform" />
                                 Voltar à Carteira
@@ -284,7 +284,7 @@ export default function AddBalance() {
                             {currentStep === 1 && (
                                 <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-2">
-                                        <h3 className="text-3xl font-black tracking-tighter text-[#0A0A0A]">
+                                        <h3 className="text-3xl font-black tracking-tighter text-secondary">
                                             Dados de Faturamento
                                         </h3>
                                         <p className="text-zinc-500 font-medium">
@@ -409,7 +409,7 @@ export default function AddBalance() {
                                             variant={'none'}
                                             disabled={!isStep1Valid() || !!cpfError}
                                             onClick={handleNextStep}
-                                            className="bg-[#0A0A0A] text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 hover:bg-primary transition-all shadow-xl disabled:opacity-30 disabled:cursor-not-allowed group"
+                                            className="bg-secondary text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 hover:bg-primary transition-all shadow-xl disabled:opacity-30 disabled:cursor-not-allowed group"
                                         >
                                             Próximo
                                             <ChevronRight
@@ -424,7 +424,7 @@ export default function AddBalance() {
                             {currentStep === 2 && (
                                 <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-2">
-                                        <h3 className="text-3xl font-black tracking-tighter text-[#0A0A0A]">
+                                        <h3 className="text-3xl font-black tracking-tighter text-secondary">
                                             Quanto deseja adicionar?
                                         </h3>
                                         <p className="text-zinc-500 font-medium">
@@ -442,7 +442,7 @@ export default function AddBalance() {
                                                     key={val}
                                                     onClick={() => setData('amount', val)}
                                                     className={`px-10 py-6 rounded-2xl font-black text-xl transition-all border-2 ${data.amount === val
-                                                        ? 'bg-[#0A0A0A] border-[#0A0A0A] text-white shadow-xl'
+                                                        ? 'bg-secondary border-secondary text-white shadow-xl'
                                                         : 'bg-white border-zinc-100 text-zinc-600 hover:border-zinc-300'
                                                         }`}
                                                 >
@@ -493,7 +493,7 @@ export default function AddBalance() {
                                             variant={'none'}
                                             disabled={!isStep2Valid()}
                                             onClick={handleNextStep}
-                                            className="bg-[#0A0A0A] text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 hover:bg-primary transition-all shadow-xl disabled:opacity-30 disabled:cursor-not-allowed group"
+                                            className="bg-secondary text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 hover:bg-primary transition-all shadow-xl disabled:opacity-30 disabled:cursor-not-allowed group"
                                         >
                                             Próximo
                                             <ChevronRight
@@ -508,7 +508,7 @@ export default function AddBalance() {
                             {currentStep === 3 && (
                                 <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-2">
-                                        <h3 className="text-3xl font-black tracking-tighter text-[#0A0A0A]">
+                                        <h3 className="text-3xl font-black tracking-tighter text-secondary">
                                             Método de Pagamento
                                         </h3>
                                         <p className="text-zinc-500 font-medium">
@@ -656,7 +656,7 @@ export default function AddBalance() {
                                             variant={'none'}
                                             disabled={!isStep3Valid() || processing}
                                             onClick={handlePayment}
-                                            className="bg-[#0A0A0A] text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 hover:bg-primary transition-all shadow-xl disabled:opacity-30 disabled:cursor-not-allowed group"
+                                            className="bg-secondary text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 hover:bg-primary transition-all shadow-xl disabled:opacity-30 disabled:cursor-not-allowed group"
                                         >
                                             {processing ? (
                                                 <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -678,7 +678,7 @@ export default function AddBalance() {
 
                     <div className="col-span-12 lg:col-span-4">
                         <div className="sticky top-12 space-y-6">
-                            <div className="bg-[#0A0A0A] rounded-[3rem] p-10 text-white space-y-8 relative overflow-hidden shadow-2xl">
+                            <div className="bg-secondary rounded-[3rem] p-10 text-white space-y-8 relative overflow-hidden shadow-2xl">
                                 <div className="absolute top-[-2%] right-[1%] text-[24rem] font-bold text-white/[0.1] pointer-events-none select-none z-0 rotate-[-5deg]">
                                     <Wallet size={100} fill="white" />
                                 </div>
@@ -822,7 +822,7 @@ export default function AddBalance() {
                                 size={"default"}
                                 variant={"default"}
                                 onClick={() => setShowPrivacyDialog(false)}
-                                className="bg-[#0A0A0A] text-white rounded-2xl font-bold hover:bg-primary transition-colors"
+                                className="bg-secondary text-white rounded-2xl font-bold hover:bg-primary transition-colors"
                             >
                                 Entendi
                             </Button>

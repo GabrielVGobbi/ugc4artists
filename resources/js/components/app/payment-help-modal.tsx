@@ -89,7 +89,7 @@ export function PaymentHelpModal({ trigger }: PaymentHelpModalProps) {
                 <DialogFooter className="p-6 bg-zinc-50 border-t border-zinc-100">
                     <Button
                         onClick={() => setOpen(false)}
-                        className="bg-[#0A0A0A] text-white px-8 py-3 rounded-xl font-bold hover:bg-primary transition-colors"
+                        className="bg-secondary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary transition-colors"
                     >
                         Entendido
                     </Button>

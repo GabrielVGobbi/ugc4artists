@@ -60,9 +60,9 @@ export default function ShowCardPayment({ payment }: Props) {
                     size={'none'}
                     variant={'none'}
                     onClick={() => router.visit(wallet.index.url())}
-                    className="group flex items-center gap-3 text-zinc-500 hover:text-[#0A0A0A] transition-all font-black uppercase text-[10px] tracking-[0.3em]"
+                    className="group flex items-center gap-3 text-zinc-500 hover:text-secondary transition-all font-black uppercase text-[10px] tracking-[0.3em]"
                 >
-                    <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:border-[#0A0A0A] transition-colors">
+                    <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:border-secondary transition-colors">
                         <ArrowLeft size={16} />
                     </div>
                     Voltar
@@ -124,7 +124,7 @@ export default function ShowCardPayment({ payment }: Props) {
                         </div>
 
                         <div className="space-y-3">
-                            <h2 className="text-5xl font-black tracking-tighter text-[#0A0A0A]">
+                            <h2 className="text-5xl font-black tracking-tighter text-secondary">
                                 PAGAMENTO CONFIRMADO!
                             </h2>
                             <p className="text-zinc-500 font-medium text-lg">
@@ -135,13 +135,13 @@ export default function ShowCardPayment({ payment }: Props) {
                         <div className="flex flex-col gap-4 pt-4">
                             <button
                                 onClick={() => router.visit(dashboard.url())}
-                                className="cursor-pointer w-full bg-[#0A0A0A] text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:bg-primary transition-all shadow-xl"
+                                className="cursor-pointer w-full bg-secondary text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:bg-primary transition-all shadow-xl"
                             >
                                 Ir para Dashboard
                             </button>
                             <button
                                 onClick={() => router.visit(wallet.index.url())}
-                                className="cursor-pointer w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-[#0A0A0A] hover:text-[#0A0A0A] transition-all"
+                                className="cursor-pointer w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-secondary hover:text-secondary transition-all"
                             >
                                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                                 Voltar à Carteira
@@ -174,7 +174,7 @@ export default function ShowCardPayment({ payment }: Props) {
                                 <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                     <CreditCard size={32} className="text-blue-600" />
                                 </div>
-                                <h2 className="text-3xl font-black tracking-tighter text-[#0A0A0A]">
+                                <h2 className="text-3xl font-black tracking-tighter text-secondary">
                                     Pagamento com Cartão
                                 </h2>
                                 <p className="text-zinc-500 font-medium">
@@ -246,7 +246,7 @@ export default function ShowCardPayment({ payment }: Props) {
                             <Button
                                 onClick={handleSubmit}
                                 disabled={!isFormValid() || processing}
-                                className="w-full bg-[#0A0A0A] text-white py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] hover:bg-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full bg-secondary text-white py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] hover:bg-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {processing ? (
                                     <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -264,7 +264,7 @@ export default function ShowCardPayment({ payment }: Props) {
                     <div className="col-span-12 lg:col-span-4">
                         <div className="sticky top-12 space-y-6">
                             {/* Payment Summary */}
-                            <div className="bg-[#0A0A0A] rounded-[3rem] p-10 text-white space-y-8 relative overflow-hidden shadow-2xl">
+                            <div className="bg-secondary rounded-[3rem] p-10 text-white space-y-8 relative overflow-hidden shadow-2xl">
                                 <div className="absolute top-[-2%] right-[1%] text-[24rem] font-bold text-white/[0.1] pointer-events-none select-none z-0 rotate-[-5deg]">
                                     <Wallet size={100} fill="white" />
                                 </div>

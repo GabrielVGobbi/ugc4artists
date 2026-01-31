@@ -25,7 +25,7 @@ export const WaitlistSidebar = ({
 	isSuccessStep,
 }: WaitlistSidebarProps) => {
 	return (
-		<aside className="w-72 bg-gradient-to-b from-[#0A0A0A] to-[#0f0f0f] h-screen flex flex-col p-6 justify-between fixed left-0 top-0 z-50 border-r border-white/[0.08]">
+		<aside className="w-72 bg-gradient-to-b from-secondary to-[#0f0f0f] h-screen flex flex-col p-6 justify-between fixed left-0 top-0 z-50 border-r border-white/[0.08]">
 			{/* Subtle gradient overlay */}
 			<div className="absolute inset-0 bg-gradient-to-br from-[#fc7c04]/[0.02] via-transparent to-transparent pointer-events-none" />
 

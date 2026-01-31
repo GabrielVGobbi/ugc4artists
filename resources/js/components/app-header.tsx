@@ -34,12 +34,12 @@ import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
-//import { dashboard } from '@/routes/admin';
+import { dashboard } from '@/routes/app';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '',//dashboard(),
+        href: dashboard(),
         icon: LayoutGrid,
     },
 ];
@@ -234,17 +234,17 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 >
                                     <Avatar className="size-8 overflow-hidden rounded-full">
                                         <AvatarImage
-                                            src={auth.user.avatar}
-                                            alt={auth.user.name}
+                                            src={auth.user.data.avatar}
+                                            alt={auth.user.data.name}
                                         />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user.name)}
+                                            {getInitials(auth.user.data.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-56" align="end">
-                                <UserMenuContent user={auth.user} />
+                                <UserMenuContent user={auth.user.data} />
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>

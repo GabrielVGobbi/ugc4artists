@@ -8,8 +8,8 @@ export default function Studio() {
 			<Head title="Studio AI - Admin" />
 
 			<div className="space-y-8">
-				{/* Hero Card */}
-				<div className="bg-gradient-to-br from-primary to-[#FF6A33] rounded-[2.5rem] p-16 text-white shadow-2xl relative overflow-hidden">
+				{/* Hero Card
+				<div className="bg-gradient-to-br from-primary to-primary rounded-[2.5rem] p-16 text-white shadow-2xl relative overflow-hidden">
 					<div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
 					<div className="relative z-10 max-w-2xl">
 						<div className="flex items-center gap-3 mb-6">
@@ -33,7 +33,7 @@ export default function Studio() {
 					</div>
 				</div>
 
-				{/* Features Grid */}
+				{/* Features Grid
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 					<div className="bg-white rounded-[2.5rem] p-8 shadow-sm hover:shadow-lg transition-all group">
 						<div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
@@ -65,7 +65,7 @@ export default function Studio() {
 						</p>
 					</div>
 				</div>
-
+*/}
 				{/* Coming Soon */}
 				<div className="bg-zinc-100 border-2 border-zinc-200 rounded-[2.5rem] p-16 text-center">
 					<p className="text-zinc-500 text-sm font-bold uppercase tracking-widest mb-3">

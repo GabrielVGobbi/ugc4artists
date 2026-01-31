@@ -84,7 +84,7 @@ export const APP_BOTTOM_NAV: NavItem[] = [
 		id: 'settings',
 		label: 'Configurações',
 		icon: Settings,
-		href: '/app/settings',
+		href: '/app/settings/profile',
 	},
 ]
 
@@ -146,6 +146,31 @@ export const getPageTitle = (pathname: string): { title: string; subtitle: strin
         '/app/wallet/add-balance': {
 			title: 'Adicionar Saldo',
 			subtitle: 'Adicionar saldo na carteira.',
+		},
+
+        '/app/settings/profile': {
+			title: 'Configurações',
+			subtitle: '',
+		},
+
+        '/app/settings/notifications': {
+			title: 'Notificações',
+			subtitle: '',
+		},
+
+        '/app/settings/address': {
+			title: 'Seus Endereços',
+			subtitle: '',
+		},
+
+        '/app/settings/security': {
+			title: 'Segurança',
+			subtitle: '',
+		},
+
+        '/app/notifications': {
+			title: 'Notificações',
+			subtitle: '',
 		},
 	}
 

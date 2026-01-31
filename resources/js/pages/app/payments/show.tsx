@@ -51,9 +51,9 @@ export default function ShowPayment({ payment }: Props) {
                     size={'none'}
                     variant={'none'}
                     onClick={() => router.visit(wallet.index.url())}
-                    className="group flex items-center gap-3 text-zinc-500 hover:text-[#0A0A0A] transition-all font-black uppercase text-[10px] tracking-[0.3em]"
+                    className="group flex items-center gap-3 text-zinc-500 hover:text-secondary transition-all font-black uppercase text-[10px] tracking-[0.3em]"
                 >
-                    <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:border-[#0A0A0A] transition-colors">
+                    <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:border-secondary transition-colors">
                         <ArrowLeft size={16} />
                     </div>
                     Voltar
@@ -115,7 +115,7 @@ export default function ShowPayment({ payment }: Props) {
                     {/* Payment Card */}
                     <div className="bg-white rounded-[3rem] border border-zinc-100 shadow-sm overflow-hidden">
                         {/* Header */}
-                        <div className="bg-[#0A0A0A] p-8 text-white relative overflow-hidden">
+                        <div className="bg-secondary p-8 text-white relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
                             <div className="relative z-10">
                                 <div className="flex items-center justify-between mb-6">
@@ -210,7 +210,7 @@ export default function ShowPayment({ payment }: Props) {
                             <div className="p-8 pt-0">
                                 <Button
                                     onClick={() => router.visit(payments.show.url(payment.uuid))}
-                                    className="w-full bg-[#0A0A0A] text-white py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] hover:bg-primary transition-all"
+                                    className="w-full bg-secondary text-white py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] hover:bg-primary transition-all"
                                 >
                                     <ExternalLink size={18} className="mr-2" />
                                     Completar Pagamento

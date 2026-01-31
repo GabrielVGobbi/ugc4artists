@@ -54,7 +54,7 @@
     @inertiaHead
 </head>
 
-<body class="font-sans antialiased h-dvh bg-gray-50">
+<body class="font-sans antialiased h-dvh text-foreground">
     @inertia
 </body>
 

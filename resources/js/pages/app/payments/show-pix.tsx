@@ -71,9 +71,9 @@ export default function ShowPixPayment({ payment, pix }: Props) {
                     size={'none'}
                     variant={'none'}
                     onClick={() => router.visit(wallet.index.url())}
-                    className="group flex items-center gap-3 text-zinc-500 hover:text-[#0A0A0A] transition-all font-black uppercase text-[10px] tracking-[0.3em]"
+                    className="group flex items-center gap-3 text-zinc-500 hover:text-secondary transition-all font-black uppercase text-[10px] tracking-[0.3em]"
                 >
-                    <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:border-[#0A0A0A] transition-colors">
+                    <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center group-hover:border-secondary transition-colors">
                         <ArrowLeft size={16} />
                     </div>
                     Voltar
@@ -176,7 +176,7 @@ export default function ShowPixPayment({ payment, pix }: Props) {
                     </div>
 
                     <div className="space-y-3">
-                        <h2 className="text-5xl font-black tracking-tighter text-[#0A0A0A]">PAGAMENTO CONFIRMADO!</h2>
+                        <h2 className="text-5xl font-black tracking-tighter text-secondary">PAGAMENTO CONFIRMADO!</h2>
                         <p className="text-zinc-500 font-medium text-lg">
                             {payment.gateway_amount_formatted} foram creditados com sucesso.
                         </p>
@@ -185,15 +185,15 @@ export default function ShowPixPayment({ payment, pix }: Props) {
                     <div className="flex flex-col gap-4 pt-4">
                         <button
                             onClick={() => router.visit(dashboard.url())}
-                            className="cursor-pointer w-full bg-[#0A0A0A] text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary transition-all shadow-xl"
+                            className="cursor-pointer w-full bg-secondary text-white py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary transition-all shadow-xl"
                         >
                             Ir para Dashboard
                         </button>
                         <button
                             onClick={() => router.visit(wallet.index.url())}
-                            className="cursor-pointer w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-[#0A0A0A] hover:text-[#0A0A0A] transition-all"
+                            className="cursor-pointer w-full bg-white border-2 border-zinc-100 text-zinc-600 py-6 rounded-3xl font-black uppercase text-xs tracking-[0.3em] hover:border-secondary hover:text-secondary transition-all flex items-center justify-center gap-3 group"
                         >
-                            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                            <ArrowLeft size={18} className="group-hover:translate-x-1 transition-transform" />
                             Voltar à Carteira
                         </button>
                     </div>
@@ -239,7 +239,7 @@ export default function ShowPixPayment({ payment, pix }: Props) {
                         {/* QR Code Card */}
                         <div className="bg-white p-12 rounded-[3.5rem] border border-zinc-100 shadow-sm space-y-10">
                             <div className="text-center space-y-2">
-                                <h2 className="text-3xl font-black tracking-tighter text-[#0A0A0A]">
+                                <h2 className="text-3xl font-black tracking-tighter text-secondary">
                                     Pague com PIX
                                 </h2>
                                 <p className="text-zinc-500 font-medium">
@@ -289,7 +289,7 @@ export default function ShowPixPayment({ payment, pix }: Props) {
                                             'absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-xl font-bold text-xs transition-all',
                                             copied
                                                 ? 'bg-emerald-500 text-white'
-                                                : 'bg-[#0A0A0A] text-white hover:bg-primary',
+                                                : 'bg-secondary text-white hover:bg-primary',
                                         )}
                                     >
                                         {copied ? (

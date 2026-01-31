@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { ReactNode, useEffect } from "react"
 import { Header } from './components/header'
 import { Head } from "@inertiajs/react"
 import { SeoProps } from "@/types"
@@ -13,6 +13,13 @@ export type LayoutProps = {
 
 export function Layout({ children, isAuthenticated, headerCtaHref, headerCtaLabel, seo }: LayoutProps) {
     const { title, description, canonical, image } = seo;
+
+    useEffect(() => {
+        document.documentElement.classList.remove('dark')
+        return () => {
+            document.documentElement.classList.remove('dark')
+        }
+    }, [])
 
     return (
         <>

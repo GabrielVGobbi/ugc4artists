@@ -35,7 +35,7 @@ export default function AuthGoogleLayout({
                 <div className="absolute bottom-40 left-20 w-24 h-24 border border-white/10 rotate-45" />
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col h-full p-10 px-20">
+                <div className="relative z-10 flex flex-col h-full pt-8 px-20">
                     {/* Logo */}
                     <Link href={home()} className="flex items-center gap-3">
                         <img
@@ -51,7 +51,7 @@ export default function AuthGoogleLayout({
 
                     {/* Main Content */}
                     <div className="flex-1 flex flex-col justify-center max-w-lg">
-                        <div className="space-y-6">
+                        <div className="space-y-3">
                             <h2 className="text-4xl xl:text-6xl font-bold text-white leading-tight">
                                 Conecte-se com{' '}
                                 <span className="text-primary">criadores</span>{' '}
@@ -82,7 +82,7 @@ export default function AuthGoogleLayout({
 
                     {/* Quote */}
                     {quote && (
-                        <div className="relative mt-auto">
+                        <div className="hidden relative mt-auto">
                             <div className="absolute -left-2 top-0 text-6xl text-primary/30 font-serif">"</div>
                             <blockquote className="pl-8 border-l-2 border-primary/30">
                                 <p className="text-white/80 text-lg italic leading-relaxed">
@@ -115,7 +115,7 @@ export default function AuthGoogleLayout({
                 <div className="flex-1 flex items-center justify-center relative z-10">
                     <div className="w-full max-w-[55%] space-y-8">
                         <div className="space-y-8 max-w-lg">
-                            <h2 className="text-7xl font-bold text-foreground tracking-tighter leading-[1.05]">
+                            <h2 className="text-7xl md:text-5xl font-bold text-foreground tracking-tighter leading-[1.05]">
                                 A nova era do <span className="italic font-light text-zinc-500">Marketing Musical.</span>
                             </h2>
                             <p className="text-zinc-400 text-xl font-medium leading-relaxed">

@@ -1,9 +1,10 @@
-import { Search, Bell, Command } from 'lucide-react'
-import { usePage } from '@inertiajs/react'
+import { Search, Command } from 'lucide-react'
+import { Link, usePage } from '@inertiajs/react'
 import { getPageTitle } from '@/lib/app-constants'
 import { useState, useEffect } from 'react'
 import { useHeader } from '@/contexts/header-context'
-import { Button } from '@/components/ui/button'
+import { NotificationsDropdown } from '@/components/app/notifications-dropdown'
+import profile from '@/routes/app/settings/profile'
 
 export const AppHeader = () => {
     const { url, props } = usePage()
@@ -28,12 +29,12 @@ export const AppHeader = () => {
     }, [])
 
     return (
-        <header className="px-10 py-6 grid items-center bg-transparent relative z-20">
+        <header className="py-6 grid items-center bg-transparent relative z-20">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
 
                     <div>
-                        <h2 className="text-5xl font-bold tracking-tight text-[#0A0A0A] capitalize">
+                        <h2 className="text-5xl font-bold tracking-tight text-foreground capitalize">
                             {title}
                         </h2>
                         <p className="text-zinc-400 text-sm font-medium tracking-wide">
@@ -50,7 +51,6 @@ export const AppHeader = () => {
                             {headerActions}
                         </div>
                     )}
-
 
                     <div className="relative group hidden">
                         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-400">
@@ -73,16 +73,12 @@ export const AppHeader = () => {
                     </div>
 
                     {/* Notifications */}
-                    <Button size={'none'} variant={'none'} className="relative p-3 bg-white rounded-full shadow-sm hover:shadow-md transition-all text-zinc-600 hover:text-primary group">
-                        <Bell size={20} />
-                        <span className="absolute top-3 right-3 w-2 h-2 bg-primary rounded-full border-2 border-white animate-pulse"></span>
-                        <span className="sr-only">Notificações</span>
-                    </Button>
+                    <NotificationsDropdown />
 
                     {/* User Profile */}
                     <div className="flex items-center gap-3 pl-4 border-l border-zinc-200">
                         <div className="text-right">
-                            <p className="text-sm font-bold text-[#0A0A0A]">
+                            <p className="text-sm font-bold text-foreground">
                                 {user?.name || 'App User'}
                             </p>
                             <p className="text-xs text-zinc-400 font-medium italic">
@@ -90,20 +86,23 @@ export const AppHeader = () => {
                             </p>
                         </div>
                         <div className="relative group cursor-pointer">
-                            <img
-                                src={
-                                    user?.avatar ||
-                                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'App')}&background=FF4D00&color=fff&bold=true&size=100`
-                                }
-                                alt={user?.name || 'App'}
-                                className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-lg group-hover:ring-primary transition-all"
-                            />
+                            <Link href={profile.edit()}>
+                                <img
+                                    src={
+                                        user?.avatar ||
+                                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'App')}&background=FF4D00&color=fff&bold=true&size=100`
+                                    }
+                                    alt={user?.name || 'App'}
+                                    className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white shadow-lg group-hover:ring-primary transition-all"
+                                />
+                            </Link>
+
                             <div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></div>
                         </div>
                     </div>
                 </div>
             </div>
-        </header>
+        </header >
     )
 }
 

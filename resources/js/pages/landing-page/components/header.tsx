@@ -48,7 +48,8 @@ export function Header({ isAuthenticated, headerCtaHref, headerCtaLabel }: Heade
                 <div className="flex items-center gap-3">
                     <Button
                         asChild
-                        className="bg-primary px-5 font-semibold text-white hover:bg-secondary"
+                        size={'none'}
+                        className="bg-primary px-5 py-3 font-semibold text-white hover:bg-secondary"
                     >
                         <Link prefetch href={'/waitlist'} tabIndex={0}>
                             Cadastre-se

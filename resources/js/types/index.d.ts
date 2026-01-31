@@ -44,8 +44,11 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    phone?: string | null;
+    document?: string | null;
     google_id?: string | null;
     avatar?: string | null;
+    bio?: string | null;
     email_verified_at: string | null;
     onboarding_completed_at?: string | null;
     two_factor_enabled?: boolean;

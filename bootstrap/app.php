@@ -22,7 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'telescope*',
             'telescope-api/*',
             'webhook/*',
+            'api/v1/payments/webhooks/*',
         ]);
+
+        $middleware->statefulApi();
 
         $middleware->web(append: [
             HandleAppearance::class,

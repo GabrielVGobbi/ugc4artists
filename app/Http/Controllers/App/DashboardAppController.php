@@ -154,4 +154,9 @@ class DashboardAppController extends Controller
 
         return redirect()->route('app.dashboard')->with('success', 'Bem-vindo! Seu perfil foi configurado com sucesso.');
     }
+
+    public function studio()
+    {
+        return Inertia::render('app/studio');
+    }
 }

@@ -13,7 +13,7 @@ interface WaitlistLayoutProps {
 
 export default function WaitlistLayout({ children, sidebar, headerCompact = false }: WaitlistLayoutProps) {
 	return (
-		<div className="flex h-screen w-full bg-[#0a0a0a] text-white overflow-hidden">
+		<div className="flex h-screen w-full bg-secondary text-white overflow-hidden">
 			{/* Background Elements - Fixed */}
 			<div className="fixed inset-0 pointer-events-none z-0">
 				<div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#fc7c04]/5 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2" />

@@ -27,6 +27,8 @@ class UserResource extends JsonResource
                 (auth()->check() && auth()->id() === $this->id) || auth()->user()->hasRole('developer'),
                 fn() => toCurrency($this->balanceFloat)
             ),
+
+            'created_at' => $this->created_at->diffForHumans(),
         ];
     }
 }
