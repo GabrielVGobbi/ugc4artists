@@ -16,6 +16,7 @@ Artisan::command('app:clear', function () {
     $this->call('view:clear');
     $this->call('cache:clear');
     $this->call('optimize');
+    $this->call('wayfinder:generate');
     $this->call('telescope:prune', ['--hours' => 48]);
     $this->info('Todos os caches foram limpos com sucesso!');
 })->purpose('Clear application caches');

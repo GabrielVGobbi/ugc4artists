@@ -25,6 +25,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 interface WalletData {
     balance: number
     balanceFloat: number
+    balanceFloatFormat: string
 }
 
 interface ChartDataPoint {
@@ -72,7 +73,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function WalletPage({ wallet, chart }: Props) {
-    const { balance } = wallet
+    const { balanceFloatFormat } = wallet
     const chartData = chart.data
     const growth = chart.growth
     const [searchInput, setSearchInput] = useState('')
@@ -137,7 +138,7 @@ export default function WalletPage({ wallet, chart }: Props) {
                                             </p>
                                         </div>
                                         <h3 className="text-7xl font-bold tracking-tighter">
-                                            {formatCurrency(balance)}
+                                            {(balanceFloatFormat)}
                                         </h3>
                                     </div>
                                     <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/10">
@@ -436,7 +437,7 @@ function PaymentRow({ payment }: { payment: Payment }) {
                                 : 'text-zinc-400'
                     }`}>
                         {isDeposit ? '+ ' : '- '}
-                        {formatCurrency(Math.abs(payment.amount_cents))}
+                        {(payment.amount_cents_format)}
                     </p>
                 </div>
 

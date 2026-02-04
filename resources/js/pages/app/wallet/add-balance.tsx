@@ -24,6 +24,7 @@ import wallet from '@/routes/app/wallet'
 import { dashboard } from '@/routes/app'
 import { Input } from '@/components/ui/input'
 import { CustomField } from '@/components/ui/custom-field'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Button } from '@/components/ui/button'
 import { SharedData, UserAuth } from '@/types'
 import { AddressSelector } from '@/components/app/address-selector'
@@ -451,26 +452,13 @@ export default function AddBalance() {
                                             ))}
                                         </div>
 
-                                        <div className="space-y-3">
-                                            <label className="ml-1 text-[0.8em] font-black tracking-[0.1em]  text-zinc-600">
-                                                Ou digite um valor personalizado
-                                            </label>
-                                            <div className="relative">
-                                                <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-2xl text-zinc-400">
-                                                    R$
-                                                </span>
-                                                <input
-                                                    type="number"
-                                                    placeholder="0"
-                                                    value={data.amount || ''}
-                                                    onChange={(e) => setData('amount', Number(e.target.value))}
-                                                    className="bg-white border-2 border-zinc-100 rounded-2xl pl-16  pr-6 py-2 font-black text-2xl outline-none focus:border-primary transition-all w-full"
-                                                />
-                                            </div>
-                                            {errors.amount && (
-                                                <p className="text-red-500 text-sm font-medium">{errors.amount}</p>
-                                            )}
-                                        </div>
+                                        <MoneyInput
+                                            label="Ou digite um valor personalizado"
+                                            placeholder="0,00"
+                                            value={data.amount}
+                                            onChange={(value) => setData('amount', value)}
+                                            error={errors.amount}
+                                        />
 
 
                                     </div>

@@ -364,10 +364,10 @@ export function NotificationsDropdown() {
                             {notifications.length > 0 && (
                                 <button
                                     onClick={() => markAllAsRead()}
-                                    className="flex items-center gap-1 text-xs text-zinc-500 hover:text-primary transition-colors"
+                                    className="cursor-pointer flex items-center gap-1 text-xs text-zinc-500 hover:text-primary transition-colors"
                                 >
                                     <CheckCheck size={14} />
-                                    Marcar todas
+                                    Marcar todas como lidas
                                 </button>
                             )}
                         </div>

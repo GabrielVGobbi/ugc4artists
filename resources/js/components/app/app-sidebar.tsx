@@ -2,9 +2,9 @@ import { Link, router, usePage } from '@inertiajs/react'
 import { LogOut, ArrowRight, WalletIcon, Menu, X } from 'lucide-react'
 import { APP_NAV_ITEMS, APP_BOTTOM_NAV } from '@/lib/app-constants'
 import { cn } from '@/lib/utils'
-import { logout } from '@/routes'
 import wallet from '@/routes/app/wallet'
 import { useState, useEffect } from 'react'
+import { logout } from '@/routes'
 
 interface AppSidebarProps {
     className?: string

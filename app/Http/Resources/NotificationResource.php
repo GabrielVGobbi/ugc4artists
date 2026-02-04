@@ -21,7 +21,7 @@ class NotificationResource extends JsonResource
             'is_read' => $this->isRead(),
             'read_at' => $this->read_at?->toISOString(),
             'created_at' => $this->created_at->toISOString(),
-            'time_ago' => $this->created_at->diffForHumans(),
+            'time_ago' => $this->created_at?->diffForHumans(),
         ];
     }
 }

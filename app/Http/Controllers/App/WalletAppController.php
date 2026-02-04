@@ -66,7 +66,7 @@ class WalletAppController extends Controller
 
         $result = $this->walletService->addBalanceCheckout(
             $user,
-            (int) $validated['amount'],
+            $validated['amount'],
             $payload
         );
 

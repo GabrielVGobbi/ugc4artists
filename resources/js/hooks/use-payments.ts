@@ -25,6 +25,7 @@ export interface Payment {
     id: number
     uuid: string
     amount_cents: number
+    amount_cents_format: string
     wallet_applied_cents: number
     gateway_amount_cents: number
     currency: string

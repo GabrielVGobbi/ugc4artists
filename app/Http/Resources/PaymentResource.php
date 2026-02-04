@@ -20,6 +20,7 @@ class PaymentResource extends JsonResource
             'id' => $this->id,
             'uuid' => $this->uuid,
             'amount_cents' => $this->amount_cents,
+            'amount_cents_format' => toCurrency($this->amount_cents / 100),
             'wallet_applied_cents' => $this->wallet_applied_cents,
             'gateway_amount_cents' => $this->gateway_amount_cents,
             'currency' => $this->currency ?? 'BRL',

@@ -1,5 +1,6 @@
 import * as React from "react"
 import { SearchableSelect, type SelectOption } from "@/components/ui/searchable-select"
+import { Textarea } from "./textarea"
 
 type BaseProps = {
     label: string
@@ -51,7 +52,7 @@ export const CustomField = (props: CustomFieldProps) => {
             </label>
 
             {props.as === "textarea" ? (
-                <textarea
+                <Textarea
                     className={`${baseClasses} ${borderClass} min-h-[140px] resize-none ${props.className ?? ""}`}
                     placeholder={props.placeholder}
                     value={props.value}

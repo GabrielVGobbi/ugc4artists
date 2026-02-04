@@ -32,14 +32,15 @@ export interface NavItem {
 }
 
 export interface SharedData {
-    name: string;
-    quote: { message: string; author: string };
-    auth: Auth;
-    sidebarOpen: boolean;
-    currentPath: string;
-    [key: string]: unknown;
+    name: string
+    quote: { message: string; author: string }
+    auth: {
+        user: ApiResource<Auth> | null
+    }
+    sidebarOpen: boolean
+    currentPath: string
+    [key: string]: unknown
 }
-
 export interface User {
     id: number;
     name: string;

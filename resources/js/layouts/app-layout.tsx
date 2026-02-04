@@ -62,7 +62,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
                             <AppHeader />
 
-                            <div className="flex-1 z-10">
+                            <div className="flex-1 z-10 mb-[1em]">
                                 {children}
                             </div>
                         </main>

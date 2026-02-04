@@ -159,7 +159,7 @@ export function formatCurrency(value: string | number, currency: string = 'BRL')
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: currency,
-    }).format(numValue / 100);
+    }).format(numValue);
 }
 
 /**
@@ -192,4 +192,16 @@ export function formatCardDate(value: string): string {
 
 export function isMaskedCPF(cpf: string) {
     return cpf ? cpf.includes('*') : false;
+}
+
+export function formatDateForInput(dateStr: string) {
+    if (!dateStr.includes("/")) return dateStr; // já está no formato yyyy-MM-dd
+    const [day, month, year] = dateStr.split("/");
+    return `${year}-${month}-${day}`;
+}
+
+export function formatDateFromInput(dateStr: string) {
+    // yyyy-MM-dd → dd/MM/yyyy
+    const [year, month, day] = dateStr.split("-");
+    return `${day}/${month}/${year}`;
 }

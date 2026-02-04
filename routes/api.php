@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\App\WalletAppController as WalletApp;
 use App\Http\Controllers\Api\AccountApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
+use App\Http\Controllers\Api\CampaignApiController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\App\AddressController;
 use App\Http\Controllers\App\DashboardAppController;
@@ -84,6 +85,22 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
     */
     Route::prefix('payments')->name('payments.')->group(function () {
         Route::post('/', [CheckoutController::class, 'store'])->name('store');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Campaigns
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('campaigns')->name('campaigns.')->group(function () {
+        Route::get('/', [CampaignApiController::class, 'index'])->name('index');
+        Route::get('/stats', [CampaignApiController::class, 'stats'])->name('stats');
+        Route::post('/', [CampaignApiController::class, 'store'])->name('store');
+        Route::get('/{key}', [CampaignApiController::class, 'show'])->name('show');
+        Route::put('/{key}', [CampaignApiController::class, 'update'])->name('update');
+        Route::delete('/{key}', [CampaignApiController::class, 'destroy'])->name('destroy');
+        Route::post('/{key}/submit', [CampaignApiController::class, 'submit'])->name('submit');
+        Route::post('/{key}/duplicate', [CampaignApiController::class, 'duplicate'])->name('duplicate');
     });
 });
 

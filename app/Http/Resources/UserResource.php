@@ -28,7 +28,7 @@ class UserResource extends JsonResource
                 fn() => toCurrency($this->balanceFloat)
             ),
 
-            'created_at' => $this->created_at->diffForHumans(),
+            'created_at' => $this->created_at?->diffForHumans(),
         ];
     }
 }

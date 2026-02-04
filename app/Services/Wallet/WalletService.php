@@ -61,7 +61,7 @@ class WalletService
             // Build checkout
             $checkout = Checkout::for($user)
                 ->billable($transaction)
-                ->amount($cents * 100)
+                ->amount($cents)
                 ->method($paymentMethod)
                 ->gateway('asaas')
                 ->useWallet(false) // Don't use wallet balance for deposit
@@ -330,6 +330,7 @@ class WalletService
         return [
             'balance' => $wallet?->balance ?? 0,
             'balanceFloat' => $wallet?->balanceFloat ?? 0,
+            'balanceFloatFormat' => toCurrency($wallet?->balanceFloat ?? 0),
             'transactions' => $transactions,
             'pending_payments' => $pendingPayments,
         ];
