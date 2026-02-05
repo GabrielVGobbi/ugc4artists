@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CampaignResource;
 use App\Models\Campaign;
 use App\Services\Campaign\CampaignCheckoutService;
@@ -94,20 +95,17 @@ class CampaignController extends Controller
         $user = auth()->user();
         $walletBalance = $user->wallet?->balanceFloat ?? 0;
 
-        // Calculate fees
-        $publicationFee = $this->checkoutService->getPublicationFee($campaign->publication_plan);
-
         return Inertia::render('app/campaigns/pay', [
-            'campaign' => $campaign,
+            'campaignData' => new CampaignResource($campaign),
             'wallet_balance' => $walletBalance,
-            'publication_fee' => $publicationFee,
         ]);
     }
 
     /**
-     * Processar checkout da campanha
+     * Processar checkout da campanha.
+     * Usa CheckoutRequest unificado (service=campaign) com dados de faturamento.
      */
-    public function checkout(Request $request, string $key): JsonResponse|RedirectResponse
+    public function checkout(CheckoutRequest $request, string $key): JsonResponse|RedirectResponse
     {
         $campaign = Campaign::byUser()
             ->byKey($key)
@@ -119,15 +117,7 @@ class CampaignController extends Controller
             ], 422);
         }
 
-        $validated = $request->validate([
-            'payment_method' => ['required', 'in:pix,card,wallet'],
-            'use_wallet_balance' => ['nullable', 'boolean'],
-            'wallet_amount' => ['nullable', 'numeric', 'min:0'],
-            'card_number' => ['required_if:payment_method,card', 'nullable', 'string'],
-            'card_holder_name' => ['required_if:payment_method,card', 'nullable', 'string'],
-            'card_expiry' => ['required_if:payment_method,card', 'nullable', 'string'],
-            'card_cvv' => ['required_if:payment_method,card', 'nullable', 'string'],
-        ]);
+        $validated = $request->validated();
 
         $result = $this->checkoutService->processCheckout(
             campaign: $campaign,

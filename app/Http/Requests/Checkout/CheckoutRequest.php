@@ -23,18 +23,31 @@ class CheckoutRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
+     * service: 'wallet' = depósito na carteira (amount obrigatório); 'campaign' = checkout campanha (amount no backend).
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        $service = $this->input('service', 'wallet');
+        $isCampaign = $service === 'campaign';
+
         $rules = [
-            'amount' => ['required'],
-            'payment_method' => ['required',  'in:pix,card'],
-            'name' => ['required', 'string', 'min:4', 'max:255'],
-            'address_id' => [
+            'service' => ['nullable', 'string', Rule::in(['wallet', 'campaign'])],
+            'amount' => $isCampaign
+                ? ['nullable', 'numeric', 'min:0']
+                : ['required', 'numeric', 'min:0'],
+            'payment_method' => [
                 'required',
+                $isCampaign ? Rule::in(['pix', 'card', 'wallet']) : Rule::in(['pix', 'card']),
+            ],
+            #'name' => ['required', 'string', 'min:4', 'max:255'],
+            'address_id' => [
+                $this->addressRequired() ? 'required' : 'nullable',
                 function ($attribute, $value, $fail) {
+                    if (empty($value)) {
+                        return;
+                    }
                     $query = DB::table('addresses')
                         ->where('addressable_id', $this->user()->id)
                         ->where('addressable_type', get_class($this->user()));
@@ -52,7 +65,6 @@ class CheckoutRequest extends FormRequest
             ],
             'phone' => ['required', 'celular_com_ddd'],
             'document' => ['required', 'string', 'max:18', 'formato_cpf_ou_cnpj'],
-            #'save_cpf' => ['sometimes', 'boolean'],
         ];
 
         if ($this->input('payment_method') === 'card') {
@@ -83,7 +95,7 @@ class CheckoutRequest extends FormRequest
         $user = $this->user();
 
         $merge = [
-            'amount' => amountToDec($this->amount),
+            'amount' => toCents($this->amount),
             'phone' => format_phone($this->phone),
             'document' => format_cpf_cnpj($this->document),
         ];
@@ -114,6 +126,18 @@ class CheckoutRequest extends FormRequest
         }
 
         $this->merge($merge);
+    }
+
+    /**
+     * Address required when: wallet always; campaign when paying with pix/card (not wallet-only).
+     */
+    protected function addressRequired(): bool
+    {
+        if ($this->input('service') === 'campaign' && $this->input('payment_method') === 'wallet') {
+            return false;
+        }
+
+        return true;
     }
 
     protected function passedValidation()

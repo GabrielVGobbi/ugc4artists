@@ -23,6 +23,7 @@ class SettlementService
                 ->lockForUpdate()
                 ->firstOrFail();
 
+
             if ($payment->status === PaymentStatus::PAID) {
                 return;
             }

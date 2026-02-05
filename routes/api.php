@@ -73,6 +73,7 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
     |--------------------------------------------------------------------------
     */
     Route::prefix('wallet')->name('wallet.')->group(function () {
+        Route::get('/transactions', [WalletApp::class, 'transactions'])->name('transactions');
         Route::post('/add-balance', [WalletApp::class, 'addBalanceCheckout'])->name('add-balance');
         Route::get('/payment/{uuid}/status', [WalletApp::class, 'checkStatus'])->name('payment.status');
         Route::get('/payment/{uuid}', [WalletApp::class, 'showPayment'])->name('payment.show');
@@ -101,6 +102,7 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
         Route::delete('/{key}', [CampaignApiController::class, 'destroy'])->name('destroy');
         Route::post('/{key}/submit', [CampaignApiController::class, 'submit'])->name('submit');
         Route::post('/{key}/duplicate', [CampaignApiController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{key}/checkout', [CampaignApiController::class, 'checkout'])->name('checkout');
     });
 });
 

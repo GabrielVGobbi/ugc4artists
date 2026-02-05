@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Wallet;
 
+use App\Models\Address;
 use App\Models\User;
 use App\Modules\Payments\Checkout\CheckoutResult;
 use App\Modules\Payments\Core\DTOs\Shared\AddressRequest;
@@ -16,6 +17,7 @@ use App\Modules\Payments\Models\WalletTransaction;
 use Bavix\Wallet\Models\Transaction;
 use Bavix\Wallet\Models\Wallet;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class WalletService
@@ -136,20 +138,20 @@ class WalletService
 
     /**
      * Add credit card data to checkout.
+     * Usa dados de faturamento do payload (name, document, phone, address_id) quando enviados.
      */
     protected function addCreditCardData($checkout, array $payload)
     {
-        // Parse card expiry (MM/YY or MM/YYYY)
         $expiry = $payload['card_expiry'] ?? '';
         [$expiryMonth, $expiryYear] = $this->parseCardExpiry($expiry);
 
         $holder = $checkout->getHolder();
-        $addressData = $holder->defaultAddress();
+        $addressData = $this->resolveAddressForCheckout($holder, $payload);
 
         throw_if(
             !$addressData,
             ValidationException::class,
-            ValidationException::withMessages(['address' => 'Não foi possivel localizar o endereço'])
+            ValidationException::withMessages(['address_id' => 'Selecione um endereço de cobrança.'])
         );
 
         $address = AddressRequest::fromArray($addressData->toArray());
@@ -161,21 +163,51 @@ class WalletService
             ]);
         }
 
+        $name = $payload['card_holder_name'] ?? $payload['name'] ?? $holder->name ?? '';
+        $document = $payload['document'] ?? $holder->document ?? '';
+        $phone = $payload['phone'] ?? $holder->phone ?? '';
+
         return $checkout
             ->withCreditCard(
                 number: $payload['card_number'] ?? '',
-                holderName: $payload['card_holder_name'] ?? $payload['name'] ?? '',
+                holderName: $cardHolderName,
                 expiryMonth: $expiryMonth,
                 expiryYear: $expiryYear,
                 cvv: $payload['card_cvv'] ?? '',
             )
             ->withCardHolder(
-                name: $payload['card_holder_name'] ?? $payload['name'] ?? '',
-                email: $holder['email'] ?? '',
-                document: $holder['document'],
+                name: $name,
+                email: $holder->email ?? '',
+                document: $document,
                 address: $address,
-                phone: $holder['phone'],
+                phone: $phone,
             );
+    }
+
+    /**
+     * Resolve address from payload address_id (user's) or user default.
+     */
+    protected function resolveAddressForCheckout(User $user, array $payload): ?Address
+    {
+        $addressId = $payload['address_id'] ?? null;
+
+        if (!empty($addressId)) {
+            $address = $user->addresses()
+                ->where(function ($q) use ($addressId) {
+                    if (Str::isUuid($addressId)) {
+                        $q->where('uuid', $addressId);
+                    } else {
+                        $q->where('id', $addressId);
+                    }
+                })
+                ->first();
+
+            if ($address) {
+                return $address;
+            }
+        }
+
+        return $user->defaultAddress();
     }
 
     /**
@@ -275,11 +307,9 @@ class WalletService
     /**
      * Deposit amount to user's wallet (direct, no payment).
      */
-    public function deposit(User $user, $amount, ?array $meta = null, bool $confirmed = true): Transaction
+    public function deposit(User $user, int $amount, ?array $meta = null, bool $confirmed = true): Transaction
     {
-        $cents = toCents($amount);
-
-        return $user->deposit($cents, $meta, $confirmed);
+        return $user->deposit($amount, $meta, $confirmed);
     }
 
     /**
@@ -308,6 +338,7 @@ class WalletService
                 'type' => $tx->type, // deposit or withdraw
                 'amount' => $tx->amount,
                 'amountFloat' => $tx->amountFloat,
+                'amount_float_formatted' => toCurrency($tx->amountFloat),
                 'confirmed' => $tx->confirmed,
                 'meta' => $tx->meta ?? [],
                 'created_at' => $tx->created_at->format('c'),

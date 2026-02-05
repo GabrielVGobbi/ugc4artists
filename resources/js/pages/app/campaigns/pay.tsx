@@ -27,18 +27,24 @@ import { AddressSelector } from '@/components/app/address-selector'
 import { useHeaderActions } from '@/hooks/use-header-actions'
 import { formatCurrency, formatCPF, validateCPF, isCPFComplete, formatPhoneFromDigits, formatCardNumber, formatCardDate, isMaskedCPF } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import type { Campaign } from '@/types/campaign'
+import type { CampaignResource } from '@/types/campaign'
 import type { SharedData, UserAuth } from '@/types'
 
 interface PageProps {
-    campaign: Campaign
+    [key: string]: unknown
+    campaign: CampaignResource & {
+        summary?: {
+            estimated_total: number
+            grand_total: number
+        }
+    }
     wallet_balance: number
-    publication_fee: number
 }
 
 type PaymentMethod = 'pix' | 'card' | 'wallet'
 
 interface FormData {
+    service: 'campaign'
     payment_method: PaymentMethod
     use_wallet_balance: boolean
     wallet_amount: number
@@ -46,6 +52,7 @@ interface FormData {
     document: string
     phone: string
     address_id: string
+    address: string
     card_number: string
     card_holder_name: string
     card_expiry: string
@@ -53,12 +60,19 @@ interface FormData {
 }
 
 export default function CampaignCheckout() {
-    const { campaign, wallet_balance, publication_fee } = usePage<PageProps>().props
+    const { campaignData, wallet_balance } = usePage<PageProps>().props
     const { props } = usePage<SharedData>()
     const user = props.auth?.user.data as UserAuth
+    const campaign = campaignData.data
 
     const [isSuccess, setIsSuccess] = useState(false)
     const [pixData, setPixData] = useState<{ payload: string; qr_code_image: string } | null>(null)
+    const [cpfError, setCpfError] = useState<string | null>(null)
+
+    // Extract values from campaign summary
+    const estimatedTotal = campaign.summary?.estimated_total ?? 0
+    const grandTotal = campaign.summary?.grand_total ?? 0
+    const publicationFee = campaign.publication_fee ?? 0
 
     // Header actions
     const headerContent = useMemo(() => (
@@ -78,13 +92,15 @@ export default function CampaignCheckout() {
     useHeaderActions(headerContent)
 
     const { data, setData, post, processing, errors } = useForm<FormData>({
-        payment_method: wallet_balance >= publication_fee ? 'wallet' : 'pix',
+        service: 'campaign',
+        payment_method: wallet_balance >= grandTotal ? 'wallet' : 'pix',
         use_wallet_balance: wallet_balance > 0,
-        wallet_amount: Math.min(wallet_balance, publication_fee),
+        wallet_amount: Math.min(wallet_balance, grandTotal),
         name: user?.name || '',
         document: user?.document || '',
         phone: user?.phone || '',
         address_id: '',
+        address: '',
         card_number: '',
         card_holder_name: '',
         card_expiry: '',
@@ -92,9 +108,9 @@ export default function CampaignCheckout() {
     })
 
     // Calculations
-    const walletAmountToUse = data.use_wallet_balance ? Math.min(data.wallet_amount, wallet_balance, publication_fee) : 0
-    const remainingAmount = Math.max(0, publication_fee - walletAmountToUse)
-    const canPayWithWalletOnly = wallet_balance >= publication_fee
+    const walletAmountToUse = data.use_wallet_balance ? Math.min(data.wallet_amount, wallet_balance, grandTotal) : 0
+    const remainingAmount = Math.max(0, grandTotal - walletAmountToUse)
+    const canPayWithWalletOnly = wallet_balance >= grandTotal
 
     // Validation
     const isFormValid = () => {
@@ -103,11 +119,29 @@ export default function CampaignCheckout() {
         }
 
         if (data.payment_method === 'card') {
-            return data.card_number && data.card_holder_name && data.card_expiry && data.card_cvv && data.address_id
+            const billingOk = data.name?.trim() && data.document?.trim() && data.phone?.trim() && data.address_id
+            const cardOk = data.card_number && data.card_holder_name && data.card_expiry && data.card_cvv
+            if (!billingOk || !cardOk) return false
+            if (!isMaskedCPF(data.document) && !isCPFComplete(data.document)) return false
+            if (!isMaskedCPF(data.document) && data.document && isCPFComplete(data.document)) {
+                const v = validateCPF(data.document)
+                if (!v.isValid) return false
+            }
+            return true
         }
 
-        // PIX
-        return data.address_id || remainingAmount === 0
+        // PIX: billing required when there is remaining amount
+        if (remainingAmount > 0) {
+            if (!data.name?.trim() || !data.document?.trim() || !data.phone?.trim() || !data.address_id) return false
+            if (!isMaskedCPF(data.document) && !isCPFComplete(data.document)) return false
+            if (!isMaskedCPF(data.document) && data.document && isCPFComplete(data.document)) {
+                const v = validateCPF(data.document)
+                if (!v.isValid) return false
+            }
+            return true
+        }
+
+        return true
     }
 
     const handlePayment = () => {
@@ -282,7 +316,7 @@ export default function CampaignCheckout() {
                                 )}
                                 <div className="flex-1 space-y-2">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-primary">
-                                        @{campaign.brand_instagram || 'marca'}
+                                        {campaign.brand_instagram || 'marca'}
                                     </p>
                                     <h3 className="text-xl font-bold text-secondary">{campaign.name}</h3>
                                     <div className="flex items-center gap-4 text-sm text-zinc-500">
@@ -290,7 +324,7 @@ export default function CampaignCheckout() {
                                             <Users size={14} /> {campaign.slots_to_approve} vagas
                                         </span>
                                         <span className="flex items-center gap-1">
-                                            <Zap size={14} /> {campaign.publication_plan === 'premium' ? 'Premium' : campaign.publication_plan === 'highlight' ? 'Destaque' : 'Básico'}
+                                            {campaign.publication_plan === 'premium' ? 'Premium' : campaign.publication_plan === 'highlight' ? 'Destaque' : 'Básico'}
                                         </span>
                                     </div>
                                 </div>
@@ -332,7 +366,7 @@ export default function CampaignCheckout() {
                                     </button>
                                 </div>
 
-                                {data.use_wallet_balance && publication_fee > wallet_balance && (
+                                {data.use_wallet_balance && grandTotal > wallet_balance && (
                                     <div className="mt-4 pt-4 border-t border-emerald-200">
                                         <div className="flex items-center justify-between">
                                             <p className="text-sm text-emerald-700">Valor a usar:</p>
@@ -349,7 +383,7 @@ export default function CampaignCheckout() {
                                                 </span>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setData('wallet_amount', Math.min(wallet_balance, publication_fee, data.wallet_amount + 10))}
+                                                    onClick={() => setData('wallet_amount', Math.min(wallet_balance, grandTotal, data.wallet_amount + 10))}
                                                     className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-200"
                                                 >
                                                     <Plus size={14} />
@@ -362,6 +396,84 @@ export default function CampaignCheckout() {
                         )}
 
 
+                        {/* Dados de Faturamento - quando há valor a pagar (PIX ou Cartão) */}
+                        {remainingAmount > 0 && (
+                            <div className="bg-white rounded-[2.5rem] p-8 border border-zinc-100 shadow-sm space-y-6">
+                                <div className="space-y-2">
+                                    <h3 className="text-2xl font-black tracking-tighter text-secondary">
+                                        Dados de Faturamento
+                                    </h3>
+                                    <p className="text-zinc-500 font-medium">
+                                        Precisamos dessas informações para processar seu pagamento com segurança.
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-1">
+                                    <div className="space-y-2">
+                                        <CustomField
+                                            label="Nome Completo"
+                                            placeholder="Nome Completo"
+                                            disabled
+                                            value={user?.name ?? data.name}
+                                        />
+                                        {errors.name && (
+                                            <p className="text-red-500 text-xs font-medium">{errors.name}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <CustomField
+                                            label="CPF"
+                                            placeholder="000.000.000-00"
+                                            value={data.document}
+                                            disabled={isMaskedCPF(data.document)}
+                                            onChange={(e) => {
+                                                if (isMaskedCPF(data.document)) return
+                                                const formatted = formatCPF(e.target.value)
+                                                setData('document', formatted)
+                                                if (isCPFComplete(formatted)) {
+                                                    const validation = validateCPF(formatted)
+                                                    setCpfError(validation.isValid ? null : (validation.error ?? 'Documento inválido'))
+                                                } else {
+                                                    setCpfError(null)
+                                                }
+                                            }}
+                                            error={errors.document}
+                                        />
+                                        {(cpfError ?? errors.document) && (
+                                            <p className="text-red-500 text-xs font-medium">{cpfError ?? (errors.document as string)}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <CustomField
+                                            label="Celular com DDD"
+                                            placeholder="(00) 00000-0000"
+                                            value={formatPhoneFromDigits(data.phone)}
+                                            onChange={(e) => {
+                                                const digits = e.target.value.replace(/\D/g, '').slice(0, 11)
+                                                setData('phone', digits)
+                                            }}
+                                            error={errors.phone}
+                                        />
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <AddressSelector
+                                            value={data.address_id}
+                                            onChange={(addressId, fullAddress) => {
+                                                setData('address_id', addressId)
+                                                setData('address', fullAddress ?? '')
+                                            }}
+                                            error={errors.address_id}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="bg-white rounded-[2.5rem] p-8 border border-zinc-100 shadow-sm space-y-6">
                             <div className="space-y-1">
                                 <h3 className="text-2xl font-black tracking-tighter text-secondary">
@@ -370,7 +482,7 @@ export default function CampaignCheckout() {
                                 <p className="text-zinc-500">
                                     {walletAmountToUse > 0
                                         ? `Pague os ${formatCurrency(remainingAmount)} restantes`
-                                        : `Escolha como pagar ${formatCurrency(publication_fee)}`
+                                        : `Escolha como pagar ${formatCurrency(grandTotal)}`
                                     }
                                 </p>
                             </div>
@@ -444,12 +556,7 @@ export default function CampaignCheckout() {
                                             error={errors.card_cvv}
                                         />
                                     </div>
-
-                                    <AddressSelector
-                                        value={data.address_id}
-                                        onChange={(id) => setData('address_id', id)}
-                                        error={errors.address_id}
-                                    />
+                                    {/* Endereço de cobrança está em "Dados de Faturamento" quando remainingAmount > 0 */}
                                 </div>
                             )}
 
@@ -472,7 +579,7 @@ export default function CampaignCheckout() {
                                     <div>
                                         <p className="font-bold text-emerald-900">Pagamento com saldo da carteira</p>
                                         <p className="text-sm text-emerald-700">
-                                            O valor de {formatCurrency(publication_fee)} será debitado da sua carteira.
+                                            O valor de {formatCurrency(grandTotal)} será debitado da sua carteira.
                                         </p>
                                     </div>
                                 </div>
@@ -485,14 +592,14 @@ export default function CampaignCheckout() {
                             disabled={!isFormValid() || processing}
                             className="w-full bg-primary text-white py-6 rounded-[2rem] font-black uppercase text-sm tracking-[0.2em] h-auto hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-primary/20"
                         >
-                            {processing ? (
-                                <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : (
-                                <>
-                                    <Sparkles size={20} className="mr-3" />
-                                    {publication_fee > 0 ? 'Finalizar e Publicar' : 'Publicar Campanha'}
-                                </>
-                            )}
+                                    {processing ? (
+                                        <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <>
+                                            <Sparkles size={20} className="mr-3" />
+                                            {grandTotal > 0 ? 'Finalizar e Publicar' : 'Publicar Campanha'}
+                                        </>
+                                    )}
                         </Button>
                     </div>
 
@@ -509,19 +616,41 @@ export default function CampaignCheckout() {
                                     </h4>
 
                                     <div className="space-y-4">
-                                        {/* Plan */}
-                                        <div className="flex justify-between items-center py-3 border-b border-white/10">
-                                            <div className="flex items-center gap-3">
-
-                                                <div>
-                                                    <p className="font-bold">
-                                                        Plano {campaign.publication_plan === 'premium' ? 'Premium' : campaign.publication_plan === 'highlight' ? 'Destaque' : 'Básico'}
-                                                    </p>
-                                                    <p className="text-xs text-zinc-400">Taxa de publicação</p>
+                                        {/* Budget for Influencers */}
+                                        {estimatedTotal > 0 && (
+                                            <div className="flex justify-between items-center py-3 border-b border-white/10">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                                                        <Users size={18} className="text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold">Orçamento para Influencers</p>
+                                                        <p className="text-xs text-zinc-400">
+                                                            {campaign.slots_to_approve} vagas × {formatCurrency(campaign.price_per_influencer ?? 0)}
+                                                        </p>
+                                                    </div>
                                                 </div>
+                                                <span className="font-bold">{formatCurrency(estimatedTotal)}</span>
                                             </div>
-                                            <span className="font-bold">{formatCurrency(publication_fee)}</span>
-                                        </div>
+                                        )}
+
+                                        {/* Publication Fee */}
+                                        {publicationFee > 0 && (
+                                            <div className="flex justify-between items-center py-3 border-b border-white/10">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                                                        <Zap size={18} className="text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold">
+                                                            Plano {campaign.publication_plan === 'premium' ? 'Premium' : campaign.publication_plan === 'highlight' ? 'Destaque' : 'Básico'}
+                                                        </p>
+                                                        <p className="text-xs text-zinc-400">Taxa de publicação</p>
+                                                    </div>
+                                                </div>
+                                                <span className="font-bold">{formatCurrency(publicationFee)}</span>
+                                            </div>
+                                        )}
 
                                         {/* Wallet Discount */}
                                         {walletAmountToUse > 0 && (

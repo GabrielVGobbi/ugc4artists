@@ -41,6 +41,7 @@ import { PaymentHelpModal } from '@/components/app/payment-help-modal'
 import { useWhatsAppMessages } from '@/hooks'
 
 interface FormData {
+    service: 'wallet'
     amount: number
     payment_method: 'pix' | 'card'
     name: string
@@ -102,6 +103,7 @@ export default function AddBalance() {
     useHeaderActions(headerContent)
 
     const { data, setData, post, processing, errors } = useForm<FormData>({
+        service: 'wallet',
         amount: 0,
         payment_method: 'pix',
         name: user.name,

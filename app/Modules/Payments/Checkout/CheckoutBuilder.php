@@ -49,7 +49,7 @@ final class CheckoutBuilder
 
     private ?string $billableId = null;
 
-    private int|string|float  $amountCents = 0;
+    private int  $amountCents = 0;
 
     private string $currency = 'BRL';
 
@@ -123,7 +123,7 @@ final class CheckoutBuilder
     /**
      * Set the amount in cents.
      */
-    public function amount(int|string|float $amountCents): self
+    public function amount(int $amountCents): self
     {
         $clone = clone $this;
         $clone->amountCents = $amountCents;

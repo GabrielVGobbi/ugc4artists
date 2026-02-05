@@ -6,13 +6,15 @@ namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkout\CheckoutRequest;
-use App\Http\Resources\PaymentResource;
 use App\Http\Resources\UserResource;
 use App\Modules\Payments\Enums\PaymentMethod;
+use App\Modules\Payments\Http\Resources\PaymentResource;
+use App\Modules\Payments\Http\Resources\TransactionResource;
 use App\Modules\Payments\Models\Payment;
 use App\Services\UserService;
 use App\Services\Wallet\WalletService;
 use App\Supports\TheOneResponse;
+use Bavix\Wallet\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -269,5 +271,15 @@ class WalletAppController extends Controller
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    public function transactions(Request $request)
+    {
+        $transactions =  $transactions = $request->user()->transactions()
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get();
+
+        return TransactionResource::collection($transactions);
     }
 }

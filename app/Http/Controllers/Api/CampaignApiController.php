@@ -7,14 +7,22 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Campaign\StoreCampaignRequest;
 use App\Http\Requests\Campaign\UpdateCampaignRequest;
+use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CampaignResource;
 use App\Models\Campaign;
+use App\Services\Campaign\CampaignCheckoutService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class CampaignApiController extends Controller
 {
+
+    public function __construct(
+        protected CampaignCheckoutService $checkoutService
+    ) {}
+
     /**
      * Lista paginada de campanhas do usuário
      */
@@ -237,5 +245,39 @@ class CampaignApiController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    /**
+     * Processar checkout da campanha.
+     * Usa CheckoutRequest unificado (service=campaign) com dados de faturamento.
+     */
+    public function checkout(CheckoutRequest $request, string $key): JsonResponse|RedirectResponse
+    {
+        $campaign = Campaign::byUser()
+            ->byKey($key)
+            ->firstOrFail();
+
+        if (!$campaign->isDraft()) {
+            return response()->json([
+                'message' => 'Esta campanha já foi submetida.',
+            ], 422);
+        }
+
+        $validated = $request->validated();
+
+        $result = $this->checkoutService->processCheckout(
+            campaign: $campaign,
+            user: $request->user(),
+            payload: $validated
+        );
+
+        if ($result['success']) {
+            return response()->json($result);
+        }
+
+        return response()->json([
+            'message' => $result['message'] ?? 'Erro ao processar pagamento.',
+            'errors' => $result['errors'] ?? [],
+        ], 422);
     }
 }

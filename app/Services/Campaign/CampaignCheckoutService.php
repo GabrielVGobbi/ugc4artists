@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Campaign;
 
+use App\Models\Address;
 use App\Models\Campaign;
 use App\Models\User;
 use App\Modules\Payments\Checkout\CheckoutResult;
@@ -13,6 +14,7 @@ use App\Modules\Payments\Enums\PaymentStatus;
 use App\Modules\Payments\Facades\Checkout;
 use App\Modules\Payments\Models\Payment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CampaignCheckoutService
@@ -33,25 +35,33 @@ class CampaignCheckoutService
      */
     public function processCheckout(Campaign $campaign, User $user, array $payload): array
     {
+        // Calculate grand total (estimated_total + publication_fee)
+        $pricePerInfluencer = (float) ($campaign->price_per_influencer ?? 0);
+        $slotsToApprove = (int) ($campaign->slots_to_approve ?? 0);
+        $estimatedTotal = $slotsToApprove * $pricePerInfluencer;
         $publicationFee = $this->getPublicationFee($campaign->publication_plan);
+        $grandTotal = $estimatedTotal + $publicationFee;
 
-        // If no fee, just submit the campaign
-        if ($publicationFee <= 0) {
+        // If no payment needed (grand total is 0), just submit the campaign
+        if ($grandTotal <= 0) {
             return $this->submitCampaignDirectly($campaign);
         }
 
         $useWalletBalance = $payload['use_wallet_balance'] ?? false;
         $walletAmount = min(
             (float) ($payload['wallet_amount'] ?? 0),
-            $user->wallet?->balanceFloat ?? 0
+            $user->wallet?->balanceFloat ?? 0,
+            $grandTotal // Can't use more than grand total
         );
 
         // Calculate remaining amount after wallet deduction
-        $remainingAmount = $publicationFee - $walletAmount;
+        $remainingAmount = $grandTotal - $walletAmount;
+
+        dd($remainingAmount);
 
         // If wallet covers everything
         if ($useWalletBalance && $remainingAmount <= 0) {
-            return $this->payWithWalletOnly($campaign, $user, $publicationFee);
+            return $this->payWithWalletOnly($campaign, $user, $grandTotal);
         }
 
         // Process payment for remaining amount
@@ -60,6 +70,8 @@ class CampaignCheckoutService
             user: $user,
             amount: $remainingAmount,
             walletAmount: $useWalletBalance ? $walletAmount : 0,
+            estimatedTotal: $estimatedTotal,
+            publicationFee: $publicationFee,
             payload: $payload
         );
     }
@@ -89,27 +101,36 @@ class CampaignCheckoutService
     /**
      * Pay with wallet balance only.
      */
-    protected function payWithWalletOnly(Campaign $campaign, User $user, float $amount): array
+    protected function payWithWalletOnly(Campaign $campaign, User $user, float $grandTotal): array
     {
-        return DB::transaction(function () use ($campaign, $user, $amount) {
+        return DB::transaction(function () use ($campaign, $user, $grandTotal) {
             // Check wallet balance
-            if ($user->wallet->balanceFloat < $amount) {
+            if ($user->wallet->balanceFloat < $grandTotal) {
                 return [
                     'success' => false,
                     'message' => 'Saldo insuficiente na carteira.',
                 ];
             }
 
+            // Calculate breakdown
+            $pricePerInfluencer = (float) ($campaign->price_per_influencer ?? 0);
+            $slotsToApprove = (int) ($campaign->slots_to_approve ?? 0);
+            $estimatedTotal = $slotsToApprove * $pricePerInfluencer;
+            $publicationFee = $grandTotal - $estimatedTotal;
+
             // Withdraw from wallet
-            $user->withdraw(toCents($amount), [
-                'description' => "Taxa de publicação - Campanha: {$campaign->name}",
+            $user->withdraw(toCents($grandTotal), [
+                'description' => "Pagamento completo da campanha - {$campaign->name}",
                 'campaign_id' => $campaign->id,
-                'type' => 'campaign_publication_fee',
+                'type' => 'campaign_full_payment',
+                'estimated_total' => $estimatedTotal,
+                'publication_fee' => $publicationFee,
             ]);
 
             // Update campaign with payment info
             $campaign->update([
-                'publication_fee' => $amount,
+                'publication_fee' => $publicationFee,
+                'publication_wallet_amount' => $grandTotal,
                 'publication_paid_at' => now(),
                 'publication_payment_method' => 'wallet',
             ]);
@@ -137,6 +158,8 @@ class CampaignCheckoutService
         User $user,
         float $amount,
         float $walletAmount,
+        float $estimatedTotal,
+        float $publicationFee,
         array $payload
     ): array {
         // Check if campaign is complete
@@ -157,9 +180,11 @@ class CampaignCheckoutService
             // Deduct wallet amount if any
             if ($walletAmount > 0) {
                 $user->withdraw(toCents($walletAmount), [
-                    'description' => "Taxa de publicação (parcial) - Campanha: {$campaign->name}",
+                    'description' => "Pagamento parcial da campanha - {$campaign->name}",
                     'campaign_id' => $campaign->id,
-                    'type' => 'campaign_publication_fee_partial',
+                    'type' => 'campaign_partial_payment',
+                    'estimated_total' => $estimatedTotal,
+                    'publication_fee' => $publicationFee,
                 ]);
             }
 
@@ -190,7 +215,7 @@ class CampaignCheckoutService
 
             // Update campaign with partial payment info
             $campaign->update([
-                'publication_fee' => $amount + $walletAmount,
+                'publication_fee' => $publicationFee,
                 'publication_wallet_amount' => $walletAmount,
             ]);
 
@@ -278,6 +303,7 @@ class CampaignCheckoutService
 
     /**
      * Add credit card data to checkout.
+     * Usa dados de faturamento do payload (name, document, phone, address_id) quando enviados.
      */
     protected function addCreditCardData($checkout, User $user, array $payload)
     {
@@ -285,22 +311,26 @@ class CampaignCheckoutService
         [$expiryMonth, $expiryYear] = $this->parseCardExpiry($expiry);
 
         $holder = $checkout->getHolder();
-        $addressData = $holder->defaultAddress();
+        $addressData = $this->resolveAddressForCheckout($user, $payload);
 
         throw_if(
             !$addressData,
             ValidationException::class,
-            ValidationException::withMessages(['address' => 'Cadastre um endereço antes de continuar.'])
+            ValidationException::withMessages(['address_id' => 'Selecione um endereço de cobrança.'])
         );
 
         $address = AddressRequest::fromArray($addressData->toArray());
 
-        $cardHolderName = $payload['card_holder_name'] ?? '';
+        $cardHolderName = $payload['card_holder_name'] ?? $payload['name'] ?? '';
         if (str_word_count($cardHolderName) < 2) {
             throw ValidationException::withMessages([
                 'card_holder_name' => 'O nome do titular deve conter nome e sobrenome.',
             ]);
         }
+
+        $name = $payload['name'] ?? $holder->name ?? '';
+        $document = $payload['document'] ?? $holder->document ?? '';
+        $phone = $payload['phone'] ?? $holder->phone ?? '';
 
         return $checkout
             ->withCreditCard(
@@ -312,11 +342,37 @@ class CampaignCheckoutService
             )
             ->withCardHolder(
                 name: $cardHolderName,
-                email: $holder['email'] ?? '',
-                document: $holder['document'],
+                email: $holder->email ?? '',
+                document: $document,
                 address: $address,
-                phone: $holder['phone'],
+                phone: $phone,
             );
+    }
+
+    /**
+     * Resolve address from payload address_id (user's) or user default.
+     */
+    protected function resolveAddressForCheckout(User $user, array $payload): ?Address
+    {
+        $addressId = $payload['address_id'] ?? null;
+
+        if (!empty($addressId)) {
+            $address = $user->addresses()
+                ->where(function ($q) use ($addressId) {
+                    if (Str::isUuid($addressId)) {
+                        $q->where('uuid', $addressId);
+                    } else {
+                        $q->where('id', $addressId);
+                    }
+                })
+                ->first();
+
+            if ($address) {
+                return $address;
+            }
+        }
+
+        return $user->defaultAddress();
     }
 
     /**
