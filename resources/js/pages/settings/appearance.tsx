@@ -6,12 +6,12 @@ import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app2-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { edit as editAppearance } from '@/routes/appearance';
+//import { edit as editAppearance } from '@/routes/appearance';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Appearance settings',
-        href: editAppearance().url,
+        href: 'editAppearance().url',
     },
 ];
 

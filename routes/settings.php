@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\AddressController;
+use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\Settings\NotificationSettingsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -27,9 +28,13 @@ Route::middleware('auth')->prefix('app/settings')->name('app.settings.')->group(
 
     // Security (unified password + 2FA)
     Route::get('security', [SecurityController::class, 'edit'])->name('security.edit');
+    Route::get('password', [PasswordController::class, 'edit'])->name('user-password.edit');
     Route::put('password', [PasswordController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('user-password.update');
     Route::get('two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    // Appearance
+    Route::get('appearance', [AppearanceController::class, 'edit'])->name('appearance.edit');
 });

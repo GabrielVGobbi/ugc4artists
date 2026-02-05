@@ -33,3 +33,6 @@ todo.md
 .docs
 .claude
 storage/backups/*
+
+# Auto Claude data directory
+.auto-claude/
