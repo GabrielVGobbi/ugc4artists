@@ -15,13 +15,20 @@ export type ObjectiveTag = 'divulgar_musica' | 'divulgar_clipe' | 'divulgar_perf
 
 export type CampaignStatus =
     | 'draft'
-    | 'pending_review'
-    | 'approved'
-    | 'rejected'
-    | 'active'
-    | 'paused'
+    | 'awaiting_payment'
+    | 'sent_to_creators'
+    | 'in_progress'
     | 'completed'
     | 'cancelled'
+
+/** Objeto de status retornado pela API para visualização */
+export interface CampaignStatusDisplay {
+    value: CampaignStatus
+    label: string
+    color: string
+    icon: string
+    classes: string
+}
 
 export interface CampaignUser {
     id: number
@@ -99,12 +106,15 @@ export interface CampaignResource {
         email: string | null
     }
 
+    // Status para visualização (label, cor, ícone)
+    status: CampaignStatusDisplay
+
     // Status / revisão (objeto)
     review: {
-        status: CampaignStatus
-        submitted_at: string | null // ISO 8601 (toISOString)
-        approved_at: string | null  // ISO 8601
-        rejected_at: string | null  // ISO 8601
+        submitted_at: string | null
+        reviewed_at: string | null
+        approved_at: string | null
+        rejected_at: string | null
         rejection_reason: string | null
         reviewed_by: number | null
     }
@@ -117,6 +127,10 @@ export interface CampaignResource {
         duration_days: number | null
     }
 
+    // Listagem (card/table)
+    total_budget?: number
+    applications_count?: number
+
     // Metas (ISO)
     created_at: string | null // ISO 8601 (no seu helper pode retornar null)
     updated_at: string | null // ISO 8601
@@ -127,11 +141,15 @@ export interface CampaignResource {
     user?: CampaignUser
 }
 
+/** Alias para uso em listas e hooks (mesmo que CampaignResource) */
+export type Campaign = CampaignResource
+
 export interface CampaignStats {
     total: number
     draft: number
-    pending_review: number
-    active: number
+    awaiting_payment: number
+    sent_to_creators: number
+    in_progress: number
     completed: number
     total_budget: number
     total_applications: number
@@ -192,25 +210,37 @@ export interface CampaignFormData {
 // Status Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Cores Tailwind para badge por status (backend envia: gray, warning, info, success, danger) */
+const STATUS_COLOR_MAP: Record<string, string> = {
+    gray: 'bg-zinc-300',
+    warning: 'bg-amber-500',
+    info: 'bg-blue-500',
+    success: 'bg-emerald-500',
+    danger: 'bg-red-500',
+    primary: 'bg-primary',
+}
+
 export const CAMPAIGN_STATUS_COLORS: Record<CampaignStatus, string> = {
     draft: 'bg-zinc-300',
-    pending_review: 'bg-amber-500',
-    approved: 'bg-blue-500',
-    rejected: 'bg-red-500',
-    active: 'bg-emerald-500',
-    paused: 'bg-yellow-500',
+    awaiting_payment: 'bg-amber-500',
+    sent_to_creators: 'bg-blue-500',
+    in_progress: 'bg-emerald-500',
     completed: 'bg-primary',
     cancelled: 'bg-zinc-400',
 }
 
+/** Resolve cor do status: usa objeto da API (color) ou fallback pelo value */
+export function getCampaignStatusColor(status: CampaignStatusDisplay | { value: CampaignStatus; color?: string }): string {
+    if (status.color && STATUS_COLOR_MAP[status.color]) return STATUS_COLOR_MAP[status.color]
+    return CAMPAIGN_STATUS_COLORS[status.value] ?? 'bg-zinc-300'
+}
+
 export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
     draft: 'Rascunho',
-    pending_review: 'Aguardando Revisão',
-    approved: 'Aprovada',
-    rejected: 'Rejeitada',
-    active: 'Ativa',
-    paused: 'Pausada',
-    completed: 'Concluída',
+    awaiting_payment: 'Aguardando Pagamento',
+    sent_to_creators: 'Enviado para Creators',
+    in_progress: 'Em Andamento',
+    completed: 'Finalizada',
     cancelled: 'Cancelada',
 }
 

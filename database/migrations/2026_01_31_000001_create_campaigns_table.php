@@ -80,19 +80,14 @@ return new class extends Migration
             $table->string('responsible_email')->nullable();
             $table->boolean('use_my_data')->default(false);
 
-            // Status e Controle
-            $table->enum('status', [
-                'draft',           // Rascunho
-                'pending_review',  // Aguardando revisão dos curadores
-                'approved',        // Aprovada e ativa
-                'rejected',        // Rejeitada pelos curadores
-                'active',          // Ativa e aceitando inscrições
-                'paused',          // Pausada temporariamente
-                'completed',       // Concluída
-                'cancelled',       // Cancelada
-            ])->default('draft');
+            $table->string('status', 30)->default('draft');
+
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
 
             $table->timestamp('submitted_at')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('rejected_at')->nullable();
             $table->text('rejection_reason')->nullable();

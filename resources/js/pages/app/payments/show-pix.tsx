@@ -238,12 +238,13 @@ export default function ShowPixPayment({ payment, pix }: Props) {
 
                         {/* QR Code Card */}
                         <div className="bg-white p-12 rounded-[3.5rem] border border-zinc-100 shadow-sm space-y-10">
+
                             <div className="text-center space-y-2">
-                                <h2 className="text-3xl font-black tracking-tighter text-secondary">
-                                    Pague com PIX
-                                </h2>
+                                <h3 className="text-2xl font-black tracking-tight text-secondary">
+                                    Escaneie o QR Code
+                                </h3>
                                 <p className="text-zinc-500 font-medium">
-                                    Escaneie o código QR com o app do seu banco
+                                    Use o app do seu banco para pagar instantaneamente
                                 </p>
                             </div>
 
@@ -269,6 +270,26 @@ export default function ShowPixPayment({ payment, pix }: Props) {
                                     <div className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-2xl"></div>
                                     <div className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-2xl"></div>
                                     <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-2xl"></div>
+                                </div>
+                            </div>
+
+                            {/* Header com valor em destaque */}
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent rounded-3xl"></div>
+                                <div className="relative text-center  py-2">
+
+
+                                    <div className="space-y-2">
+
+                                        <div className="relative inline-block">
+                                            <span className="">Pague com o pix </span>
+                                            <h2 className="text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-secondary via-primary to-secondary">
+                                                {payment.gateway_amount_formatted}
+                                            </h2>
+
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
 

@@ -86,7 +86,7 @@ TEXT,
 
             // Orçamento
             'slots_to_approve' => 2,
-            'price_per_influencer' => 5000.00,
+            'price_per_influencer' => 500.00,
             'requires_invoice' => false,
 
             // Branding
@@ -105,7 +105,7 @@ TEXT,
 
             // Status e controle
             'status' => 'draft', // draft | submitted | approved | rejected
-            'submitted_at' => Carbon::now(),
+            'submitted_at' => NULL,
 
             // Revisão (nulo inicialmente)
             'approved_at' => null,

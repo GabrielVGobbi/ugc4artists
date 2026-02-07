@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Checkout\CheckoutRequest;
+use App\Http\Requests\Campaign\CampaignCheckoutRequest;
 use App\Http\Resources\CampaignResource;
 use App\Models\Campaign;
+use App\Modules\Payments\Checkout\CheckoutResult;
 use App\Services\Campaign\CampaignCheckoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -42,11 +43,19 @@ class CampaignController extends Controller
     /**
      * Visualizar detalhes de uma campanha
      */
-    public function show(string $key): Response
+    public function show(string $key)
     {
         $campaign = Campaign::byUser()
             ->byKey($key)
             ->firstOrFail();
+
+        if ($campaign->isAwaitingPayment()) {
+            $pendingPayment = $campaign->getLatestPendingPayment();
+            if ($pendingPayment) {
+                return redirect()
+                    ->route('app.payments.show', $pendingPayment->uuid);
+            }
+        }
 
         return Inertia::render('app/campaigns/edit', [
             'campaign' => new CampaignResource($campaign),
@@ -84,13 +93,28 @@ class CampaignController extends Controller
             ->byKey($key)
             ->firstOrFail();
 
-        // Check if campaign can be submitted
-        //TODO
-        //if (!$campaign->isDraft()) {
-        //    return redirect()
-        //        ->route('app.campaigns.show', $campaign->uuid)
-        //        ->with('error', 'Esta campanha já foi submetida.');
-        //}
+        // Campanha já paga — redirecionar para detalhes
+        if ($campaign->isSentToCreators() || $campaign->isInProgress() || $campaign->isCompleted()) {
+            return redirect()
+                ->route('app.campaigns.show', $campaign->uuid)
+                ->with('info', 'Esta campanha já foi paga.');
+        }
+
+        // Campanha aguardando PIX — redirecionar para página do pagamento pendente
+        if ($campaign->isAwaitingPayment()) {
+            $pendingPayment = $campaign->getLatestPendingPayment();
+            if ($pendingPayment) {
+                return redirect()
+                    ->route('app.payments.show', $pendingPayment->uuid);
+            }
+        }
+
+        // Campanha cancelada — não pode pagar
+        if ($campaign->isCancelled()) {
+            return redirect()
+                ->route('app.campaigns.show', $campaign->uuid)
+                ->with('error', 'Esta campanha foi cancelada.');
+        }
 
         $user = auth()->user();
         $walletBalance = $user->wallet?->balanceFloat ?? 0;
@@ -103,18 +127,49 @@ class CampaignController extends Controller
 
     /**
      * Processar checkout da campanha.
-     * Usa CheckoutRequest unificado (service=campaign) com dados de faturamento.
      */
-    public function checkout(CheckoutRequest $request, string $key): JsonResponse|RedirectResponse
+    public function checkout(CampaignCheckoutRequest $request, string $key): JsonResponse|RedirectResponse
     {
         $campaign = Campaign::byUser()
             ->byKey($key)
             ->firstOrFail();
 
-        if (!$campaign->isDraft()) {
-            return response()->json([
-                'message' => 'Esta campanha já foi submetida.',
-            ], 422);
+        $alreadyPaidMessage = 'Esta campanha já foi paga.';
+
+        // Campanha já paga — retornar erro
+        if ($campaign->isSentToCreators() || $campaign->isInProgress() || $campaign->isCompleted()) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $alreadyPaidMessage], 422);
+            }
+            return redirect()
+                ->route('app.campaigns.show', $campaign->uuid)
+                ->with('error', $alreadyPaidMessage);
+        }
+
+        // Campanha cancelada — não pode fazer checkout
+        if ($campaign->isCancelled()) {
+            $message = 'Esta campanha foi cancelada.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+            return back()->with('error', $message);
+        }
+
+        // Campanha aguardando PIX — retornar pagamento pendente em vez de criar novo
+        if ($campaign->isAwaitingPayment()) {
+            $pendingPayment = $campaign->getLatestPendingPayment();
+            if ($pendingPayment) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'status' => 'pending',
+                        'message' => 'Você já possui um pagamento pendente. Aguarde a confirmação ou acesse a página do pagamento.',
+                        'checkout' => ['payment' => ['uuid' => $pendingPayment->uuid]],
+                        'redirect' => route('app.payments.show', $pendingPayment->uuid),
+                    ]);
+                }
+                return redirect()->route('app.payments.show', $pendingPayment->uuid);
+            }
         }
 
         $validated = $request->validated();
@@ -125,13 +180,110 @@ class CampaignController extends Controller
             payload: $validated
         );
 
-        if ($result['success']) {
-            return response()->json($result);
+
+        // Non-gateway payment (wallet only or free campaign) — returns array
+        if (is_array($result)) {
+            return $this->handleArrayResponse($result, $request, $campaign);
         }
 
+        // Gateway payment (PIX or Credit Card) — returns CheckoutResult
+        if ($request->expectsJson()) {
+            return $this->handleJsonResponse($result, $campaign);
+        }
+
+        return $this->handleInertiaResponse($result, $campaign);
+    }
+
+    /**
+     * Handle array result (wallet-only or free campaign submit).
+     */
+    protected function handleArrayResponse(array $result, CampaignCheckoutRequest $request, Campaign $campaign): JsonResponse|RedirectResponse
+    {
+        if (!($result['success'] ?? false)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $result['message'] ?? 'Erro ao processar.',
+                ], 422);
+            }
+
+            return back()->withErrors([
+                'checkout' => $result['message'] ?? 'Erro ao processar.',
+            ]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'status' => 'paid',
+                'message' => $result['message'],
+                'redirect' => route('app.campaigns.show', $campaign->uuid),
+            ]);
+        }
+
+        return redirect()->route('app.campaigns.show', $campaign->uuid)
+            ->with('success', $result['message'] ?? 'Campanha enviada com sucesso!');
+    }
+
+    /**
+     * Handle JSON/API response for gateway payments (CheckoutResult).
+     */
+    protected function handleJsonResponse(CheckoutResult $result, Campaign $campaign): JsonResponse
+    {
+        if ($result->isPaid()) {
+            return response()->json([
+                'success' => true,
+                'status' => 'paid',
+                'message' => 'Pagamento confirmado! Campanha enviada para revisão.',
+                'redirect' => route('app.campaigns.show', $campaign->uuid),
+            ]);
+        }
+
+        if ($result->isFailed()) {
+            return response()->json([
+                'success' => false,
+                'message' => $result->getErrorMessage() ?? 'Pagamento recusado.',
+            ], 422);
+        }
+
+        // Pending — return checkout data (PIX QR code, etc.)
         return response()->json([
-            'message' => $result['message'] ?? 'Erro ao processar pagamento.',
-            'errors' => $result['errors'] ?? [],
-        ], 422);
+            'success' => true,
+            'status' => 'pending',
+            'message' => 'Pagamento criado. Aguardando confirmação.',
+            'checkout' => $result->toArray(),
+            'redirect' => route('app.payments.show', $result->payment->uuid),
+        ]);
+    }
+
+    /**
+     * Handle Inertia response for gateway payments (CheckoutResult).
+     */
+    protected function handleInertiaResponse(CheckoutResult $result, Campaign $campaign): RedirectResponse
+    {
+        // Credit card paid — redirect to campaign details
+        if ($result->isCreditCard() && $result->isPaid()) {
+            return redirect()->route('app.campaigns.show', $campaign->uuid)
+                ->with('success', 'Pagamento confirmado! Campanha enviada para revisão.');
+        }
+
+        // Credit card failed — back with errors
+        if ($result->isCreditCard() && $result->isFailed()) {
+            return back()->withErrors([
+                'card' => $result->getErrorMessage() ?? 'Pagamento recusado. Verifique os dados do cartão.',
+            ]);
+        }
+
+        // PIX — redirect to payment page (QR code)
+        if ($result->isPix()) {
+            return redirect()->route('app.payments.show', $result->payment->uuid);
+        }
+
+        // Other methods — checkout URL or campaign details
+        if ($result->checkoutUrl) {
+            return Inertia::location($result->checkoutUrl);
+        }
+
+        return redirect()->route('app.campaigns.show', $campaign->uuid)
+            ->with('info', 'Pagamento criado. Aguardando confirmação.');
     }
 }

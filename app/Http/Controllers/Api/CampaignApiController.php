@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\CampaignStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Campaign\CampaignCheckoutRequest;
 use App\Http\Requests\Campaign\StoreCampaignRequest;
 use App\Http\Requests\Campaign\UpdateCampaignRequest;
 use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CampaignResource;
 use App\Models\Campaign;
+use App\Modules\Payments\Checkout\CheckoutResult;
 use App\Services\Campaign\CampaignCheckoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -57,7 +60,7 @@ class CampaignApiController extends Controller
     {
         $data = $request->validated();
         $data['user_id'] = auth()->id();
-        $data['status'] = 'draft';
+        $data['status'] = CampaignStatus::DRAFT;
 
         // Upload da imagem de capa
         if ($request->hasFile('cover_image')) {
@@ -218,7 +221,7 @@ class CampaignApiController extends Controller
         ]);
 
         $newCampaign->name = $campaign->name . ' (Cópia)';
-        $newCampaign->status = 'draft';
+        $newCampaign->status = CampaignStatus::DRAFT;
         $newCampaign->save();
 
         return response()->json([
@@ -236,11 +239,12 @@ class CampaignApiController extends Controller
 
         $stats = [
             'total' => Campaign::byUser($userId)->count(),
-            'draft' => Campaign::byUser($userId)->byStatus('draft')->count(),
-            'pending_review' => Campaign::byUser($userId)->byStatus('pending_review')->count(),
-            'active' => Campaign::byUser($userId)->byStatus('active')->count(),
-            'completed' => Campaign::byUser($userId)->byStatus('completed')->count(),
-            'total_budget' => Campaign::byUser($userId)->published()->sum(\DB::raw('slots_to_approve * price_per_influencer')),
+            'draft' => Campaign::byUser($userId)->byStatus(CampaignStatus::DRAFT)->count(),
+            'awaiting_payment' => Campaign::byUser($userId)->byStatus(CampaignStatus::AWAITING_PAYMENT)->count(),
+            'sent_to_creators' => Campaign::byUser($userId)->byStatus(CampaignStatus::SENT_TO_CREATORS)->count(),
+            'in_progress' => Campaign::byUser($userId)->byStatus(CampaignStatus::IN_PROGRESS)->count(),
+            'completed' => Campaign::byUser($userId)->byStatus(CampaignStatus::COMPLETED)->count(),
+            'total_budget' => Campaign::byUser($userId)->active()->sum(\DB::raw('slots_to_approve * price_per_influencer')),
             'total_applications' => Campaign::byUser($userId)->sum('applications_count'),
         ];
 
@@ -249,15 +253,14 @@ class CampaignApiController extends Controller
 
     /**
      * Processar checkout da campanha.
-     * Usa CheckoutRequest unificado (service=campaign) com dados de faturamento.
      */
-    public function checkout(CheckoutRequest $request, string $key): JsonResponse|RedirectResponse
+    public function checkout(CampaignCheckoutRequest $request, string $key): JsonResponse
     {
         $campaign = Campaign::byUser()
             ->byKey($key)
             ->firstOrFail();
 
-        if (!$campaign->isDraft()) {
+        if (!$campaign->canBePaid()) {
             return response()->json([
                 'message' => 'Esta campanha já foi submetida.',
             ], 422);
@@ -271,13 +274,54 @@ class CampaignApiController extends Controller
             payload: $validated
         );
 
-        if ($result['success']) {
-            return response()->json($result);
+        // Gateway payment (CheckoutResult) — PIX ou Cartão
+        if ($result instanceof CheckoutResult) {
+            return $this->handleCheckoutResultJson($result, $campaign);
+        }
+
+        // Non-gateway (wallet only ou free) — array
+        if (!($result['success'] ?? false)) {
+            return response()->json([
+                'message' => $result['message'] ?? 'Erro ao processar pagamento.',
+            ], 422);
         }
 
         return response()->json([
-            'message' => $result['message'] ?? 'Erro ao processar pagamento.',
-            'errors' => $result['errors'] ?? [],
-        ], 422);
+            'success' => true,
+            'status' => 'paid',
+            'message' => $result['message'],
+            'redirect' => route('app.campaigns.show', $campaign->uuid),
+        ]);
+    }
+
+    /**
+     * Handle JSON response for gateway payments (CheckoutResult).
+     */
+    protected function handleCheckoutResultJson(CheckoutResult $result, Campaign $campaign): JsonResponse
+    {
+        if ($result->isPaid()) {
+            return response()->json([
+                'success' => true,
+                'status' => 'paid',
+                'message' => 'Pagamento confirmado! Campanha enviada para os creators.',
+                'redirect' => route('app.campaigns.show', $campaign->uuid),
+            ]);
+        }
+
+        if ($result->isFailed()) {
+            return response()->json([
+                'success' => false,
+                'message' => $result->getErrorMessage() ?? 'Pagamento recusado.',
+            ], 422);
+        }
+
+        // Pending (PIX QR code, etc.)
+        return response()->json([
+            'success' => true,
+            'status' => 'pending',
+            'message' => 'Pagamento criado. Aguardando confirmação.',
+            'checkout' => $result->toArray(),
+            'redirect' => route('app.payments.show', $result->payment->uuid),
+        ]);
     }
 }

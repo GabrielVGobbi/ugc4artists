@@ -102,12 +102,13 @@ class CampaignResource extends JsonResource
                 'email' => $this->responsible_email,
             ],
 
-            // Status / revisão
+            'status' => $this->status->toPresenterArray(),
+
             'review' => [
-                'status' => $this->status,
-                'submitted_at' => $this->formatDateTime($this->submitted_at),
-                'approved_at' => $this->formatDateTime($this->approved_at),
-                'rejected_at' => $this->formatDateTime($this->rejected_at),
+                'submitted_at' => $this->submitted_at?->format('d/m/Y'),
+                'reviewed_at' => $this->reviewed_at?->format('d/m/Y'),
+                'approved_at' => $this->approved_at?->format('d/m/Y'),
+                'rejected_at' => $this->rejected_at?->format('d/m/Y'),
                 'rejection_reason' => $this->rejection_reason,
                 'reviewed_by' => $this->reviewed_by,
             ],
@@ -119,6 +120,9 @@ class CampaignResource extends JsonResource
                 'grand_total' => $grandTotal,
                 'duration_days' => $this->durationDays(),
             ],
+
+            'total_budget' => $grandTotal,
+            'applications_count' => (int) ($this->applications_count ?? 0),
 
             // Metas
             'created_at' => $this->formatDateTime($this->created_at),

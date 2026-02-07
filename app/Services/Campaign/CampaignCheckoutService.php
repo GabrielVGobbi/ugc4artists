@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Campaign;
 
+use App\Enums\CampaignStatus;
 use App\Models\Address;
 use App\Models\Campaign;
 use App\Models\User;
@@ -32,8 +33,11 @@ class CampaignCheckoutService
 
     /**
      * Process campaign checkout.
+     *
+     * Returns CheckoutResult for gateway payments (PIX/Card),
+     * or array for non-gateway paths (wallet-only, free submit).
      */
-    public function processCheckout(Campaign $campaign, User $user, array $payload): array
+    public function processCheckout(Campaign $campaign, User $user, array $payload): CheckoutResult|array
     {
         // Calculate grand total (estimated_total + publication_fee)
         $pricePerInfluencer = (float) ($campaign->price_per_influencer ?? 0);
@@ -42,7 +46,6 @@ class CampaignCheckoutService
         $publicationFee = $this->getPublicationFee($campaign->publication_plan);
         $grandTotal = $estimatedTotal + $publicationFee;
 
-        // If no payment needed (grand total is 0), just submit the campaign
         if ($grandTotal <= 0) {
             return $this->submitCampaignDirectly($campaign);
         }
@@ -54,12 +57,10 @@ class CampaignCheckoutService
             $grandTotal // Can't use more than grand total
         );
 
-        // Calculate remaining amount after wallet deduction
+        //Total a pagar
         $remainingAmount = $grandTotal - $walletAmount;
 
-        dd($remainingAmount);
-
-        // If wallet covers everything
+        // If wallet covers everything - Se a carteira cobrir tudo
         if ($useWalletBalance && $remainingAmount <= 0) {
             return $this->payWithWalletOnly($campaign, $user, $grandTotal);
         }
@@ -104,7 +105,8 @@ class CampaignCheckoutService
     protected function payWithWalletOnly(Campaign $campaign, User $user, float $grandTotal): array
     {
         return DB::transaction(function () use ($campaign, $user, $grandTotal) {
-            // Check wallet balance
+
+        //TODO usar base do wallet
             if ($user->wallet->balanceFloat < $grandTotal) {
                 return [
                     'success' => false,
@@ -152,6 +154,10 @@ class CampaignCheckoutService
 
     /**
      * Process payment checkout (PIX or Card).
+     *
+     * Returns CheckoutResult directly for proper controller handling.
+     *
+     * @throws ValidationException
      */
     protected function processPaymentCheckout(
         Campaign $campaign,
@@ -161,7 +167,7 @@ class CampaignCheckoutService
         float $estimatedTotal,
         float $publicationFee,
         array $payload
-    ): array {
+    ): CheckoutResult|array {
         // Check if campaign is complete
         if (!$campaign->isComplete()) {
             return [
@@ -173,10 +179,10 @@ class CampaignCheckoutService
         // Check for existing pending payment
         $existingPayment = $this->findExistingPendingPayment($campaign, $amount);
         if ($existingPayment) {
-            return $this->buildResultFromExisting($existingPayment);
+            return CheckoutResult::pending($existingPayment);
         }
 
-        return DB::transaction(function () use ($campaign, $user, $amount, $walletAmount, $payload) {
+        return DB::transaction(function () use ($campaign, $user, $amount, $walletAmount, $payload, $estimatedTotal, $publicationFee) {
             // Deduct wallet amount if any
             if ($walletAmount > 0) {
                 $user->withdraw(toCents($walletAmount), [
@@ -191,6 +197,8 @@ class CampaignCheckoutService
             $paymentMethod = $this->resolvePaymentMethod($payload['payment_method']);
             $cents = toCents($amount);
 
+            $metaProduct = $campaign->getMetaProduct();
+
             // Build checkout
             $checkout = Checkout::for($user)
                 ->billable($campaign)
@@ -198,28 +206,39 @@ class CampaignCheckoutService
                 ->method($paymentMethod)
                 ->gateway('asaas')
                 ->useWallet(false)
-                ->description("Taxa de publicação - {$campaign->name}")
-                ->meta([
-                    'type' => 'campaign_publication_fee',
-                    'campaign_id' => $campaign->id,
-                    'campaign_uuid' => $campaign->uuid,
-                    'wallet_amount_used' => $walletAmount,
-                ]);
+                ->description("{$metaProduct['description']}")
+                ->meta($metaProduct);
 
             // Add card data if credit card
             if ($paymentMethod === PaymentMethod::CREDIT_CARD) {
                 $checkout = $this->addCreditCardData($checkout, $user, $payload);
             }
 
+            /** @var CheckoutResult $result */
             $result = $checkout->create();
 
             // Update campaign with partial payment info
             $campaign->update([
                 'publication_fee' => $publicationFee,
                 'publication_wallet_amount' => $walletAmount,
+                'publication_payment_id' => $result->payment->uuid,
             ]);
 
-            return $this->buildCheckoutResponse($result, $campaign);
+            // Credit card approved → SENT_TO_CREATORS (imediato)
+            if ($result->isPaid()) {
+                $campaign->update([
+                    'publication_paid_at' => now(),
+                    'publication_payment_method' => $result->payment->payment_method->value,
+                ]);
+                $campaign->submit();
+            }
+
+            // PIX/Pending → AWAITING_PAYMENT (aguarda confirmação via webhook)
+            if ($result->isPending() && $campaign->isDraft()) {
+                $campaign->markAwaitingPayment();
+            }
+
+            return $result;
         });
     }
 
@@ -235,70 +254,6 @@ class CampaignCheckoutService
             ->where('created_at', '>=', now()->subMinutes(10))
             ->orderByDesc('created_at')
             ->first();
-    }
-
-    /**
-     * Build result from existing payment.
-     */
-    protected function buildResultFromExisting(Payment $payment): array
-    {
-        if ($payment->payment_method === PaymentMethod::PIX) {
-            $pixData = $payment->meta['gateway']['qr_code_payload'] ?? null;
-
-            return [
-                'success' => true,
-                'payment_id' => $payment->uuid,
-                'status' => 'pending',
-                'payment_method' => 'pix',
-                'pix' => $pixData ? [
-                    'payload' => $pixData,
-                    'qr_code_image' => $payment->meta['gateway']['qr_code_image'] ?? null,
-                ] : null,
-                'redirect' => route('app.payments.show', $payment->uuid),
-            ];
-        }
-
-        return [
-            'success' => true,
-            'payment_id' => $payment->uuid,
-            'status' => $payment->status->value,
-            'redirect' => route('app.payments.show', $payment->uuid),
-        ];
-    }
-
-    /**
-     * Build checkout response.
-     */
-    protected function buildCheckoutResponse(CheckoutResult $result, Campaign $campaign): array
-    {
-        $payment = $result->payment;
-
-        $response = [
-            'success' => true,
-            'payment_id' => $payment->uuid,
-            'status' => $payment->status->value,
-            'campaign' => $campaign->fresh(),
-        ];
-
-        if ($result->isPix() && $result->pix) {
-            $response['payment_method'] = 'pix';
-            $response['pix'] = [
-                'payload' => $result->pix->payload,
-                'qr_code_image' => $result->pix->encodedImage,
-            ];
-        }
-
-        if ($result->isPaid()) {
-            $response['message'] = 'Pagamento confirmado! Campanha enviada para revisão.';
-            $response['redirect'] = route('app.campaigns.index');
-
-            // Submit campaign
-            $campaign->submit();
-        } else {
-            $response['redirect'] = route('app.payments.show', $payment->uuid);
-        }
-
-        return $response;
     }
 
     /**

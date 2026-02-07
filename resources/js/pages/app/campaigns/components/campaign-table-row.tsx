@@ -1,7 +1,7 @@
 import { Clock, ExternalLink, Trash2, Copy, Send } from 'lucide-react'
 import { Link } from '@inertiajs/react'
-import type { Campaign } from '@/types/campaign'
-import { CAMPAIGN_STATUS_COLORS, CAMPAIGN_STATUS_LABELS } from '@/types/campaign'
+import type { CampaignResource } from '@/types/campaign'
+import { getCampaignStatusColor } from '@/types/campaign'
 import { formatCurrency } from '@/lib/utils'
 import {
     DropdownMenu,
@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { MoreHorizontal } from 'lucide-react'
 
 interface CampaignTableRowProps {
-    campaign: Campaign
+    campaign: CampaignResource
     onDelete?: (key: string) => void
     onDuplicate?: (key: string) => void
     onSubmit?: (key: string) => void
@@ -26,8 +26,10 @@ export function CampaignTableRow({
     onDuplicate,
     onSubmit,
 }: CampaignTableRowProps) {
-    const statusColor = CAMPAIGN_STATUS_COLORS[campaign.status] ?? 'bg-zinc-300'
-    const statusLabel = CAMPAIGN_STATUS_LABELS[campaign.status] ?? campaign.status
+    const status = campaign.status ?? { value: campaign.review.status, label: campaign.review.status, color: 'gray', icon: 'circle' }
+    const statusColor = getCampaignStatusColor(status)
+    const statusLabel = status.label
+    const isActive = status.value === 'in_progress' || status.value === 'sent_to_creators'
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return '—'
@@ -71,7 +73,8 @@ export function CampaignTableRow({
             <td className="px-8 py-6">
                 <div className="flex items-center gap-2">
                     <div
-                        className={`w-1.5 h-1.5 rounded-full ${statusColor} ${campaign.status === 'active' ? 'animate-pulse' : ''}`}
+                        className={`w-1.5 h-1.5 rounded-full ${statusColor} ${isActive ? 'animate-pulse' : ''}`}
+                        title={statusLabel}
                     />
                     <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                         {statusLabel}
@@ -120,7 +123,7 @@ export function CampaignTableRow({
                                 Ver Detalhes
                             </Link>
                         </DropdownMenuItem>
-                        {campaign.status === 'draft' && onSubmit && (
+                        {status.value === 'draft' && onSubmit && (
                             <DropdownMenuItem
                                 onClick={() => onSubmit(campaign.uuid)}
                                 className="flex items-center gap-2"
@@ -139,7 +142,7 @@ export function CampaignTableRow({
                             </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
-                        {campaign.status === 'draft' && onDelete && (
+                        {status.value === 'draft' && onDelete && (
                             <DropdownMenuItem
                                 onClick={() => onDelete(campaign.uuid)}
                                 className="flex items-center gap-2 text-destructive focus:text-destructive"

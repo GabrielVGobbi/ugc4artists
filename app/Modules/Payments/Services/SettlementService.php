@@ -85,6 +85,8 @@ class SettlementService
             ]);
             $payment->save();
 
+            $this->notifyBillableFailed($payment);
+
             $eventClass = $newStatus === PaymentStatus::CANCELED
                 ? PaymentCanceled::class
                 : PaymentFailed::class;
@@ -143,6 +145,22 @@ class SettlementService
         ]);
 
         $payment->hold_transaction_id = null;
+    }
+
+    /**
+     * Notify billable that payment failed/was cancelled.
+     */
+    protected function notifyBillableFailed(Payment $payment): void
+    {
+        $billable = $payment->billable;
+
+        if (! $billable) {
+            return;
+        }
+
+        if (method_exists($billable, 'onPaymentFailed')) {
+            $billable->onPaymentFailed($payment);
+        }
     }
 
     protected function fulfill(Payment $payment): void

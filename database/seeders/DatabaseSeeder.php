@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Campaign;
 use App\Models\User;
 use App\Modules\Permissions\Database\Seeders\PermissionsSeeder;
 use App\Modules\Permissions\Database\Seeders\RolesSeeder;
@@ -20,7 +21,8 @@ class DatabaseSeeder extends Seeder
             RolesSeeder::class,
             PermissionsSeeder::class,
             AddressSeeder::class,
-            NotificationSeeder::class,
+            #NotificationSeeder::class,
+            CampaignSeeder::class,
         ]);
     }
 }

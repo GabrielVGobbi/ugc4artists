@@ -14,10 +14,8 @@ import {
     Target,
     Clock,
     Zap,
-    Check,
-    Minus,
-    Plus,
 } from 'lucide-react'
+import { WalletAdjustmentBox } from '@/components/app/campaigns/wallet-adjustment-box'
 import { toast } from 'sonner'
 
 import AppLayout from '@/layouts/app-layout'
@@ -333,66 +331,14 @@ export default function CampaignCheckout() {
 
                         {/* Wallet Balance Option */}
                         {wallet_balance > 0 && (
-                            <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-[2rem] p-6 border border-emerald-200">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
-                                            <Wallet size={24} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-emerald-900">
-                                                Usar saldo da carteira
-                                            </p>
-                                            <p className="text-sm text-emerald-700">
-                                                Disponível: {formatCurrency(wallet_balance)}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setData('use_wallet_balance', !data.use_wallet_balance)}
-                                        className={cn(
-                                            "relative w-14 h-8 rounded-full transition-all duration-300",
-                                            data.use_wallet_balance ? "bg-emerald-500" : "bg-zinc-300"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow transition-transform duration-300 flex items-center justify-center",
-                                            data.use_wallet_balance ? "translate-x-6" : "translate-x-0"
-                                        )}>
-                                            {data.use_wallet_balance && <Check size={14} className="text-emerald-500" />}
-                                        </div>
-                                    </button>
-                                </div>
-
-                                {data.use_wallet_balance && grandTotal > wallet_balance && (
-                                    <div className="mt-4 pt-4 border-t border-emerald-200">
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-sm text-emerald-700">Valor a usar:</p>
-                                            <div className="flex items-center gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setData('wallet_amount', Math.max(0, data.wallet_amount - 10))}
-                                                    className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-200"
-                                                >
-                                                    <Minus size={14} />
-                                                </button>
-                                                <span className="font-bold text-emerald-900 min-w-[80px] text-center">
-                                                    {formatCurrency(walletAmountToUse)}
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setData('wallet_amount', Math.min(wallet_balance, grandTotal, data.wallet_amount + 10))}
-                                                    className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-200"
-                                                >
-                                                    <Plus size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            <WalletAdjustmentBox
+                                balance={wallet_balance}
+                                amountToUse={data.wallet_amount}
+                                grandTotal={grandTotal}
+                                useWallet={data.use_wallet_balance}
+                                onToggle={(checked: boolean) => setData('use_wallet_balance', checked)}
+                                onAmountChange={(amount: number) => setData('wallet_amount', amount)}
+                            />
                         )}
 
 
@@ -592,14 +538,14 @@ export default function CampaignCheckout() {
                             disabled={!isFormValid() || processing}
                             className="w-full bg-primary text-white py-6 rounded-[2rem] font-black uppercase text-sm tracking-[0.2em] h-auto hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-primary/20"
                         >
-                                    {processing ? (
-                                        <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                        <>
-                                            <Sparkles size={20} className="mr-3" />
-                                            {grandTotal > 0 ? 'Finalizar e Publicar' : 'Publicar Campanha'}
-                                        </>
-                                    )}
+                            {processing ? (
+                                <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    <Sparkles size={20} className="mr-3" />
+                                    {grandTotal > 0 ? 'Finalizar e Publicar' : 'Publicar Campanha'}
+                                </>
+                            )}
                         </Button>
                     </div>
 

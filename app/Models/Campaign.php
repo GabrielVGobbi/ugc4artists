@@ -4,20 +4,28 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CampaignStatus;
+use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Payments\Models\Payment;
 use App\Supports\Traits\GenerateUniqueSlugTrait;
 use App\Supports\Traits\GenerateUuidTrait;
+use Bavix\Wallet\Interfaces\ProductInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use Bavix\Wallet\Interfaces\Customer;
+use Bavix\Wallet\Traits\HasWallet;
 
-class Campaign extends Model
+class Campaign extends Model implements ProductInterface
 {
     use HasFactory;
     use GenerateUuidTrait;
     use GenerateUniqueSlugTrait;
     use SoftDeletes;
+    use HasWallet;
 
     public $searchable = ['name', 'description', 'brand_instagram'];
 
@@ -27,7 +35,7 @@ class Campaign extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => 'draft',
+        'status' => CampaignStatus::DRAFT,
         'kind' => 'influencers',
         'influencer_post_mode' => 'profile',
         'briefing_mode' => 'has_briefing',
@@ -94,6 +102,10 @@ class Campaign extends Model
         'use_my_data',
         'status',
         'submitted_at',
+        'reviewed_at',
+        'started_at',
+        'completed_at',
+        'cancelled_at',
         'approved_at',
         'rejected_at',
         'rejection_reason',
@@ -108,6 +120,7 @@ class Campaign extends Model
     protected function casts(): array
     {
         return [
+            'status' => CampaignStatus::class,
             'objective_tags' => 'array',
             'content_platforms' => 'array',
             'filter_niches' => 'array',
@@ -124,12 +137,16 @@ class Campaign extends Model
             'publication_wallet_amount' => 'decimal:2',
             'publication_paid_at' => 'datetime',
             'submitted_at' => 'datetime',
+            'reviewed_at' => 'datetime',
             'approved_at' => 'datetime',
             'rejected_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'started_at' => 'datetime',
+            'completed_at' => 'datetime',
         ];
     }
 
-    protected $appends = ['total_budget', 'status_label', 'cover_image_url'];
+    protected $appends = ['total_budget', 'status_label', 'status_color', 'status_icon', 'cover_image_url'];
 
     /**
      * Slug source field
@@ -150,6 +167,33 @@ class Campaign extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    public function payments(): MorphMany
+    {
+        return $this->morphMany(Payment::class, 'billable');
+    }
+
+    /**
+     * Obtém o pagamento pendente mais recente da campanha (PIX aguardando).
+     */
+    public function getLatestPendingPayment(): ?Payment
+    {
+        return $this->payments()
+            ->whereIn('status', [PaymentStatus::PENDING, PaymentStatus::REQUIRES_ACTION])
+            ->where('created_at', '>=', now()->subHours(24))
+            ->orderByDesc('created_at')
+            ->first();
+    }
+
+    /**
+     * Verifica se a campanha já possui pagamento confirmado.
+     */
+    public function hasPaidPayment(): bool
+    {
+        return $this->payments()
+            ->where('status', PaymentStatus::PAID)
+            ->exists();
+    }
+
     // ─────────────────────────────────────────────────────────────────────────────
     // Accessors
     // ─────────────────────────────────────────────────────────────────────────────
@@ -161,17 +205,17 @@ class Campaign extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return match ($this->status) {
-            'draft' => 'Rascunho',
-            'pending_review' => 'Aguardando Revisão',
-            'approved' => 'Aprovada',
-            'rejected' => 'Rejeitada',
-            'active' => 'Ativa',
-            'paused' => 'Pausada',
-            'completed' => 'Concluída',
-            'cancelled' => 'Cancelada',
-            default => ucfirst($this->status ?? ''),
-        };
+        return $this->status->getLabelText();
+    }
+
+    public function getStatusColorAttribute(): string
+    {
+        return $this->status->getLabelColor();
+    }
+
+    public function getStatusIconAttribute(): string
+    {
+        return $this->status->getIcon();
     }
 
     public function getCoverImageUrlAttribute(): ?string
@@ -200,12 +244,12 @@ class Campaign extends Model
     {
         return $query->where(function ($q) use ($key) {
             $q->where('uuid', $key)
-              ->orWhere('id', $key)
-              ->orWhere('slug', $key);
+                ->orWhere('id', $key)
+                ->orWhere('slug', $key);
         });
     }
 
-    public function scopeByStatus(Builder $query, string|array $status): Builder
+    public function scopeByStatus(Builder $query, CampaignStatus|array $status): Builder
     {
         if (is_array($status)) {
             return $query->whereIn('status', $status);
@@ -216,22 +260,30 @@ class Campaign extends Model
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('status', 'active');
+        return $query->whereIn('status', [
+            CampaignStatus::SENT_TO_CREATORS,
+            CampaignStatus::IN_PROGRESS,
+        ]);
     }
 
-    public function scopePendingReview(Builder $query): Builder
+    public function scopeAwaitingPayment(Builder $query): Builder
     {
-        return $query->where('status', 'pending_review');
+        return $query->where('status', CampaignStatus::AWAITING_PAYMENT);
     }
 
-    public function scopePublished(Builder $query): Builder
+    public function scopeSentToCreators(Builder $query): Builder
     {
-        return $query->whereIn('status', ['approved', 'active']);
+        return $query->where('status', CampaignStatus::SENT_TO_CREATORS);
+    }
+
+    public function scopeInProgress(Builder $query): Builder
+    {
+        return $query->where('status', CampaignStatus::IN_PROGRESS);
     }
 
     public function scopeOpenForApplications(Builder $query): Builder
     {
-        return $query->where('status', 'active')
+        return $query->where('status', CampaignStatus::SENT_TO_CREATORS)
             ->where('applications_open_date', '<=', now())
             ->where('applications_close_date', '>=', now());
     }
@@ -244,8 +296,8 @@ class Campaign extends Model
 
         return $query->where(function ($q) use ($term) {
             $q->where('name', 'like', "%{$term}%")
-              ->orWhere('description', 'like', "%{$term}%")
-              ->orWhere('brand_instagram', 'like', "%{$term}%");
+                ->orWhere('description', 'like', "%{$term}%")
+                ->orWhere('brand_instagram', 'like', "%{$term}%");
         });
     }
 
@@ -253,29 +305,56 @@ class Campaign extends Model
     // Methods
     // ─────────────────────────────────────────────────────────────────────────────
 
+    // ── Status Checkers (delegam para o enum) ─────────────────────────────────
+
     public function isDraft(): bool
     {
-        return $this->status === 'draft';
+        return $this->status->isDraft();
     }
 
-    public function isPendingReview(): bool
+    public function isAwaitingPayment(): bool
     {
-        return $this->status === 'pending_review';
+        return $this->status->isAwaitingPayment();
+    }
+
+    public function isSentToCreators(): bool
+    {
+        return $this->status->isSentToCreators();
+    }
+
+    public function isInProgress(): bool
+    {
+        return $this->status->isInProgress();
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status->isCompleted();
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status->isCancelled();
     }
 
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->status->isActive();
     }
 
     public function canBeEdited(): bool
     {
-        return in_array($this->status, ['draft', 'rejected']);
+        return $this->status->canBeEdited();
+    }
+
+    public function canBePaid(): bool
+    {
+        return $this->status->canBePaid();
     }
 
     public function canBeSubmitted(): bool
     {
-        return $this->status === 'draft' && $this->isComplete();
+        return $this->isDraft() && $this->isComplete();
     }
 
     public function isComplete(): bool
@@ -290,82 +369,152 @@ class Campaign extends Model
             && !empty($this->brand_instagram);
     }
 
-    public function submit(): bool
-    {
-        if (!$this->canBeSubmitted()) {
-            return false;
-        }
+    // ── Status Transitions ──────────────────────────────────────────────────────
 
-        $this->update([
-            'status' => 'pending_review',
+    /**
+     * Transição genérica com validação via enum.
+     *
+     * @throws \InvalidArgumentException se a transição for inválida
+     */
+    public function transitionTo(CampaignStatus $newStatus, array $extraFields = []): bool
+    {
+        $this->status->transitionTo($newStatus);
+
+        $fields = array_merge(
+            ['status' => $newStatus],
+            $this->buildStatusTimestampFields($newStatus),
+            $extraFields
+        );
+
+        return $this->update($fields);
+    }
+
+    /**
+     * DRAFT → AWAITING_PAYMENT (checkout via PIX iniciado)
+     */
+    public function markAwaitingPayment(): bool
+    {
+        return $this->transitionTo(CampaignStatus::AWAITING_PAYMENT, [
             'submitted_at' => now(),
         ]);
-
-        return true;
     }
 
-    public function approve(?int $reviewerId = null): bool
+    /**
+     * DRAFT|AWAITING_PAYMENT → UNDER_REVIEW (pagamento confirmado)
+     */
+    public function submit(): bool
     {
-        if (!$this->isPendingReview()) {
+        if (!$this->isComplete()) {
             return false;
         }
 
-        $this->update([
-            'status' => 'approved',
-            'approved_at' => now(),
-            'reviewed_by' => $reviewerId ?? auth()->id(),
+        return $this->transitionTo(CampaignStatus::UNDER_REVIEW, [
+            'reviewed_at' =>  now(),
+            'publication_paid_at' => $this->publication_paid_at ?? now(),
         ]);
-
-        return true;
     }
 
-    public function reject(string $reason, ?int $reviewerId = null): bool
+    /**
+     * SENT_TO_CREATORS → IN_PROGRESS (creators selecionados e trabalhando)
+     */
+    public function start(): bool
     {
-        if (!$this->isPendingReview()) {
-            return false;
-        }
+        return $this->transitionTo(CampaignStatus::IN_PROGRESS, [
+            'started_at' => now(),
+        ]);
+    }
 
-        $this->update([
-            'status' => 'rejected',
-            'rejected_at' => now(),
+    /**
+     * IN_PROGRESS → COMPLETED (entregas finalizadas)
+     */
+    public function complete(): bool
+    {
+        return $this->transitionTo(CampaignStatus::COMPLETED, [
+            'completed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Qualquer status (exceto COMPLETED) → CANCELLED
+     */
+    public function cancel(?string $reason = null): bool
+    {
+        return $this->transitionTo(CampaignStatus::CANCELLED, array_filter([
+            'cancelled_at' => now(),
             'rejection_reason' => $reason,
-            'reviewed_by' => $reviewerId ?? auth()->id(),
+        ]));
+    }
+
+    /**
+     * CANCELLED → DRAFT (reabrir campanha)
+     */
+    public function reopen(): bool
+    {
+        return $this->transitionTo(CampaignStatus::DRAFT, [
+            'cancelled_at' => null,
+            'rejection_reason' => null,
+        ]);
+    }
+
+    /**
+     * AWAITING_PAYMENT → DRAFT (pagamento falhou/expirou)
+     */
+    public function revertToDraft(): bool
+    {
+        return $this->transitionTo(CampaignStatus::DRAFT, [
+            'submitted_at' => null,
+            'reviewed_at' => null,
+        ]);
+    }
+
+    /**
+     * Build timestamp fields based on the target status.
+     */
+    protected function buildStatusTimestampFields(CampaignStatus $status): array
+    {
+        return match ($status) {
+            CampaignStatus::AWAITING_PAYMENT => ['submitted_at' => now()],
+            CampaignStatus::UNDER_REVIEW => ['reviewed_at' => now()],
+            CampaignStatus::SENT_TO_CREATORS => ['publication_paid_at' => now()],
+            CampaignStatus::IN_PROGRESS => ['started_at' => now()],
+            CampaignStatus::COMPLETED => ['completed_at' => now()],
+            CampaignStatus::CANCELLED => ['cancelled_at' => now()],
+            default => [],
+        };
+    }
+
+    // ── Payment Hooks (chamado pelo SettlementService via webhook) ─────────────
+
+    /**
+     * Hook chamado quando pagamento é confirmado (via webhook ou gateway).
+     * Transiciona AWAITING_PAYMENT → UNDER_REVIEW.
+     */
+    public function onPaymentPaid(Payment $payment): void
+    {
+        if (!$this->isAwaitingPayment()) {
+            return;
+        }
+
+        $this->update([
+            'publication_paid_at' => now(),
+            'publication_payment_method' => $payment->payment_method->value,
+            'publication_payment_id' => $payment->uuid,
         ]);
 
-        return true;
+        $this->submit();
     }
 
-    public function activate(): bool
+    /**
+     * Hook chamado quando pagamento falha ou é cancelado (via webhook).
+     * Reverte AWAITING_PAYMENT → DRAFT.
+     */
+    public function onPaymentFailed(Payment $payment): void
     {
-        if ($this->status !== 'approved') {
-            return false;
+        if (!$this->isAwaitingPayment()) {
+            return;
         }
 
-        $this->update(['status' => 'active']);
-
-        return true;
-    }
-
-    public function pause(): bool
-    {
-        if ($this->status !== 'active') {
-            return false;
-        }
-
-        $this->update(['status' => 'paused']);
-
-        return true;
-    }
-
-    public function resume(): bool
-    {
-        if ($this->status !== 'paused') {
-            return false;
-        }
-
-        $this->update(['status' => 'active']);
-
-        return true;
+        $this->revertToDraft();
     }
 
     public function incrementViews(): void
@@ -376,5 +525,18 @@ class Campaign extends Model
     public function incrementApplications(): void
     {
         $this->increment('applications_count');
+    }
+
+    public function getAmountProduct(Customer $customer): int|string
+    {
+        return 100;
+    }
+
+    public function getMetaProduct(): ?array
+    {
+        return [
+            'title' => $this->name,
+            'description' => 'Campanha #' . $this->name,
+        ];
     }
 }

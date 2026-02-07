@@ -6,6 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 export function CampaignStats() {
     const { data: stats, isLoading } = useCampaignStats()
 
+    const activeCount = (stats?.sent_to_creators ?? 0) + (stats?.in_progress ?? 0)
+
     const statItems = [
         {
             label: 'Total de Campanhas',
@@ -22,15 +24,15 @@ export function CampaignStats() {
             bgColor: 'bg-zinc-100',
         },
         {
-            label: 'Aguardando Revisão',
-            value: stats?.pending_review ?? 0,
+            label: 'Aguardando Pagamento',
+            value: stats?.awaiting_payment ?? 0,
             icon: Clock,
             color: 'text-amber-500',
             bgColor: 'bg-amber-50',
         },
         {
             label: 'Ativas',
-            value: stats?.active ?? 0,
+            value: activeCount,
             icon: Zap,
             color: 'text-emerald-500',
             bgColor: 'bg-emerald-50',
