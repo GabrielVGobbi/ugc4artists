@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-type SvgName = 'banda' | 'dj' | 'guitar' | 'guitar_v2' | 'microphone' | 'microphone_v2';
+type SvgName = 'banda' | 'dj' | 'guitar' | 'guitar_v2' | 'microphone' | 'microphone_v2' | 'people' | 'music' | 'video';
 
 interface UseSvgReturn {
     svgContent: string;

@@ -2,7 +2,6 @@ import type { SeoProps, SharedData } from '@/types'
 import { ContainerSection } from "@/components/landing-page/container";
 import { Layout } from "./layout";
 import { usePage } from "@inertiajs/react";
-import { dashboard } from "@/routes";
 import { Hero } from './components/hero';
 import { AppsLogo } from './components/apps-logo';
 import { FadeIn } from '@/components/fade-in';
@@ -14,9 +13,13 @@ import { Benefits } from './components/benefits';
 import { CreatorsCTA } from './components/creators-cta';
 import { FinalCTA } from './components/final-cta';
 import { Footer } from './components/footer';
+import { VideoCarouselSection } from './components/video-carousel-section';
+import { CreatorsSection } from './components/creators-section';
+import { PlatformAboutSection } from './components/platform-about-section';
 import { useEffect } from 'react';
 import { AmbassadorTour } from './components/ambassador-tour';
 import { FAQ } from './components/faq';
+import { AudienceSection } from './components/audience-section';
 
 type IndexPageProps = {
     seo: SeoProps;
@@ -41,7 +44,7 @@ export default function LandingPage({ seo, canRegister = true }: IndexPageProps)
     //        : 'Entrar'
     //
 
-    const headerCtaHref = null; //heroPrimaryHref
+    const headerCtaHref = ""; //heroPrimaryHref
     const headerCtaLabel = isAuthenticated
         ? 'Dashboard'
         : canRegister
@@ -56,7 +59,7 @@ export default function LandingPage({ seo, canRegister = true }: IndexPageProps)
         document.documentElement.classList.add('light')
         return () => {
             document.documentElement.classList.add('dark')
-        document.documentElement.classList.remove('light')
+            document.documentElement.classList.remove('light')
         }
     }, [])
 
@@ -75,9 +78,15 @@ export default function LandingPage({ seo, canRegister = true }: IndexPageProps)
 
             <AppsLogo />
 
+            <VideoCarouselSection />
+
+            <AudienceSection />
+
             <CaseShowcaseSection />
 
             <SolutionSection />
+
+            <PlatformAboutSection />
 
             {/*
             <AmbassadorTour
@@ -89,6 +98,8 @@ export default function LandingPage({ seo, canRegister = true }: IndexPageProps)
             <Benefits />
 
             <FeatureCards />
+
+            <CreatorsSection />
 
             <FAQ />
 

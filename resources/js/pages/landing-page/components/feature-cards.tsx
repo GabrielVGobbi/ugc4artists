@@ -38,8 +38,8 @@ const features = [
 
 export default function FeatureCards() {
     return (
-        <section className="py-16 md:py-32 bg-black ">
-            <div className="mx-auto w-full max-w-5xl space-y-8 px-4" id="features">
+        <section className="py-16 md:py-32 bg-black hidden">
+            <div className=" mx-auto w-full max-w-5xl space-y-8 px-4" id="features">
                 <AnimatedContainer className="mx-auto max-w-3xl text-center ">
                     <h2 className="text-white text-3xl font-bold tracking-wide text-balance md:text-4xl lg:text-5xl xl:font-extrabold">
                         Criar conteúdo é difícil

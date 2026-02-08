@@ -21,11 +21,11 @@ export function Hero() {
                                 </span>
                                 */}
                             <h1 className="font-roboto text-3xl sm:text-5xl lg:text-6xl font-medium text-foreground leading-tight tracking-tight text-balance">
-                                Campanhas <span className="text-primary">profissionais</span>, conteúdo autêntico. Tudo em um só <span className="text-primary">lugar</span>
+                                Onde criadores, artistas e marcas se encontram para <span className="text-primary">fazer conteúdo que performa</span>
                             </h1>
                         </div>
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed grid gap-2">
-                            Conectamos marcas e artistas aos criadores certos para transformar conteúdo em conexão real e conexão em performance.
+                            Não é sobre volume. É sobre colocar sua música, sua marca ou sua ideia na mão de quem sabe transformar isso em vídeo que funciona.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
@@ -33,9 +33,8 @@ export function Hero() {
                                 href={'/waitlist'}
                                 target='_blank'
                             >
-                                <Button size="lg" className="bg-primary hover:bg-secondary/90 text-white px-8">
-                                    Sou uma Marca
-                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                <Button size="lg" className="bg-primary hover:bg-secondary/90 text-white px-8 h-12">
+                                    Criar sua Campanha agora
                                 </Button>
                             </Link>
                             <Link
@@ -46,9 +45,9 @@ export function Hero() {
                                 <Button
                                     size="lg"
                                     variant="outline"
-                                    className="border-primary-foreground text-primary-foreground hover:bg-secondary/90 hover:text-white px-8 bg-transparent"
+                                    className="border-foreground text-foreground hover:bg-secondary/90 hover:text-white px-8 h-12 bg-transparent"
                                 >
-                                    Sou Criador(a)
+                                    Seja nosso Creator
                                 </Button>
                             </Link>
 
@@ -62,7 +61,20 @@ export function Hero() {
                                 </Button>
                                 */}
                         </div>
-                        <p className="text-sm text-gray-500">Mais de 3.000 criadores e artistas já fazem parte desse movimento.</p>
+                        <div className="flex items-center gap-8 pt-8 border-t border-gray-100">
+                            <div>
+                                <h3 className="font-bold text-2xl md:text-3xl text-foreground font-roboto">+10 milhões</h3>
+                                <p className="text-sm text-gray-500">de creators no Brasil</p>
+                            </div>
+                            <div className="border-l border-gray-200 pl-8">
+                                <h3 className="font-bold text-2xl md:text-3xl text-foreground font-roboto">+20 Bi</h3>
+                                <p className="text-sm text-gray-500">por ano</p>
+                            </div>
+                            <div className="border-l border-gray-200 pl-8">
+                                <h3 className="font-bold text-2xl md:text-3xl text-foreground font-roboto">30%</h3>
+                                <p className="text-sm text-gray-500">Crescimento</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="relative">
