@@ -27,7 +27,7 @@ export function Header({ isAuthenticated, headerCtaHref, headerCtaLabel }: Heade
     return (
 
         <header className="sticky top-0 z-30 border-b border-white/60 backdrop-blur-lg bg-white">
-            <div className="mx-auto flex max-w-7xl items-center justify-between  py-2 ">
+            <div className="mx-auto flex max-w-6xl items-center justify-between  py-2 ">
                 <Link href="/" className="text-lg font-semibold" aria-label="ugc4artists" tabIndex={0}>
                     <AppLogo />
                 </Link>

@@ -64,7 +64,7 @@ export function Layout({ children, isAuthenticated, headerCtaHref, headerCtaLabe
                 headerCtaHref={headerCtaHref}
                 headerCtaLabel={headerCtaLabel}
             />
-            <main className="bg-gradient-to-b from-orange-50/50 to-white">{children}</main>
+            <main className="bg-gradient-to-b from-orange-50/50 to-whit">{children}</main>
 
         </>
     )

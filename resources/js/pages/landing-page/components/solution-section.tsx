@@ -191,7 +191,7 @@ export function SolutionSection() {
 
     return (
         <section ref={sectionRef} id="como-funciona" className="py-20 bg-[#040404] overflow-hidden">
-            <div className="max-w-7xl mx-auto ">
+            <div className="max-w-6xl mx-auto ">
                 <div className="grid lg:grid-cols-2 gap-30 items-center" >
                     <div
                         className={`transition-all duration-1000 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"
