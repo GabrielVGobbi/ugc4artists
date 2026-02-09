@@ -4,6 +4,7 @@ use App\Http\Controllers\App\AccountController;
 use App\Http\Controllers\App\AddressController;
 use App\Http\Controllers\App\CampaignController;
 use App\Http\Controllers\App\DashboardAppController;
+use App\Http\Controllers\App\TransferController;
 use App\Http\Controllers\App\WalletAppController as WalletApp;
 use App\Modules\Payments\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
@@ -75,6 +76,19 @@ Route::middleware(['auth'])->prefix('app')->name('app.')->group(function () {
             Route::post('/deposit', [WalletApp::class, 'addBalanceCheckout'])->name('deposit');
             Route::get('/payments', [WalletApp::class, 'payments'])->name('payments');
             Route::get('/payments/export', [WalletApp::class, 'exportPayments'])->name('payments.export');
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Transfers
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('transfers')->name('transfers.')->group(function () {
+            Route::get('/', [TransferController::class, 'index'])->name('index');
+            Route::get('/create', [TransferController::class, 'create'])->name('create');
+            Route::post('/', [TransferController::class, 'store'])->name('store');
+            Route::get('/{uuid}', [TransferController::class, 'show'])->name('show');
+            Route::delete('/{uuid}', [TransferController::class, 'destroy'])->name('destroy');
         });
 
         /*
