@@ -8,10 +8,13 @@ export type Person = {
 // 1. Retorna uma lista mock de pessoas
 export function getAllPeople(): Person[] {
     return [
-        { id: 1, name: "Erick", avatar: "erick.jpg" },
-        { id: 2, name: "Nathalia Anjos", avatar: "nathalia_anjos.jpg" },
+        { id: 1, name: "Liz", avatar: "liz.jpg" },
+        { id: 2, name: "Gabi", avatar: "gabi.jpg" },
         { id: 3, name: "Mavi", avatar: "mavi.jpg" },
-        { id: 4, name: "Duda", avatar: "duda.jpg" },
+        { id: 4, name: "Nathalia Anjos", avatar: "nathalia_anjos.jpg" },
+        { id: 5, name: "Cris", avatar: "cris.jpg" },
+        { id: 6, name: "Duda", avatar: "duda.jpg" },
+        { id: 7, name: "Erick", avatar: "erick.jpg" },
     ];
 }
 
