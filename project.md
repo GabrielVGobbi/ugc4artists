@@ -1,72 +1,103 @@
-# Projeto UGC – Diretrizes e Roadmap
+# Projeto UGC4Artists
 
-## Visão
-Plataforma que conecta artistas (músicos/bandas) a marcas/contratantes para campanhas, shows e conteúdos personalizados, com gestão ponta a ponta: campanhas, propostas, entregas, mensageria e pagamentos via carteira.
+## Visao de produto
+UGC4Artists e um ecossistema para conectar marcas e artistas aos creators certos, transformando conteudo em performance. O projeto combina captacao de comunidade (landing + waitlist), operacao de campanhas e camada financeira com carteira e checkout.
 
-## Estado atual do código
-- Base Laravel 12 + Inertia/React/Tailwind 4 configurada.
-- Fortify ativo: login, registro, reset, verificação de e-mail e 2FA com páginas prontas.
-- Layout SPA com sidebar e componentes (Radix/Tailwind) prontos; `home.tsx` e `dashboard.tsx` estão como placeholders.
-- Páginas de settings (perfil, senha, 2FA, aparência) e controllers existem, mas as rotas estão comentadas em `routes/web.php` (reativar para usar).
-- Tipagem de rotas/ações gerada pelo Wayfinder em `resources/js/routes` e `resources/js/actions`.
-- Migrations base (users, jobs, cache, 2FA) e testes de autenticação/settings já inclusos.
+Referencias de copy e posicionamento:
+- `.docs/copy_lp/copy_lp.md`
+- `.docs/formulario_ugc.md`
 
-## Público-alvo
-- Artistas: músicos/bandas que oferecem shows, conteúdos e entregas criativas.
-- Marcas/Contratantes: empresas ou produtores que lançam campanhas e contratam entregas.
+## Escopo atual no codigo
+- Landing institucional com SEO e secoes de marketing.
+- Waitlist multi-etapas para captacao inicial de creators/artistas.
+- Autenticacao completa (Fortify + 2FA + verificacao de email).
+- Onboarding por perfil (`artist`, `creator`, `brand`) com cache de progresso.
+- Modulo de campanhas com estados e regras de transicao.
+- Checkout com PIX/cartao e uso parcial/total de carteira.
+- Wallet com deposito, historico e consulta de status de pagamentos.
+- Modulo admin protegido por roles.
 
-## MVP — blocos funcionais
-1) **Onboarding**: cadastro/login, escolha de perfil (artista ou marca), dados básicos (gênero musical, região, links, CNPJ/CPF).  
-2) **Campanhas** (marcas): criar/editar campanha com briefing, orçamento, prazo, entregáveis, tags/segmentação.  
-3) **Match & propostas**: artistas enviam propostas (preço, datas, ideia criativa); marcas aceitam/negociam.  
-4) **Entregas**: checklist de entregáveis, upload/link de prova, aprovação/reprovação.  
-5) **Carteira/pagamentos**: saldo, release após aprovação, repasse para artista; histórico de transações.  
-6) **Mensageria & notificações**: chat por campanha e alertas (e-mail/in-app).  
-7) **Admin básico**: gestão de usuários/campanhas, disputes, auditoria.
+## Dominio principal
+### 1. Aquisicao e entrada
+- Usuario chega pela landing (`/`) e pode entrar na waitlist (`/waitlist`).
+- Copy e FAQ estao alinhados ao posicionamento de marca/artista/creator.
 
-## Modelo de dados inicial (sugestão)
-- `users`: base Fortify (role: artist|brand, display_name, avatar, phone).  
-- `artist_profiles`: user_id, gêneros, regiões, cachê médio, links.  
-- `brand_profiles`: user_id, empresa, cnpj, site, contatos.  
-- `campaigns`: brand_id, título, briefing, orçamento, status (draft|open|in_progress|done|canceled), datas.  
-- `proposals`: campaign_id, artist_id, valor, mensagem, status (sent|accepted|rejected|withdrawn).  
-- `deliverables`: proposal_id, tipo, url/arquivo, aprovado (bool), feedback.  
-- `wallet_accounts`: user_id, saldo disponível/retido.  
-- `wallet_transactions`: account_id, tipo (credit|debit|hold|release), referência (proposal/campaign), gateway_id, status.  
-- `messages`: proposal_id ou campaign_id, sender_id, conteúdo.
+### 2. Acesso ao app
+- Usuario autenticado entra em `/app/onboarding` se onboarding nao estiver completo.
+- Apos concluir onboarding, middleware libera `/app/dashboard` e demais rotas do app.
 
-## Roadmap sugerido
-- **Fase 0 — Fundamentos**
-  - Reativar `routes/settings.php`; gerar actions/rotas typed para settings.
-  - Branding: aplicar paleta `#ff7900` + `#000000`, atualizar sidebar/nav para o domínio UGC.
-  - Landing em `home.tsx` com CTA duplo (sou artista / sou marca).
-- **Fase 1 — Onboarding e Campanhas**
-  - Migrações de perfis (artist/brand) e escolha de papel pós-registro.
-  - CRUD de campanhas para marcas; listagem pública/privada para artistas.
-  - Formulário de proposta por artista com validação e status.
-- **Fase 2 — Entregas e Fluxo de Aprovação**
-  - Modelo de entregáveis + uploads (S3/local) e aprovação pelo contratante.
-  - Logs/linhas do tempo por campanha/proposta.
-- **Fase 3 — Carteira e Pagamentos**
-  - Modelo de wallet e transações; integrações (ex.: Stripe, Mercado Pago, Pagar.me) com webhooks.
-  - Regras de retenção/liberação após aprovação de entregas.
-- **Fase 4 — Mensageria e Notificações**
-  - Chat simples por campanha/proposta; e-mail + in-app notifications.
-  - Painel de admin para moderação e disputas.
+### 3. Campanhas
+Entidade central: `app/Models/Campaign.php`.
 
-## UI/UX
-- Paleta: primária `#ff7900`, secundária `#000000`, neutros claros/escuros do tema Tailwind existente.
-- Fonte: Instrument Sans (já carregada).
-- SPA com sidebar; criar telas focadas em fluxo (landing → onboarding → dashboards de artista/marca).
-- Evitar excesso de cinza; usar a primária como cor de ação principal (botões/links/etapas).
+Fluxo de status (enum em `app/Enums/CampaignStatus.php`):
+1. `draft`
+2. `awaiting_payment`
+3. `under_review`
+4. `sent_to_creators`
+5. `in_progress`
+6. `completed`
+7. `cancelled`
 
-## Observações técnicas
-- Tailwind v4 sem `tailwind.config`; tokens estão em `resources/css/app.css`.
-- Fortify redireciona pós-login para `/dashboard`; ajuste quando o fluxo principal estiver pronto.
-- Banco padrão é SQLite; ajuste `.env` para outro banco conforme necessidade.
-- Regenerar helpers de rota após alterar `routes/*.php` (`wayfinder` roda no Vite).
+Regras relevantes:
+- Campanha valida pode seguir para pagamento/submissao.
+- Checkout pode ser wallet-only, PIX pendente ou cartao aprovado.
+- Webhook e hooks de pagamento atualizam estado da campanha.
 
-## Métricas e qualidade
-- Logar eventos chave: criação de campanha, proposta enviada/aceita, entregável aprovado, pagamento liberado.
-- Cobrir autenticação, permissões por papel (artist/brand/admin) e estados de campanha nos testes de feature.
-- Adicionar monitoramento de erros (Sentry/etc.) quando for para staging/produção.
+### 4. Financeiro
+- Carteira baseada em `bavix/laravel-wallet`.
+- Pagamentos centralizados no modulo `app/Modules/Payments`.
+- Gateway padrao atual: Asaas (configuravel).
+- Rotas de webhook expostas para conciliacao automatica.
+
+## Mapa tecnico resumido
+- Backend: Laravel 12 + PHP 8.3
+- Frontend: React 19 + Inertia + Tailwind 4 + TypeScript
+- Auth: Fortify + Sanctum + Socialite
+- Payments: modulo proprio com facades, DTOs e gateway managers
+- Filas/Jobs: infraestrutura pronta para processamento assincrono
+
+## Estrutura de dados chave
+- `users`: autenticacao, papel de conta, onboarding.
+- `onboarding_profiles`: dados por perfil (artist/creator/brand).
+- `campaigns`: briefing, filtros, cronograma, orcamento, status, metricas.
+- `payments` (modulo): cobrancas, status gateway, webhook.
+- `wallets/transactions`: saldo e movimentacao financeira.
+- `addresses`: endereco de cobranca/operacao.
+- `notifications` e `notification_settings`: comunicacao no app.
+
+## Rotas principais
+- Publico: `routes/web.php`
+- App autenticado: `routes/app.php`
+- API: `routes/api.php`
+- Admin: `routes/admin.php`
+
+## Documentacao interna importante
+- `.docs/campanhas/campaign.md`
+- `.docs/ADDRESS_SYSTEM.md`
+- `.docs/ADMIN_QUICKSTART.md`
+- `docs/admin-layout/README.md`
+- `resources/js/pages/landing-page/waitlist/README.md`
+- `app/Modules/Payments/README.md`
+
+## Prioridades de produto (proximas fases)
+### Fase 1 - Consolidacao de campanhas
+- Fechar fluxo fim-a-fim de campanha com validacoes de negocio completas.
+- Expandir telemetria (eventos de criacao, submit, pagamento, aprovacao).
+
+### Fase 2 - Operacao creator/brand
+- Entregaveis e aprovacoes por campanha.
+- Comunicacao operacional (mensageria e notificacoes transacionais).
+
+### Fase 3 - Escala financeira
+- Fortalecer conciliacao por webhook e reprocessamento.
+- Melhorar relatarios de wallet/campanhas para operacao e admin.
+
+### Fase 4 - Governanca e qualidade
+- Cobertura de testes de fluxos criticos de campanha/pagamento.
+- Padrao de observabilidade para erros e auditoria de eventos.
+
+## Criterios de sucesso do projeto
+- Tempo curto entre cadastro e primeira campanha ativa.
+- Alta confiabilidade no fluxo de pagamento e mudanca de status.
+- Visibilidade operacional para time de produto/admin.
+- Base tecnica estavel para adicionar novos gateways e novos fluxos.

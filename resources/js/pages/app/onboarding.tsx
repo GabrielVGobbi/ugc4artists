@@ -1783,7 +1783,7 @@ const StepBrandCreators = ({ formData, setFormData, onNext, onPrev, isFirstStep 
                                 className={`cursor-pointer rounded-[2rem] border-2 p-4 text-xs font-black tracking-widest uppercase transition-all duration-500 ${
                                     formData.creator_location_preference === l.value
                                         ? 'border-primary bg-white text-primary shadow-xl shadow-orange-500/10'
-                                        : 'border-zinc-100 bg-zinc-50/50 text-zinc-400 hover:border-zinc-200'
+                                        : 'border-zinc-100 bg-zinc-50/50 text-zinc-400 hover:border-zinc-200 '
                                 }`}
                             >
                                 {l.label}

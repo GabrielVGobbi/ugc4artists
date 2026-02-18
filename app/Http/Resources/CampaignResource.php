@@ -111,6 +111,9 @@ class CampaignResource extends JsonResource
                 'rejected_at' => $this->rejected_at?->format('d/m/Y'),
                 'rejection_reason' => $this->rejection_reason,
                 'reviewed_by' => $this->reviewed_by,
+                'started_at' => $this->started_at?->format('d/m/Y'),
+                'completed_at' => $this->completed_at?->format('d/m/Y'),
+                'cancelled_at' => $this->cancelled_at?->format('d/m/Y'),
             ],
 
             // Resumos úteis pro front

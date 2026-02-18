@@ -1,71 +1,121 @@
-# Plataforma UGC (MVP)
+# UGC4Artists - Plataforma UGC para musica e creators
 
-MVP de uma plataforma web que conecta **artistas (músicos/bandas)** com **marcas/contratantes** para campanhas, shows e conteúdos personalizados, incluindo gestão de campanhas, propostas, entregas e pagamentos via carteira.
+Aplicacao web para conectar marcas, artistas e creators em campanhas UGC, com onboarding por perfil, criacao de campanhas, checkout (PIX/cartao/carteira), acompanhamento de pagamentos e area administrativa.
+
+## Visao rapida do estado atual
+- Landing page publica em `/` com seo e secoes institucionais.
+- Waitlist publica em `/waitlist` com formulario multi-etapas.
+- App autenticado em `/app/*` com onboarding obrigatorio antes do dashboard.
+- Modulo de campanhas com CRUD, duplicacao, submissao e checkout.
+- Wallet com deposito, historico, exportacao CSV e pagina de pagamento.
+- Modulo de pagamentos interno (`app/Modules/Payments`) com arquitetura por gateway.
+- Area admin em `/admin/*` protegida por role.
 
 ## Stack principal
-- Backend: Laravel 12 (PHP 8.2+), Fortify (login, registro, recuperação de senha, verificação de e-mail, 2FA), filas/banco/cache via SQLite por padrão.
-- Frontend: React 19 com Inertia.js, Vite, Tailwind CSS 4 (tema pronto para light/dark), Radix UI + lucide-react.
-- Tipagem de rotas: @laravel/vite-plugin-wayfinder (gera helpers TS para rotas).
+- Backend: Laravel 12, PHP 8.3, Fortify, Sanctum, Socialite, Telescope.
+- Frontend: React 19 + Inertia.js, TypeScript, Vite, Tailwind CSS 4.
+- UI/Data: Radix UI, lucide-react, TanStack Query, Zod.
+- Financeiro: `bavix/laravel-wallet` + modulo proprio de pagamentos.
 
-## O que já está pronto
-- Autenticação completa Fortify (login, registro, reset, verificação de e-mail e 2FA) com páginas em `resources/js/pages/auth`.
-- Layout SPA com sidebar (`resources/js/layouts/app`) e componentes UI prontos (`resources/js/components/ui`).
-- Páginas de conta/configurações (perfil, senha, 2FA, aparência) já estruturadas em `resources/js/pages/settings` e controllers em `app/Http/Controllers/Settings` (rotas precisam ser reativadas no `routes/web.php`).
-- Dashboard e página inicial ainda são placeholders, prontos para receber o fluxo de UGC.
-- Testes de autenticação, 2FA e settings em `tests/Feature`.
+## Principais modulos
+### Landing + copy
+- Entrada em `app/Http/Controllers/HomeController.php`.
+- Pagina em `resources/js/pages/landing-page/index.tsx`.
+- Fonte de copy institucional em `.docs/copy_lp/copy_lp.md`.
 
-## Estrutura rápida
-- `app/Http/Controllers`: HomeController (LP) e Settings (perfil/senha/2FA).
-- `resources/js/pages`: `home.tsx`, `dashboard.tsx`, `auth/*`, `settings/*`.
-- `resources/views/app.blade.php`: shell Inertia + inclusão Vite.
-- `resources/css/app.css`: tema Tailwind 4, fontes Instrument Sans, variantes light/dark.
-- `database`: migrations base (users, jobs, cache) e `database.sqlite` já versionado.
+### Waitlist
+- Rotas: `GET /waitlist`, `POST /waitlist`.
+- Controller: `app/Http/Controllers/WaitlistRegistrationController.php`.
+- Frontend: `resources/js/pages/landing-page/waitlist/index.tsx`.
 
-## Branding base
-- Cor primária: `#ff7900` (hsl(28, 100, 50)).
-- Cor secundária: `#000000`.
-- Fonte: Instrument Sans (via Bunny).
+### Autenticacao e onboarding
+- Auth Fortify em `routes/auth.php` e `resources/js/pages/auth/*`.
+- Onboarding em `/app/onboarding` com persistencia parcial em cache.
+- Servico: `app/Services/Onboarding/OnboardingService.php`.
+- Middleware de bloqueio: `app/Http/Middleware/EnsureOnboardingCompleted.php`.
 
-## Como rodar local
-Pré-requisitos: PHP 8.2+, Composer, Node 20+, npm, SQLite (ou adapte .env para MySQL/Postgres), extensão OpenSSL.
+### Campanhas
+- Model principal: `app/Models/Campaign.php`.
+- Status: `draft`, `awaiting_payment`, `under_review`, `sent_to_creators`, `in_progress`, `completed`, `cancelled`.
+- Rotas app: `routes/app.php` em `/app/campaigns/*`.
+- Rotas API: `routes/api.php` em `/api/v1/campaigns/*`.
+- Checkout de campanha: `app/Services/Campaign/CampaignCheckoutService.php`.
 
-### Setup rápido (tudo de uma vez)
+### Wallet e pagamentos
+- Wallet app: `app/Http/Controllers/App/WalletAppController.php`.
+- Servico wallet: `app/Services/Wallet/WalletService.php`.
+- Webhooks publicos: `POST /webhook/{provider}` e `POST /api/v1/payments/webhooks/{provider}`.
+- Documentacao do modulo: `app/Modules/Payments/README.md`.
+
+### Admin
+- Rotas: `routes/admin.php` (`/admin/*`).
+- Docs de UI admin: `docs/admin-layout/README.md`.
+
+## Estrutura de pastas (atalho)
+- `app/Http/Controllers`: controladores web/api/app/admin.
+- `app/Models`: modelos de dominio (`Campaign`, `User`, `Address`, etc.).
+- `app/Services`: regras de negocio (campaign, onboarding, wallet, dashboard).
+- `app/Modules/Payments`: modulo de pagamentos desacoplado por gateway.
+- `resources/js/pages`: paginas Inertia (landing, app, auth, settings, admin).
+- `.docs`: docs de produto, fluxos, copy, guias internos e referencias.
+
+## Requisitos locais
+- PHP 8.3+
+- Composer
+- Node.js 20+
+- NPM
+- Banco (SQLite por padrao, ou MySQL/Postgres via `.env`)
+
+## Setup
+### Setup rapido
 ```bash
 composer setup
 ```
-O script instala dependências, copia `.env` se não existir, gera key, roda migrations (--force), instala npm e faz build.
 
 ### Setup manual
 ```bash
 composer install
-cp .env.example .env   # ou copie manualmente
+copy .env.example .env
 php artisan key:generate
 php artisan migrate
 npm install
 npm run build
 ```
 
-### Ambiente de desenvolvimento
+## Desenvolvimento
 ```bash
-composer dev          # serve Laravel + queue + Vite em paralelo
-# ou
+composer dev
+```
+
+Comando alternativo:
+```bash
 php artisan serve
-php artisan queue:listen
+php artisan queue:listen --tries=1
 npm run dev
 ```
 
-### Testes
+## Testes e qualidade
 ```bash
 php artisan test
+npm run lint
+npm run types
 ```
 
-## Notas importantes
-- Rotas de settings: descomentando `require __DIR__.'/settings.php';` em `routes/web.php` reativa Perfil/Senha/2FA/Aparência.
-- Banco: por padrão é SQLite (`database/database.sqlite`). Para outro banco, ajuste `.env` e rode `php artisan migrate`.
-- Tipos de rota/ações geradas pelo Wayfinder estão em `resources/js/routes` e `resources/js/actions`; regenere após alterar rotas/back-end se necessário.
+## Variaveis importantes (.env)
+- App: `APP_URL`, `APP_ENV`, `APP_DEBUG`.
+- Banco: `DB_*`.
+- Pagamentos: `PAYMENT_GATEWAY`, `PAYMENT_TEST_MODE`, `ASAAS_*`, `IUGU_*`.
+- Google auth (se usado): variaveis em `.docs/auth/SETUP_GOOGLE_OAUTH.md`.
 
-## Próximos passos sugeridos para o MVP UGC
-- Criar landing em `resources/js/pages/home.tsx` com proposta de valor e CTA para artistas/marcas.
-- Modelar entidades: Artista/Marca, Campanha, Proposta, Entrega, Mensagens, Carteira/Transações.
-- Fluxos iniciais: onboarding de artista/marca, criação de campanha pela marca, propostas/respostas, aceite e cronograma de entregas.
-- Integrar carteira (saldo, pagamentos, repasses) e webhooks de pagamento quando o provedor for escolhido.
+## Rotas importantes
+- Publico: `/`, `/waitlist`, `/regulamento`.
+- App: `/app/onboarding`, `/app/dashboard`, `/app/campaigns`, `/app/wallet`.
+- Admin: `/admin`.
+- API: `/api/v1/*`.
+
+## Documentacao interna recomendada
+- `.docs/copy_lp/copy_lp.md` (copy institucional).
+- `.docs/campanhas/campaign.md` (fluxo detalhado de criacao de campanha).
+- `.docs/formulario_ugc.md` (origem do formulario de comunidade).
+- `.docs/ADDRESS_SYSTEM.md` (sistema de enderecos).
+- `app/Modules/Payments/README.md` (arquitetura e uso do modulo de pagamentos).

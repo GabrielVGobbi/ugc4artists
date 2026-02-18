@@ -21,9 +21,13 @@ use Illuminate\Http\Request;
 class AdminController extends Controller
 {
     public function __construct(
-        private CheckoutService $checkout,
         private SettlementService $settlement,
     ) {}
+
+    public function index()
+    {
+        return Inertia::render("admin/home", []);
+    }
 
     /**
      */

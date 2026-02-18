@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\DevController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Api\AccountApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
 use App\Http\Controllers\App\DashboardAppController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
@@ -15,8 +18,11 @@ use Laravel\Fortify\Features;
 |--------------------------------------------------------------------------
 */
 
-Route::name('admin.')->prefix('admin')->middleware(['auth', 'role:developer'])->group(function () {
+Route::name('admin.')->prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
+
+    Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/components/{componentName?}', [DevController::class, 'index'])->name('dev.component');
+
+
     Route::resource('users', UsersController::class);
-
-
 });

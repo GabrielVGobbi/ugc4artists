@@ -55,7 +55,7 @@ class StoreCampaignRequest extends FormRequest
             'content_platforms.*' => ['string', Rule::in(['instagram', 'tiktok', 'youtube', 'youtube_shorts'])],
             'audio_format' => ['nullable', Rule::in(['music', 'narration'])],
             'video_duration_min' => ['nullable', 'integer', 'min:1', 'max:600'],
-            'video_duration_max' => ['nullable', 'integer', 'min:1', 'max:600', 'gte:video_duration_min'],
+            'video_duration_max' => ['nullable', 'integer', 'min:1', 'max:600'],
 
             // Filtros/Restrições
             'filter_age_min' => ['nullable', 'integer', 'min:13', 'max:100'],

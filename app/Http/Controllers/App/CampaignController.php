@@ -41,9 +41,9 @@ class CampaignController extends Controller
     }
 
     /**
-     * Visualizar detalhes de uma campanha
+     * Visualizar detalhes de uma campanha (read-only para o dono da campanha / artista).
      */
-    public function show(string $key)
+    public function show(string $key): Response|RedirectResponse
     {
         $campaign = Campaign::byUser()
             ->byKey($key)
@@ -57,9 +57,8 @@ class CampaignController extends Controller
             }
         }
 
-        return Inertia::render('app/campaigns/edit', [
+        return Inertia::render('app/campaigns/show', [
             'campaign' => new CampaignResource($campaign),
-            'publicationPlans' => config('campaigns.publication_plans'),
         ]);
     }
 

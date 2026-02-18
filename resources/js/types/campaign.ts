@@ -15,6 +15,7 @@ export type ObjectiveTag = 'divulgar_musica' | 'divulgar_clipe' | 'divulgar_perf
 
 export type CampaignStatus =
     | 'draft'
+    | 'under_review'
     | 'awaiting_payment'
     | 'sent_to_creators'
     | 'in_progress'
@@ -117,6 +118,9 @@ export interface CampaignResource {
         rejected_at: string | null
         rejection_reason: string | null
         reviewed_by: number | null
+        started_at: string | null
+        completed_at: string | null
+        cancelled_at: string | null
     }
 
     // Resumos úteis
@@ -222,6 +226,7 @@ const STATUS_COLOR_MAP: Record<string, string> = {
 
 export const CAMPAIGN_STATUS_COLORS: Record<CampaignStatus, string> = {
     draft: 'bg-zinc-300',
+    under_review: 'bg-amber-400',
     awaiting_payment: 'bg-amber-500',
     sent_to_creators: 'bg-blue-500',
     in_progress: 'bg-emerald-500',
@@ -237,6 +242,7 @@ export function getCampaignStatusColor(status: CampaignStatusDisplay | { value: 
 
 export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
     draft: 'Rascunho',
+    under_review: 'Em Análise',
     awaiting_payment: 'Aguardando Pagamento',
     sent_to_creators: 'Enviado para Creators',
     in_progress: 'Em Andamento',

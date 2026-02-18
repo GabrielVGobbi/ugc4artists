@@ -51,10 +51,10 @@ export function Header({ isAuthenticated, headerCtaHref, headerCtaLabel }: Heade
                         size={'none'}
                         className="bg-primary px-5 py-3 font-semibold text-white hover:bg-secondary"
                     >
-                        <Link prefetch href={'/waitlist'} tabIndex={0}>
+                        <a  href={'/auth'} tabIndex={0}>
                             Cadastre-se
                             <SquareArrowUpRight />
-                        </Link>
+                        </a>
                     </Button>
                     {/*
                     <Button

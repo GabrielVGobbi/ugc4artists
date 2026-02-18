@@ -18,6 +18,7 @@ use Bavix\Wallet\Traits\CanPay;
 use Bavix\Wallet\Traits\HasWallet;
 use Bavix\Wallet\Traits\HasWalletFloat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -98,6 +99,14 @@ class User extends Authenticatable implements Wallet, Customer
     /**
      * Retorna o perfil de onboarding do usuário.
      */
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class, 'user_id', 'id');
+    }
+
+    /**
+     * Retorna o perfil de onboarding do usuário.
+     */
     public function onboardingProfile(): HasOne
     {
         return $this->hasOne(OnboardingProfile::class);
@@ -130,5 +139,10 @@ class User extends Authenticatable implements Wallet, Customer
     public function hasValidDocumentAndPhone(): bool
     {
         return filled($this->document) && filled($this->phone);
+    }
+
+    public function campaignsTotals()
+    {
+        return $this->campaigns->count();
     }
 }
