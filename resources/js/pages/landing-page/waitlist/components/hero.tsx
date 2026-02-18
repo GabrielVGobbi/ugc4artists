@@ -69,13 +69,13 @@ export function HeroShowcase({
                             >
                                 <AnimatedText
                                     as="h1"
-                                    className="my-10 text-pretty font-bold text-3xl lg:text-7xl xl:text-7xl"
+                                    className="my-6 md:my-10 text-pretty font-bold text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-7xl leading-tight"
                                 >
                                     O atalho para quem quer ganhar dinheiro <span className="text-primary">criando</span> conteúdo .
                                 </AnimatedText>
                                 <AnimatedText
                                     as="p"
-                                    className="mb-8 max-w-xl text-white lg:text-xl"
+                                    className="mb-8 max-w-xl text-white/80 text-base sm:text-lg lg:text-xl"
                                     delay={0.12}
                                 >
                                     Inscreva-se agora na lista de espera e receba, antes de todo mundo, convites para campanhas, briefings e oportunidades exclusivas.

@@ -16,17 +16,19 @@ export default function WaitlistLayout({ children, sidebar, headerCompact = fals
 		<div className="flex h-screen w-full bg-secondary text-white overflow-hidden">
 			{/* Background Elements - Fixed */}
 			<div className="fixed inset-0 pointer-events-none z-0">
-				<div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#fc7c04]/5 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2" />
-				<div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#fc7c04]/3 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
+				<div className="absolute top-0 right-0 w-[300px] h-[300px] md:w-[800px] md:h-[800px] bg-[#fc7c04]/5 rounded-full blur-[80px] md:blur-[150px] -translate-y-1/2 translate-x-1/2" />
+				<div className="absolute bottom-0 left-0 w-[250px] h-[250px] md:w-[600px] md:h-[600px] bg-[#fc7c04]/3 rounded-full blur-[60px] md:blur-[120px] translate-y-1/2 -translate-x-1/2" />
 			</div>
 
-			{/* Sidebar - Fixed width */}
-			{sidebar}
+			{/* Sidebar - Fixed width - Hidden on mobile */}
+			<div className="hidden md:block">
+				{sidebar}
+			</div>
 
 			{/* Main Content Area */}
-			<main className="flex-1 flex flex-col overflow-hidden relative ml-72">
+			<main className="flex-1 flex flex-col overflow-hidden relative ml-0 md:ml-72">
 				{/* Editorial Background Text - Intentional Asymmetry */}
-				<div className="absolute top-[-8%] right-[-3%] text-[18rem] font-bold text-white/[0.01] pointer-events-none select-none z-0 rotate-[-3deg] tracking-tighter">
+				<div className="absolute top-[10%] md:top-[-8%] right-[-5%] md:right-[-3%] text-[4rem] md:text-[8rem] lg:text-[18rem] leading-none font-bold text-white/[0.01] pointer-events-none select-none z-0 rotate-[-3deg] tracking-tighter">
 					UGC 4ARTISTS
 				</div>
 
@@ -43,7 +45,7 @@ export default function WaitlistLayout({ children, sidebar, headerCompact = fals
 							ease: [0.32, 0.72, 0, 1],
 						},
 					}}
-					className="px-10 flex items-center justify-between bg-transparent relative z-20"
+					className="px-6 md:px-10 flex items-center justify-between bg-transparent relative z-20"
 				>
 					<motion.div
 						animate={{
@@ -71,7 +73,7 @@ export default function WaitlistLayout({ children, sidebar, headerCompact = fals
 				</motion.header>
 
 				{/* Main Content with Custom Scrollbar */}
-				<div className="flex-1 overflow-y-auto px-10  custom-scrollbar relative z-10">
+				<div className="flex-1 overflow-y-auto px-6 md:px-10 custom-scrollbar relative z-10">
 					{children}
 				</div>
 			</main>
