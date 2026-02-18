@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AccountApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
 use App\Http\Controllers\Api\CampaignApiController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\TablesApiController;
 use App\Http\Controllers\App\AddressController;
 use App\Http\Controllers\App\DashboardAppController;
 use App\Modules\Payments\Http\Controllers\CheckoutController;
@@ -128,3 +129,7 @@ Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:developer'
 Route::prefix('v1/payments')->name('api.payments.')->group(function () {
     Route::post('webhooks/{provider}', [WebhookController::class, 'handle'])->name('webhooks.handle');
 });
+
+
+//TODO: validação
+Route::get('{tableName}', [TablesApiController::class, 'index'])->name('list.index');
