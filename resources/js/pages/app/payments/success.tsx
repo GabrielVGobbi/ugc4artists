@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head, router } from '@inertiajs/react'
 import { CheckCircle2, Sparkles, Zap, ArrowRight, ArrowLeft } from 'lucide-react'
 import wallet from '@/routes/app/wallet'
@@ -20,7 +20,7 @@ interface Props {
 
 export default function PaymentSuccess({ payment }: Props) {
     return (
-        <AdminLayout>
+        <AppLayout>
             <Head title="Pagamento Confirmado" />
 
             <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500 animate-[progress_2s_ease-in-out]"></div>
@@ -82,6 +82,6 @@ export default function PaymentSuccess({ payment }: Props) {
                         100% { width: 100%; }
                     }
                 `}</style>
-        </AdminLayout>
+        </AppLayout>
     )
 }

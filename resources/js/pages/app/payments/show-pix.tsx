@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head, router } from '@inertiajs/react'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
@@ -160,7 +160,7 @@ export default function ShowPixPayment({ payment, pix }: Props) {
     // Show success screen if paid
     if (isPaid) {
         return (
-            <AdminLayout>
+            <AppLayout>
                 <Head title="Pagamento Confirmado" />
                 <div className="max-w-sm mx-auto w-full text-center space-y-8 pt-20">
 
@@ -205,12 +205,12 @@ export default function ShowPixPayment({ payment, pix }: Props) {
                             100% { width: 100%; }
                         }
                     `}</style>
-            </AdminLayout>
+            </AppLayout>
         )
     }
 
     return (
-        <AdminLayout>
+        <AppLayout>
             <Head title="Pagamento PIX" />
 
             <div className="flex flex-col animate-in slide-in-from-bottom-4 duration-700 ">
@@ -378,6 +378,6 @@ export default function ShowPixPayment({ payment, pix }: Props) {
 
                 </div>
             </div>
-        </AdminLayout>
+        </AppLayout>
     )
 }

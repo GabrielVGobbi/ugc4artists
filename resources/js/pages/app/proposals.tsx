@@ -1,10 +1,10 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head } from '@inertiajs/react'
 import { FileText } from 'lucide-react'
 
 export default function Proposals() {
 	return (
-		<AdminLayout>
+		<AppLayout>
 			<Head title="Propostas - Admin" />
 
 			<div className="bg-white rounded-[2.5rem] p-20 text-center shadow-sm">
@@ -18,7 +18,7 @@ export default function Proposals() {
 					</p>
 				</div>
 			</div>
-		</AdminLayout>
+		</AppLayout>
 	)
 }
 

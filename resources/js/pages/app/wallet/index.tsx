@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head, router } from '@inertiajs/react'
 import {
     TrendingUp,
@@ -118,7 +118,7 @@ export default function WalletPage({ wallet, chart }: Props) {
     }, [exportUrl])
 
     return (
-        <AdminLayout>
+        <AppLayout>
             <Head title="Minha Carteira" />
 
             <div className="space-y-10 animate-in fade-in duration-700 pb-20">
@@ -362,7 +362,7 @@ export default function WalletPage({ wallet, chart }: Props) {
                     )}
                 </div>
             </div>
-        </AdminLayout>
+        </AppLayout>
     )
 }
 

@@ -1,11 +1,11 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Button } from '@headlessui/react'
 import { Head } from '@inertiajs/react'
 import { Music, Search } from 'lucide-react'
 
 export default function Artists() {
     return (
-        <AdminLayout>
+        <AppLayout>
             <Head title="Artistas - Admin" />
 
                 <div className="">
@@ -36,7 +36,7 @@ export default function Artists() {
                     </div>
                 </div>
 
-        </AdminLayout>
+        </AppLayout>
     )
 }
 

@@ -107,15 +107,15 @@ Dashboard principal com métricas, gráficos e insights
 1. **Criar a página**:
 ```tsx
 // resources/js/pages/app/nova-pagina.tsx
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head } from '@inertiajs/react'
 
 export default function NovaPagina() {
     return (
-        <AdminLayout>
+        <AppLayout>
             <Head title="Nova Página - Admin" />
             {/* Seu conteúdo aqui */}
-        </AdminLayout>
+        </AppLayout>
     )
 }
 ```

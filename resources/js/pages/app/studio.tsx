@@ -1,10 +1,10 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head } from '@inertiajs/react'
 import { Zap, Sparkles, ArrowRight } from 'lucide-react'
 
 export default function Studio() {
 	return (
-		<AdminLayout>
+		<AppLayout>
 			<Head title="Studio AI - Admin" />
 
 			<div className="space-y-8">
@@ -78,7 +78,7 @@ export default function Studio() {
 					</p>
 				</div>
 			</div>
-		</AdminLayout>
+		</AppLayout>
 	)
 }
 

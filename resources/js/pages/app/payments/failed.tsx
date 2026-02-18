@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head, router } from '@inertiajs/react'
 import { XCircle, RefreshCw, MessageCircle, ArrowLeft } from 'lucide-react'
 import wallet from '@/routes/app/wallet'
@@ -24,7 +24,7 @@ export default function PaymentFailed({ payment }: Props) {
     const isRefunded = payment.status === 'refunded'
 
     return (
-        <AdminLayout>
+        <AppLayout>
             <Head title={isCanceled ? 'Pagamento Cancelado' : 'Pagamento Falhou'} />
 
 
@@ -130,6 +130,6 @@ export default function PaymentFailed({ payment }: Props) {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </AppLayout>
     )
 }

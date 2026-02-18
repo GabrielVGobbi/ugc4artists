@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head, router } from '@inertiajs/react'
 import { useMemo } from 'react'
 import {
@@ -92,7 +92,7 @@ export default function ShowPayment({ payment }: Props) {
     }
 
     return (
-        <AdminLayout>
+        <AppLayout>
             <Head title="Detalhes do Pagamento" />
 
             <div className="flex flex-col animate-in slide-in-from-bottom-4 duration-700 py-12">
@@ -220,6 +220,6 @@ export default function ShowPayment({ payment }: Props) {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </AppLayout>
     )
 }

@@ -1,10 +1,10 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head } from '@inertiajs/react'
 import { MessageSquare } from 'lucide-react'
 
 export default function Inbox() {
 	return (
-		<AdminLayout>
+		<AppLayout>
 			<Head title="Mensagens - Admin" />
 
 			<div className="bg-white rounded-[2.5rem] p-20 text-center shadow-sm">
@@ -18,7 +18,7 @@ export default function Inbox() {
 					</p>
 				</div>
 			</div>
-		</AdminLayout>
+		</AppLayout>
 	)
 }
 

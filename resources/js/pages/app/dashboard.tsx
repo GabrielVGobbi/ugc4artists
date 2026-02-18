@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import {
     ArrowUpRight,
     Plus,
@@ -161,7 +161,7 @@ export default function Dashboard({
     const hasFeatured = featuredCampaign !== null
 
     return (
-        <AdminLayout>
+        <AppLayout>
             <Head title="Dashboard" />
 
             <div className="grid grid-cols-12 gap-8 pb-12">
@@ -533,6 +533,6 @@ export default function Dashboard({
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </AppLayout>
     )
 }

@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/app-layout'
+import AppLayout from '@/layouts/app-layout'
 import { Head, router, useForm } from '@inertiajs/react'
 import { useState, useMemo } from 'react'
 import {
@@ -108,7 +108,7 @@ export default function ShowCardPayment({ payment }: Props) {
     // Show success screen
     if (isSuccess) {
         return (
-            <AdminLayout>
+            <AppLayout>
                 <Head title="Pagamento Confirmado" />
                 <div className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
                     <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500 animate-[progress_2s_ease-in-out]"></div>
@@ -156,12 +156,12 @@ export default function ShowCardPayment({ payment }: Props) {
                         }
                     `}</style>
                 </div>
-            </AdminLayout>
+            </AppLayout>
         )
     }
 
     return (
-        <AdminLayout>
+        <AppLayout>
             <Head title="Pagamento com Cartão" />
 
             <div className="flex flex-col animate-in slide-in-from-bottom-4 duration-700 py-12">
@@ -325,6 +325,6 @@ export default function ShowCardPayment({ payment }: Props) {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </AppLayout>
     )
 }
