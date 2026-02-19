@@ -15,7 +15,7 @@ use Inertia\Response;
 class DevController extends Controller
 {
     /**
-     * Display all users
+     * teste Display all users
      */
     public function index(Request $request, $component = null)
     {
