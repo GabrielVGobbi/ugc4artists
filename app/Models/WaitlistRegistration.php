@@ -35,6 +35,7 @@ class WaitlistRegistration extends Model
 		'city_state',
 		'creation_availability',
 		'terms_accepted_at',
+		'email_sent_at',
 	];
 
 	/**
@@ -44,6 +45,7 @@ class WaitlistRegistration extends Model
 		'artist_types' => 'array',
 		'participation_types' => 'array',
 		'terms_accepted_at' => 'datetime',
+		'email_sent_at' => 'datetime',
 	];
 }
 

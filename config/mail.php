@@ -115,4 +115,6 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'waitlist_notification_email' => env('WAITLIST_NOTIFICATION_EMAIL', 'gabriel.gobbi15@gmail.com'),
+
 ];

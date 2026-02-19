@@ -27,6 +27,9 @@ use App\Models\Order;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\WaitlistRegistration;
+use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Payments\Models\Payment;
 use App\Services\ActivityLogService;
 use App\Services\CommentService;
 use App\Services\TimelineService;
@@ -301,6 +304,233 @@ class TablesApiController extends Controller
         });
     }
 
+
+    public function dashboardPayments(Request $request)
+    {
+        [$period, $startDate, $endDate] = $this->resolveDashboardDateRange($request);
+
+        $baseQuery = Payment::query()
+            ->whereBetween('created_at', [$startDate, $endDate]);
+
+        if ($request->filled('status')) {
+            $baseQuery->where('status', $request->string('status')->toString());
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->string('search')->toString();
+            $baseQuery->where(function ($query) use ($search) {
+                $query->where('uuid', 'like', "%{$search}%")
+                    ->orWhere('gateway_reference', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $totalPayments = (clone $baseQuery)->count();
+        $paidPaymentsQuery = (clone $baseQuery)->where('status', PaymentStatus::PAID->value);
+        $paidPaymentsCount = (clone $paidPaymentsQuery)->count();
+        $paidRevenueCents = (clone $paidPaymentsQuery)->sum('amount_cents');
+        $walletAppliedCents = (clone $baseQuery)->sum('wallet_applied_cents');
+        $gatewayAmountCents = (clone $baseQuery)->sum('gateway_amount_cents');
+        $pendingPaymentsCount = (clone $baseQuery)->whereIn('status', [
+            PaymentStatus::DRAFT->value,
+            PaymentStatus::PENDING->value,
+            PaymentStatus::REQUIRES_ACTION->value,
+        ])->count();
+        $failedPaymentsCount = (clone $baseQuery)->where('status', PaymentStatus::FAILED->value)->count();
+
+        $statusBreakdown = (clone $baseQuery)
+            ->select('status', DB::raw('COUNT(*) as total'), DB::raw('COALESCE(SUM(amount_cents), 0) as amount_cents'))
+            ->groupBy('status')
+            ->orderBy('status')
+            ->get();
+
+        $dailyRevenue = (clone $baseQuery)
+            ->selectRaw("
+                DATE(created_at) as date,
+                COUNT(*) as payments_count,
+                COALESCE(SUM(CASE WHEN status = ? THEN amount_cents ELSE 0 END), 0) as paid_revenue_cents
+            ", [PaymentStatus::PAID->value])
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->orderBy('date')
+            ->get();
+
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = max(5, min($perPage, 50));
+
+        $payments = (clone $baseQuery)
+            ->with('user:id,name,email')
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+
+        return response()->json([
+            'filters' => [
+                'period' => $period,
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+            ],
+            'summary' => [
+                'total_payments' => $totalPayments,
+                'paid_payments' => $paidPaymentsCount,
+                'pending_payments' => $pendingPaymentsCount,
+                'failed_payments' => $failedPaymentsCount,
+                'paid_revenue_cents' => (int) $paidRevenueCents,
+                'wallet_applied_cents' => (int) $walletAppliedCents,
+                'gateway_amount_cents' => (int) $gatewayAmountCents,
+                'average_ticket_cents' => $paidPaymentsCount > 0 ? (int) round($paidRevenueCents / $paidPaymentsCount) : 0,
+                'paid_conversion_rate' => $totalPayments > 0 ? round(($paidPaymentsCount / $totalPayments) * 100, 2) : 0,
+                'status_breakdown' => $statusBreakdown->map(fn ($item) => [
+                    'status' => $item->status,
+                    'total' => (int) $item->total,
+                    'amount_cents' => (int) $item->amount_cents,
+                ]),
+            ],
+            'series' => $dailyRevenue->map(fn ($item) => [
+                'date' => $item->date,
+                'payments_count' => (int) $item->payments_count,
+                'paid_revenue_cents' => (int) $item->paid_revenue_cents,
+            ]),
+            'table' => [
+                'data' => collect($payments->items())->map(fn (Payment $payment) => [
+                    'id' => $payment->id,
+                    'uuid' => $payment->uuid,
+                    'user_name' => $payment->user?->name,
+                    'user_email' => $payment->user?->email,
+                    'status' => $payment->status?->value ?? (string) $payment->status,
+                    'payment_method' => $payment->payment_method?->value ?? (string) $payment->payment_method,
+                    'gateway' => $payment->gateway,
+                    'amount_cents' => (int) $payment->amount_cents,
+                    'gateway_amount_cents' => (int) ($payment->gateway_amount_cents ?? 0),
+                    'wallet_applied_cents' => (int) ($payment->wallet_applied_cents ?? 0),
+                    'due_date' => optional($payment->due_date)->toDateString(),
+                    'paid_at' => optional($payment->paid_at)->toDateString(),
+                    'created_at' => optional($payment->created_at)->toDateTimeString(),
+                ]),
+                'meta' => [
+                    'current_page' => $payments->currentPage(),
+                    'last_page' => $payments->lastPage(),
+                    'per_page' => $payments->perPage(),
+                    'total' => $payments->total(),
+                ],
+            ],
+        ]);
+    }
+
+    public function dashboardWaitlist(Request $request)
+    {
+        [$period, $startDate, $endDate] = $this->resolveDashboardDateRange($request);
+
+        $baseQuery = WaitlistRegistration::query()
+            ->whereBetween('created_at', [$startDate, $endDate]);
+
+        if ($request->filled('search')) {
+            $search = $request->string('search')->toString();
+            $baseQuery->where(function ($query) use ($search) {
+                $query->where('stage_name', 'like', "%{$search}%")
+                    ->orWhere('contact_email', 'like', "%{$search}%")
+                    ->orWhere('city_state', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('creation_availability')) {
+            $baseQuery->where('creation_availability', $request->string('creation_availability')->toString());
+        }
+
+        $totalRegistrations = (clone $baseQuery)->count();
+        $uniqueEmails = (clone $baseQuery)->distinct('contact_email')->count('contact_email');
+        $registrationsToday = (clone $baseQuery)->whereDate('created_at', Carbon::today())->count();
+
+        $availabilityBreakdown = (clone $baseQuery)
+            ->select('creation_availability', DB::raw('COUNT(*) as total'))
+            ->groupBy('creation_availability')
+            ->orderBy('creation_availability')
+            ->get();
+
+        $dailyRegistrations = (clone $baseQuery)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as registrations_count')
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->orderBy('date')
+            ->get();
+
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = max(5, min($perPage, 50));
+
+        $registrations = (clone $baseQuery)
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+
+        return response()->json([
+            'filters' => [
+                'period' => $period,
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+            ],
+            'summary' => [
+                'total_registrations' => $totalRegistrations,
+                'unique_emails' => $uniqueEmails,
+                'registrations_today' => $registrationsToday,
+                'availability_breakdown' => $availabilityBreakdown->map(fn ($item) => [
+                    'creation_availability' => $item->creation_availability,
+                    'total' => (int) $item->total,
+                ]),
+            ],
+            'series' => $dailyRegistrations->map(fn ($item) => [
+                'date' => $item->date,
+                'registrations_count' => (int) $item->registrations_count,
+            ]),
+            'table' => [
+                'data' => collect($registrations->items())->map(fn (WaitlistRegistration $registration) => [
+                    'id' => $registration->id,
+                    'stage_name' => $registration->stage_name,
+                    'contact_email' => $registration->contact_email,
+                    'city_state' => $registration->city_state,
+                    'creation_availability' => $registration->creation_availability,
+                    'artist_types' => $registration->artist_types ?? [],
+                    'participation_types' => $registration->participation_types ?? [],
+                    'created_at' => optional($registration->created_at)->toDateTimeString(),
+                ]),
+                'meta' => [
+                    'current_page' => $registrations->currentPage(),
+                    'last_page' => $registrations->lastPage(),
+                    'per_page' => $registrations->perPage(),
+                    'total' => $registrations->total(),
+                ],
+            ],
+        ]);
+    }
+
+    private function resolveDashboardDateRange(Request $request): array
+    {
+        $period = $request->string('period')->toString() ?: 'month';
+        $now = Carbon::now();
+
+        if ($period === 'day') {
+            $startDate = $now->copy()->startOfDay();
+            $endDate = $now->copy()->endOfDay();
+        } elseif ($period === 'week') {
+            $startDate = $now->copy()->startOfWeek(Carbon::MONDAY);
+            $endDate = $now->copy()->endOfWeek(Carbon::SUNDAY);
+        } elseif ($period === 'custom') {
+            $startDate = $request->filled('start_date')
+                ? Carbon::parse($request->string('start_date')->toString())->startOfDay()
+                : $now->copy()->startOfMonth();
+            $endDate = $request->filled('end_date')
+                ? Carbon::parse($request->string('end_date')->toString())->endOfDay()
+                : $now->copy()->endOfDay();
+        } else {
+            $period = 'month';
+            $startDate = $now->copy()->startOfMonth();
+            $endDate = $now->copy()->endOfMonth();
+        }
+
+        if ($startDate->greaterThan($endDate)) {
+            [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+        }
+
+        return [$period, $startDate, $endDate];
+    }
 
     /**
      * Normalize string for comparison (remove accents, lowercase, normalize spaces)

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\WaitlistRegistrationRequest;
+use App\Mail\NewWaitlistRegistrationMail;
 use App\Models\WaitlistRegistration;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -27,7 +29,7 @@ class WaitlistRegistrationController extends Controller
     {
         $data = $request->validated();
 
-        WaitlistRegistration::create([
+        $registration = WaitlistRegistration::create([
             'stage_name' => $data['stage_name'],
             'instagram_handle' => $data['instagram_handle'] ?? null,
             'youtube_handle' => $data['youtube_handle'] ?? null,
@@ -42,6 +44,13 @@ class WaitlistRegistrationController extends Controller
             'creation_availability' => $data['creation_availability'],
             'terms_accepted_at' => now(),
         ]);
+
+        $notificationEmail = config('mail.waitlist_notification_email');
+
+        if ($notificationEmail) {
+            Mail::to($notificationEmail)->send(new NewWaitlistRegistrationMail($registration));
+            $registration->update(['email_sent_at' => now()]);
+        }
 
         return back()->with('success', 'Inscrição recebida com sucesso. Em breve entraremos em contato.');
     }

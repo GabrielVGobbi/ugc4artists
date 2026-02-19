@@ -12,7 +12,10 @@ enum CampaignStatus: string implements StatusableEnum
     use GetsAttributes;
 
     case DRAFT = 'draft';
-    case UNDER_REVIEW = 'under_review';
+    case PENDING = 'pending';
+    case UNDER_REVIEW = 'under_review'; // legacy status kept for backwards compatibility
+    case APPROVED = 'approved';
+    case REFUSED = 'refused';
     case AWAITING_PAYMENT = 'awaiting_payment';
     case SENT_TO_CREATORS = 'sent_to_creators';
     case IN_PROGRESS = 'in_progress';
@@ -28,10 +31,13 @@ enum CampaignStatus: string implements StatusableEnum
     {
         return match ($label) {
             'draft' => 'Rascunho',
-            'under_review' => 'Em Análise',
-            'awaiting_payment' => 'Aguardando Pagamento',
-            'sent_to_creators' => 'Enviado para Creators',
-            'in_progress' => 'Em Andamento',
+            'pending' => 'Pendente',
+            'under_review' => 'Em analise',
+            'approved' => 'Aprovada',
+            'refused' => 'Recusada',
+            'awaiting_payment' => 'Aguardando pagamento',
+            'sent_to_creators' => 'Enviado para creators',
+            'in_progress' => 'Em andamento',
             'completed' => 'Finalizada',
             'cancelled' => 'Cancelada',
             default => 'Desconhecido',
@@ -40,27 +46,17 @@ enum CampaignStatus: string implements StatusableEnum
 
     public function getLabelText(): string
     {
-        return match ($this) {
-            self::DRAFT => 'Rascunho',
-            self::UNDER_REVIEW => 'Em Análise',
-            self::AWAITING_PAYMENT => 'Aguardando Pagamento',
-            self::SENT_TO_CREATORS => 'Enviado para Creators',
-            self::IN_PROGRESS => 'Em Andamento',
-            self::COMPLETED => 'Finalizada',
-            self::CANCELLED => 'Cancelada',
-        };
+        return self::getLabelTextByLabel($this->value);
     }
 
     public function getLabelColor(): string
     {
         return match ($this) {
             self::DRAFT => 'gray',
-            self::UNDER_REVIEW => 'warning',
-            self::AWAITING_PAYMENT => 'warning',
-            self::SENT_TO_CREATORS => 'info',
-            self::IN_PROGRESS => 'success',
-            self::COMPLETED => 'success',
-            self::CANCELLED => 'danger',
+            self::PENDING, self::UNDER_REVIEW, self::AWAITING_PAYMENT => 'warning',
+            self::APPROVED, self::SENT_TO_CREATORS => 'info',
+            self::IN_PROGRESS, self::COMPLETED => 'success',
+            self::REFUSED, self::CANCELLED => 'danger',
         };
     }
 
@@ -68,7 +64,9 @@ enum CampaignStatus: string implements StatusableEnum
     {
         return match ($this) {
             self::DRAFT => 'pencil',
-            self::UNDER_REVIEW => 'search',
+            self::PENDING, self::UNDER_REVIEW => 'search',
+            self::APPROVED => 'check',
+            self::REFUSED => 'x-circle',
             self::AWAITING_PAYMENT => 'clock',
             self::SENT_TO_CREATORS => 'paper-airplane',
             self::IN_PROGRESS => 'play-circle',
@@ -80,19 +78,18 @@ enum CampaignStatus: string implements StatusableEnum
     public function getLabelTextDefinitionStatus(): string
     {
         return match ($this) {
-            self::DRAFT => 'Mover para Rascunho',
-            self::UNDER_REVIEW => 'Enviar para Análise',
-            self::AWAITING_PAYMENT => 'Aguardar Pagamento',
-            self::SENT_TO_CREATORS => 'Enviar para Creators',
-            self::IN_PROGRESS => 'Iniciar Campanha',
-            self::COMPLETED => 'Finalizar Campanha',
-            self::CANCELLED => 'Cancelar Campanha',
+            self::DRAFT => 'Mover para rascunho',
+            self::PENDING => 'Enviar para triagem',
+            self::UNDER_REVIEW => 'Enviar para analise',
+            self::APPROVED => 'Aprovar campanha',
+            self::REFUSED => 'Recusar campanha',
+            self::AWAITING_PAYMENT => 'Aguardar pagamento',
+            self::SENT_TO_CREATORS => 'Enviar para creators',
+            self::IN_PROGRESS => 'Iniciar campanha',
+            self::COMPLETED => 'Finalizar campanha',
+            self::CANCELLED => 'Cancelar campanha',
         };
     }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Transitions
-    // ─────────────────────────────────────────────────────────────────────────────
 
     public function canTransitionTo(StatusableEnum $newStatus): bool
     {
@@ -109,32 +106,16 @@ enum CampaignStatus: string implements StatusableEnum
     public function getAvailableTransitions(): array
     {
         return match ($this) {
-            self::DRAFT => [
-                self::AWAITING_PAYMENT,
-                self::CANCELLED,
-            ],
-            self::AWAITING_PAYMENT => [
-                self::UNDER_REVIEW,
-                self::DRAFT,
-                self::CANCELLED,
-            ],
-            self::UNDER_REVIEW => [
-                self::SENT_TO_CREATORS,
-                self::DRAFT,
-                self::CANCELLED,
-            ],
-            self::SENT_TO_CREATORS => [
-                self::IN_PROGRESS,
-                self::CANCELLED,
-            ],
-            self::IN_PROGRESS => [
-                self::COMPLETED,
-                self::CANCELLED,
-            ],
+            self::DRAFT => [self::AWAITING_PAYMENT, self::CANCELLED],
+            self::AWAITING_PAYMENT => [self::PENDING, self::UNDER_REVIEW, self::DRAFT, self::CANCELLED],
+            self::UNDER_REVIEW => [self::PENDING, self::APPROVED, self::REFUSED, self::DRAFT, self::CANCELLED],
+            self::PENDING => [self::APPROVED, self::REFUSED, self::SENT_TO_CREATORS, self::DRAFT, self::CANCELLED],
+            self::APPROVED => [self::SENT_TO_CREATORS, self::IN_PROGRESS, self::CANCELLED],
+            self::REFUSED => [self::DRAFT],
+            self::SENT_TO_CREATORS => [self::IN_PROGRESS, self::CANCELLED],
+            self::IN_PROGRESS => [self::COMPLETED, self::CANCELLED],
             self::COMPLETED => [],
-            self::CANCELLED => [
-                self::DRAFT,
-            ],
+            self::CANCELLED => [self::DRAFT],
         };
     }
 
@@ -142,7 +123,9 @@ enum CampaignStatus: string implements StatusableEnum
     {
         return match ($this) {
             self::DRAFT => [],
-            self::UNDER_REVIEW => ['reviewed_at'],
+            self::PENDING, self::UNDER_REVIEW => ['reviewed_at'],
+            self::APPROVED => ['approved_at'],
+            self::REFUSED => ['rejected_at', 'rejection_reason'],
             self::AWAITING_PAYMENT => ['submitted_at'],
             self::SENT_TO_CREATORS => ['publication_paid_at'],
             self::IN_PROGRESS => ['started_at'],
@@ -161,32 +144,37 @@ enum CampaignStatus: string implements StatusableEnum
 
     public function requiresReason(): bool
     {
-        return match ($this) {
-            self::CANCELLED, self::DRAFT => true,
-            default => false,
-        };
+        return in_array($this, [self::CANCELLED, self::DRAFT, self::REFUSED], true);
     }
 
     public function requiresConfirmation(): bool
     {
-        return match ($this) {
-            self::CANCELLED, self::COMPLETED => true,
-            default => false,
-        };
+        return in_array($this, [self::CANCELLED, self::COMPLETED], true);
     }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────────────────────
 
     public function isDraft(): bool
     {
         return $this === self::DRAFT;
     }
 
+    public function isPending(): bool
+    {
+        return in_array($this, [self::PENDING, self::UNDER_REVIEW], true);
+    }
+
     public function isUnderReview(): bool
     {
         return $this === self::UNDER_REVIEW;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this === self::APPROVED;
+    }
+
+    public function isRefused(): bool
+    {
+        return $this === self::REFUSED;
     }
 
     public function isAwaitingPayment(): bool
@@ -221,29 +209,24 @@ enum CampaignStatus: string implements StatusableEnum
 
     public function isActive(): bool
     {
-        return in_array($this, [
-            self::SENT_TO_CREATORS,
-            self::IN_PROGRESS,
-        ], true);
+        return in_array($this, [self::APPROVED, self::SENT_TO_CREATORS, self::IN_PROGRESS], true);
     }
 
     public function canBeEdited(): bool
     {
-        return in_array($this, [self::DRAFT, self::UNDER_REVIEW], true);
+        return in_array($this, [self::DRAFT, self::UNDER_REVIEW, self::PENDING], true);
     }
 
     public function canBePaid(): bool
     {
-        return in_array($this, [
-            self::AWAITING_PAYMENT,
-        ], true);
+        return in_array($this, [self::AWAITING_PAYMENT], true);
     }
 
     public function transitionTo(self $newStatus): self
     {
         if (!$this->canTransitionTo($newStatus)) {
             throw new \InvalidArgumentException(
-                "Transição inválida: {$this->getLabelText()} → {$newStatus->getLabelText()}"
+                "Transicao invalida: {$this->getLabelText()} -> {$newStatus->getLabelText()}"
             );
         }
 

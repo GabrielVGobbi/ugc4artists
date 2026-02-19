@@ -15,7 +15,10 @@ export type ObjectiveTag = 'divulgar_musica' | 'divulgar_clipe' | 'divulgar_perf
 
 export type CampaignStatus =
     | 'draft'
+    | 'pending'
     | 'under_review'
+    | 'approved'
+    | 'refused'
     | 'awaiting_payment'
     | 'sent_to_creators'
     | 'in_progress'
@@ -117,6 +120,7 @@ export interface CampaignResource {
         approved_at: string | null
         rejected_at: string | null
         rejection_reason: string | null
+        reason_for_refusal?: string | null
         reviewed_by: number | null
         started_at: string | null
         completed_at: string | null
@@ -134,6 +138,14 @@ export interface CampaignResource {
     // Listagem (card/table)
     total_budget?: number
     applications_count?: number
+    approved_creators_count?: number
+    approved_creators?: Array<{
+        id: number
+        uuid: string
+        name: string
+        email: string
+        avatar?: string | null
+    }>
 
     // Metas (ISO)
     created_at: string | null // ISO 8601 (no seu helper pode retornar null)
@@ -226,7 +238,10 @@ const STATUS_COLOR_MAP: Record<string, string> = {
 
 export const CAMPAIGN_STATUS_COLORS: Record<CampaignStatus, string> = {
     draft: 'bg-zinc-300',
+    pending: 'bg-amber-500',
     under_review: 'bg-amber-400',
+    approved: 'bg-blue-500',
+    refused: 'bg-red-500',
     awaiting_payment: 'bg-amber-500',
     sent_to_creators: 'bg-blue-500',
     in_progress: 'bg-emerald-500',
@@ -242,7 +257,10 @@ export function getCampaignStatusColor(status: CampaignStatusDisplay | { value: 
 
 export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
     draft: 'Rascunho',
-    under_review: 'Em Análise',
+    pending: 'Pendente',
+    under_review: 'Em Analise',
+    approved: 'Aprovada',
+    refused: 'Recusada',
     awaiting_payment: 'Aguardando Pagamento',
     sent_to_creators: 'Enviado para Creators',
     in_progress: 'Em Andamento',
@@ -273,3 +291,4 @@ export interface PublicationPlanOption {
     description: string
     features?: string[]
 }
+

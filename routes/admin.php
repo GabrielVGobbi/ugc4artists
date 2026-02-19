@@ -24,5 +24,7 @@ Route::name('admin.')->prefix('admin')->middleware(['auth', 'role:admin'])->grou
     Route::get('/components/{componentName?}', [DevController::class, 'index'])->name('dev.component');
 
 
+    Route::get('/teste-email', [AdminController::class, 'testeEmail'])->name('teste.email');
+
     Route::resource('users', UsersController::class);
 });

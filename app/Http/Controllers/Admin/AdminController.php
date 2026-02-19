@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\NewWaitlistRegistrationMail;
 use App\Models\Campaign;
+use App\Models\WaitlistRegistration;
 use App\Modules\Payments\Core\DTOs\Payment\ChargeRequest;
 use App\Modules\Payments\Enums\PaymentStatus;
 use App\Modules\Payments\Facades\Checkout;
 use App\Modules\Payments\Http\Requests\CreatePaymentRequest;
 use App\Modules\Payments\Services\CheckoutService;
 use App\Modules\Payments\Services\SettlementService;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Modules\Payments\Facades\Asaas;
@@ -67,6 +70,38 @@ class AdminController extends Controller
                 'qr_code_payload' => $payment->meta['gateway']['qr_code_payload'] ?? null,
             ],
         ]);
+    }
+
+    public function testeEmail(Request $request)
+    {
+        $registration = WaitlistRegistration::latest()->first();
+
+        if (! $registration) {
+            $registration = new WaitlistRegistration([
+                'stage_name' => 'Artista Teste',
+                'instagram_handle' => '@artista_teste',
+                'youtube_handle' => '@artista_teste_yt',
+                'tiktok_handle' => '@artista_teste_tk',
+                'contact_email' => 'artista@teste.com',
+                'artist_types' => ['Cantor', 'Compositor'],
+                'participation_types' => ['Criação de conteúdo'],
+                'main_genre' => 'Pop',
+                'city_state' => 'São Paulo/SP',
+                'creation_availability' => 'Integral',
+                'portfolio_link' => 'https://portfolio.teste.com',
+            ]);
+            $registration->created_at = now();
+        }
+
+        $sendTo = $request->query('to');
+
+        if ($sendTo) {
+            Mail::to($sendTo)->send(new NewWaitlistRegistrationMail($registration));
+
+            return response()->json(['message' => "Email enviado para {$sendTo}"]);
+        }
+
+        return new NewWaitlistRegistrationMail($registration);
     }
 
     public function testePagarTransaction(Request $request)

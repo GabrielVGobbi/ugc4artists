@@ -13,6 +13,7 @@ use Bavix\Wallet\Interfaces\ProductInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
@@ -167,6 +168,12 @@ class Campaign extends Model implements ProductInterface
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    public function approvedCreators(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'campaign_approved_creators', 'campaign_id', 'creator_id')
+            ->withTimestamps();
+    }
+
     public function payments(): MorphMany
     {
         return $this->morphMany(Payment::class, 'billable');
@@ -261,6 +268,7 @@ class Campaign extends Model implements ProductInterface
     public function scopeActive(Builder $query): Builder
     {
         return $query->whereIn('status', [
+            CampaignStatus::APPROVED,
             CampaignStatus::SENT_TO_CREATORS,
             CampaignStatus::IN_PROGRESS,
         ]);
@@ -408,7 +416,7 @@ class Campaign extends Model implements ProductInterface
             return false;
         }
 
-        return $this->transitionTo(CampaignStatus::UNDER_REVIEW, [
+        return $this->transitionTo(CampaignStatus::PENDING, [
             'reviewed_at' =>  now(),
             'publication_paid_at' => $this->publication_paid_at ?? now(),
         ]);
@@ -474,7 +482,10 @@ class Campaign extends Model implements ProductInterface
     {
         return match ($status) {
             CampaignStatus::AWAITING_PAYMENT => ['submitted_at' => now()],
+            CampaignStatus::PENDING => ['reviewed_at' => now()],
             CampaignStatus::UNDER_REVIEW => ['reviewed_at' => now()],
+            CampaignStatus::APPROVED => ['approved_at' => now()],
+            CampaignStatus::REFUSED => ['rejected_at' => now()],
             CampaignStatus::SENT_TO_CREATORS => ['publication_paid_at' => now()],
             CampaignStatus::IN_PROGRESS => ['started_at' => now()],
             CampaignStatus::COMPLETED => ['completed_at' => now()],
@@ -540,3 +551,4 @@ class Campaign extends Model implements ProductInterface
         ];
     }
 }
+

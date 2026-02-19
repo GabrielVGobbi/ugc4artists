@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\App\WalletAppController as WalletApp;
 use App\Http\Controllers\Api\AccountApiController;
+use App\Http\Controllers\Api\Admin\CampaignModerationApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
 use App\Http\Controllers\Api\CampaignApiController;
 use App\Http\Controllers\Api\NotificationController;
@@ -98,6 +99,9 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
         Route::get('/', [CampaignApiController::class, 'index'])->name('index');
         Route::get('/stats', [CampaignApiController::class, 'stats'])->name('stats');
         Route::post('/', [CampaignApiController::class, 'store'])->name('store');
+        Route::post('/{campaign}/approve', [CampaignModerationApiController::class, 'approve'])->middleware('role:admin')->name('approve');
+        Route::post('/{campaign}/refuse', [CampaignModerationApiController::class, 'refuse'])->middleware('role:admin')->name('refuse');
+        Route::patch('/{campaign}/status', [CampaignModerationApiController::class, 'updateStatus'])->middleware('role:admin')->name('status');
         Route::get('/{key}', [CampaignApiController::class, 'show'])->name('show');
         Route::put('/{key}', [CampaignApiController::class, 'update'])->name('update');
         Route::delete('/{key}', [CampaignApiController::class, 'destroy'])->name('destroy');
@@ -118,6 +122,21 @@ Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:developer'
 
         Route::get('/teste-checkout', [AdminController::class, 'testeCheckout'])->name('teste.checkout');
         Route::post('/teste-pagar', [AdminController::class, 'testePagarTransaction'])->name('teste.pagar');
+    });
+});
+
+Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::name('admin.dashboard.')->prefix('admin/dashboard')->group(function () {
+        Route::get('/payments', [TablesApiController::class, 'dashboardPayments'])->name('payments');
+        Route::get('/waitlist', [TablesApiController::class, 'dashboardWaitlist'])->name('waitlist');
+    });
+
+    Route::name('admin.campaigns.')->prefix('admin/campaigns')->group(function () {
+        Route::get('/', [CampaignModerationApiController::class, 'index'])->name('index');
+        Route::get('/creators', [CampaignModerationApiController::class, 'creators'])->name('creators');
+        Route::post('/{campaign}/approve', [CampaignModerationApiController::class, 'approve'])->name('approve');
+        Route::post('/{campaign}/refuse', [CampaignModerationApiController::class, 'refuse'])->name('refuse');
+        Route::patch('/{campaign}/status', [CampaignModerationApiController::class, 'updateStatus'])->name('status');
     });
 });
 

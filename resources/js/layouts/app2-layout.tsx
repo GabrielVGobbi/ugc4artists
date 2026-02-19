@@ -1,4 +1,5 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
+import { Toaster } from '@/components/ui/sonner';
 import { type BreadcrumbItem } from '@/types';
 import { useEffect, type ReactNode } from 'react';
 
@@ -18,6 +19,7 @@ export default function AppLayout({ children, breadcrumbs, ...props }: AppLayout
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
             {children}
+            <Toaster />
         </AppLayoutTemplate>
     );
 }

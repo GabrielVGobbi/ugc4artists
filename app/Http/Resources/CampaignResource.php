@@ -110,6 +110,7 @@ class CampaignResource extends JsonResource
                 'approved_at' => $this->approved_at?->format('d/m/Y'),
                 'rejected_at' => $this->rejected_at?->format('d/m/Y'),
                 'rejection_reason' => $this->rejection_reason,
+                'reason_for_refusal' => $this->rejection_reason,
                 'reviewed_by' => $this->reviewed_by,
                 'started_at' => $this->started_at?->format('d/m/Y'),
                 'completed_at' => $this->completed_at?->format('d/m/Y'),
@@ -126,6 +127,16 @@ class CampaignResource extends JsonResource
 
             'total_budget' => $grandTotal,
             'applications_count' => (int) ($this->applications_count ?? 0),
+            'approved_creators_count' => (int) ($this->approved_creators_count ?? 0),
+            'approved_creators' => $this->whenLoaded('approvedCreators', function () {
+                return $this->approvedCreators->map(fn($creator) => [
+                    'id' => $creator->id,
+                    'uuid' => $creator->uuid,
+                    'name' => $creator->name,
+                    'email' => $creator->email,
+                    'avatar' => $creator->avatar,
+                ])->values();
+            }, []),
 
             // Metas
             'created_at' => $this->formatDateTime($this->created_at),
