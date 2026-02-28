@@ -96,8 +96,8 @@ class CampaignController extends Controller
             ->byKey($key)
             ->firstOrFail();
 
-        // Campanha já paga — redirecionar para detalhes
-        if ($campaign->isSentToCreators() || $campaign->isInProgress() || $campaign->isCompleted()) {
+        //todo: verificar se ja está pago Campanha já paga — redirecionar para detalhes
+        if ($campaign->isUnderReview() || $campaign->isSentToCreators() || $campaign->isInProgress() || $campaign->isCompleted()) {
             return redirect()
                 ->route('app.campaigns.show', $campaign->uuid)
                 ->with('info', 'Esta campanha já foi paga.');
@@ -127,6 +127,11 @@ class CampaignController extends Controller
 
         $user = auth()->user();
         $walletBalance = $user->wallet?->balanceFloat ?? 0;
+
+        if ($campaign->status == CampaignStatus::DRAFT) {
+            $campaign->status = CampaignStatus::AWAITING_PAYMENT;
+            $campaign->save();
+        }
 
         return Inertia::render('app/campaigns/pay', [
             'campaignData' => new CampaignResource($campaign->refresh()),

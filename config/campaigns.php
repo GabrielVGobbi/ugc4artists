@@ -51,4 +51,15 @@ return [
     |--------------------------------------------------------------------------
     */
     'default_publication_plan' => 'basic',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Checkout Configuration
+    |--------------------------------------------------------------------------
+    */
+    'checkout' => [
+        'min_campaign_value' => 50.00,      // Valor mínimo de campanha
+        'max_campaign_value' => 100000.00,  // Valor máximo de campanha
+        'min_wallet_usage' => 10.00,        // Uso mínimo de wallet (se parcial)
+    ],
 ];

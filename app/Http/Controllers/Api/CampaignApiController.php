@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\CampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Campaign\CampaignCheckoutRequest;
+use App\Http\Requests\Campaign\CheckoutPreviewRequest;
 use App\Http\Requests\Campaign\StoreCampaignRequest;
 use App\Http\Requests\Campaign\UpdateCampaignRequest;
 use App\Http\Requests\Checkout\CheckoutRequest;
@@ -15,6 +16,7 @@ use App\Models\Campaign;
 use App\Modules\Payments\Checkout\CheckoutResult;
 use App\Services\Campaign\CampaignCheckoutService;
 use App\Services\Campaign\CampaignService;
+use App\Services\Campaign\ValueObjects\CheckoutCalculation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -255,6 +257,40 @@ class CampaignApiController extends Controller
     }
 
     /**
+     * Preview checkout calculations without creating payment.
+     */
+    public function checkoutPreview(CheckoutPreviewRequest $request, string $key): JsonResponse
+    {
+        $campaign = Campaign::byUser()
+            ->byKey($key)
+            ->firstOrFail();
+
+        if (!$campaign->canBePaid()) {
+            return response()->json([
+                'message' => 'Esta campanha não pode ser paga. Verifique o status.',
+            ], 422);
+        }
+
+        $useWalletBalance = $request->boolean('use_wallet_balance');
+
+        $calculation = CheckoutCalculation::fromCampaign(
+            campaign: $campaign,
+            user: $request->user(),
+            useWallet: $useWalletBalance,
+        );
+
+        return response()->json([
+            'success' => true,
+            'preview' => $calculation->toArray(),
+            'campaign' => [
+                'name' => $campaign->name,
+                'uuid' => $campaign->uuid,
+                'status' => $campaign->status->value,
+            ],
+        ]);
+    }
+
+    /**
      * Processar checkout da campanha.
      */
     public function checkout(CampaignCheckoutRequest $request, string $key)
@@ -274,6 +310,7 @@ class CampaignApiController extends Controller
         if (!($result['success'] ?? false)) {
             return response()->json([
                 'message' => $result['message'] ?? 'Erro ao processar pagamento.',
+                'breakdown' => $result['breakdown'] ?? null,
             ], 422);
         }
 
@@ -282,6 +319,7 @@ class CampaignApiController extends Controller
             'status' => 'paid',
             'message' => $result['message'],
             'redirect' => route('app.campaigns.show', $campaign->uuid),
+            'breakdown' => $result['breakdown'] ?? null,
         ]);
     }
 
@@ -290,12 +328,16 @@ class CampaignApiController extends Controller
      */
     protected function handleCheckoutResultJson(CheckoutResult $result, Campaign $campaign): JsonResponse
     {
+        // Extract breakdown from payment meta
+        $breakdown = $result->payment->meta['checkout_calculation'] ?? null;
+
         if ($result->isPaid()) {
             return response()->json([
                 'success' => true,
                 'status' => 'paid',
                 'message' => 'Pagamento confirmado! Campanha enviada para os creators.',
                 'redirect' => route('app.campaigns.show', $campaign->uuid),
+                'breakdown' => $breakdown,
             ]);
         }
 
@@ -303,6 +345,7 @@ class CampaignApiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $result->getErrorMessage() ?? 'Pagamento recusado.',
+                'breakdown' => $breakdown,
             ], 422);
         }
 
@@ -313,6 +356,7 @@ class CampaignApiController extends Controller
             'message' => 'Pagamento criado. Aguardando confirmação.',
             'checkout' => $result->toArray(),
             'redirect' => route('app.payments.show', $result->payment->uuid),
+            'breakdown' => $breakdown,
         ]);
     }
 }

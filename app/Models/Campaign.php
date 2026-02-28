@@ -330,6 +330,11 @@ class Campaign extends Model implements ProductInterface
         return $this->status->isSentToCreators();
     }
 
+    public function isUnderReview(): bool
+    {
+        return $this->status->isUnderReview();
+    }
+
     public function isInProgress(): bool
     {
         return $this->status->isInProgress();

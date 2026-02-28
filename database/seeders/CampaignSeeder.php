@@ -11,6 +11,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class CampaignSeeder extends Seeder
 {
@@ -19,8 +20,21 @@ class CampaignSeeder extends Seeder
         // Usa um usuário existente ou cria um
         $user = User::where('id', 2)->first() ?? User::factory()->create();
 
+        // UUID desejado
+        $desiredUuid = '68e102c3-cb5c-4ec6-a9d2-cf34c92ba157';
+
+        // Se o uuid desejado já existir, gera um novo; caso contrário usa o desejado.
+        if (Campaign::where('uuid', $desiredUuid)->exists()) {
+            // Gera novo UUID garantindo unicidade (loop por segurança)
+            do {
+                $uuid = (string) Str::uuid();
+            } while (Campaign::where('uuid', $uuid)->exists());
+        } else {
+            $uuid = $desiredUuid;
+        }
+
         Campaign::forceCreate([
-            'uuid' => '68e102c3-cb5c-4ec6-a9d2-cf34c92ba157',
+            'uuid' => $uuid,
 
             'user_id' => $user->id,
 

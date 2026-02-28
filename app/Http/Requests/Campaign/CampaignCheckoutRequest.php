@@ -10,6 +10,7 @@ use App\Services\UserService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -21,7 +22,24 @@ class CampaignCheckoutRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check();
+        if (!Auth::check()) {
+            return false;
+        }
+
+        // Rate limit: 5 checkout attempts per minute per user
+        $key = 'campaign-checkout-attempts:' . Auth::id();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
+
+            throw ValidationException::withMessages([
+                'general' => "Muitas tentativas de checkout. Aguarde {$seconds} segundos e tente novamente.",
+            ]);
+        }
+
+        RateLimiter::hit($key, 60); // 5 attempts per 60 seconds
+
+        return true;
     }
 
     public function withValidator($validator): void
@@ -37,13 +55,16 @@ class CampaignCheckoutRequest extends FormRequest
                 return;
             }
 
-            if ($campaign->status == CampaignStatus::DRAFT) {
-                $campaign->status = CampaignStatus::AWAITING_PAYMENT;
-                $campaign->save();
+            if (! $campaign->canBePaid()) {
+                $validator->errors()->add('general', 'Esta campanha não pode ser paga. Verifique o status.');
             }
 
-            if (! $campaign->canBePaid()) {
-                $validator->errors()->add('general', 'Esta campanha já foi submetida.');
+            // Se não vai usar wallet, payment_method é obrigatório
+            $useWalletBalance = $this->input('use_wallet_balance', false);
+            $paymentMethod = $this->input('payment_method');
+
+            if (!$useWalletBalance && empty($paymentMethod)) {
+                $validator->errors()->add('payment_method', 'Selecione um método de pagamento (PIX ou Cartão).');
             }
         });
     }
@@ -58,11 +79,10 @@ class CampaignCheckoutRequest extends FormRequest
     {
 
         $rules = [
-            'payment_method' => ['required', Rule::in(['pix', 'card', 'wallet'])],
+            'payment_method' => ['nullable', Rule::in(['pix', 'card'])],
             'phone' => ['required', 'celular_com_ddd'],
             'document' => ['required', 'string', 'max:18', 'formato_cpf_ou_cnpj'],
-            'wallet_amount' =>  ['nullable', 'numeric', 'min:0'],
-            'use_wallet_balance' =>  ['boolean'],
+            'use_wallet_balance' => ['required', 'boolean'],
             'address_id' => [
                 $this->addressRequired() ? 'required' : 'nullable',
                 function ($attribute, $value, $fail) {
@@ -80,7 +100,7 @@ class CampaignCheckoutRequest extends FormRequest
                     }
 
                     if (! $query->exists()) {
-                        $fail('The selected address is invalid.');
+                        $fail('O endereço selecionado é inválido.');
                     }
                 },
             ],
@@ -114,7 +134,6 @@ class CampaignCheckoutRequest extends FormRequest
         $user = $this->user();
 
         $merge = [
-            'wallet_amount' => !empty($this->wallet_amount) ? toCents($this->wallet_amount) : null,
             'phone' => format_phone($this->phone),
             'document' => format_cpf_cnpj($this->document),
         ];
@@ -148,15 +167,20 @@ class CampaignCheckoutRequest extends FormRequest
     }
 
     /**
-     * Address required when: wallet always; campaign when paying with pix/card (not wallet-only).
+     * Address is NOT required when paying only with wallet balance.
+     * Required when using PIX or Card (even with partial wallet).
      */
     protected function addressRequired(): bool
     {
-        if ($this->input('service') === 'campaign' && $this->input('payment_method') === 'wallet') {
-            return false;
+        $paymentMethod = $this->input('payment_method');
+
+        // If has gateway payment method (pix/card), address is required
+        if (!empty($paymentMethod)) {
+            return true;
         }
 
-        return true;
+        // If wallet-only (no payment_method), address is not required
+        return false;
     }
 
     protected function passedValidation()
@@ -185,8 +209,10 @@ class CampaignCheckoutRequest extends FormRequest
             'amount.required' => 'O valor é obrigatório.',
             'amount.numeric' => 'O valor deve ser um número.',
             'amount.min' => 'O valor mínimo é R$ 200,00.',
-            'payment_method.required' => 'O método de pagamento é obrigatório.',
-            'payment_method.in' => 'Método de pagamento inválido.',
+            'payment_method.required' => 'Selecione um método de pagamento (PIX ou Cartão).',
+            'payment_method.in' => 'Método de pagamento inválido. Escolha PIX ou Cartão.',
+            'use_wallet_balance.required' => 'Informe se deseja usar o saldo da carteira.',
+            'use_wallet_balance.boolean' => 'O campo de uso da carteira deve ser verdadeiro ou falso.',
             'name.required' => 'O nome é obrigatório.',
             'cpf.required' => 'O CPF/CNPJ é obrigatório.',
             // Card validation messages

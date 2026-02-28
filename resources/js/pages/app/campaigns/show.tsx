@@ -148,8 +148,8 @@ export default function CampaignShow({ campaign: campaignProp }: CampaignShowPro
 
                                 {canPay && (
                                     <Button onClick={() => router.visit(`/app/campaigns/${campaign.uuid}/pay`)}
-                                        className="h-14 px-8 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase text-[10px]
-        tracking-[0.2em] shadow-lg shadow-amber-500/20 group pb-1"
+                                        size={'none'} className="px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase
+        tracking-[0.2em] shadow-lg shadow-amber-500/20 group "
                                     >
                                         <CreditCard size={18} className="mr-2 group-hover:scale-110 transition-transform" />
                                         Realizar Pagamento

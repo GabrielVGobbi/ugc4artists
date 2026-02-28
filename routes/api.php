@@ -107,6 +107,7 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
         Route::delete('/{key}', [CampaignApiController::class, 'destroy'])->name('destroy');
         Route::post('/{key}/submit', [CampaignApiController::class, 'submit'])->name('submit');
         Route::post('/{key}/duplicate', [CampaignApiController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{key}/checkout-preview', [CampaignApiController::class, 'checkoutPreview'])->name('checkout-preview');
         Route::post('/{key}/checkout', [CampaignApiController::class, 'checkout'])->name('checkout');
     });
 });
