@@ -12,6 +12,8 @@ use App\Http\Requests\Campaign\StoreCampaignRequest;
 use App\Http\Requests\Campaign\UpdateCampaignRequest;
 use App\Http\Requests\Checkout\CheckoutRequest;
 use App\Http\Resources\CampaignResource;
+use App\Http\Resources\CampaignTransactionResource;
+use App\Models\CampaignTransaction;
 use App\Models\Campaign;
 use App\Modules\Payments\Checkout\CheckoutResult;
 use App\Services\Campaign\CampaignCheckoutService;
@@ -357,6 +359,67 @@ class CampaignApiController extends Controller
             'checkout' => $result->toArray(),
             'redirect' => route('app.payments.show', $result->payment->uuid),
             'breakdown' => $breakdown,
+        ]);
+    }
+
+    /**
+     * Get all campaign transactions for the authenticated user (transaction history/extrato).
+     */
+    public function transactions(Request $request): JsonResponse
+    {
+        $perPage = min((int) $request->get('per_page', 15), 50);
+        $status = $request->get('status');
+        $type = $request->get('type');
+
+        $query = CampaignTransaction::byUser()
+            ->with(['campaign:id,uuid,name,slug,status', 'payment:uuid,status,payment_method'])
+            ->latest('created_at');
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($type) {
+            $query->byType($type);
+        }
+
+        $transactions = $query->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => CampaignTransactionResource::collection($transactions),
+            'meta' => [
+                'current_page' => $transactions->currentPage(),
+                'last_page' => $transactions->lastPage(),
+                'per_page' => $transactions->perPage(),
+                'total' => $transactions->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get transactions for a specific campaign.
+     */
+    public function campaignTransactions(Request $request, string $key): JsonResponse
+    {
+        $campaign = Campaign::byUser()
+            ->byKey($key)
+            ->firstOrFail();
+
+        $transactions = $campaign->campaignTransactions()
+            ->with('payment:uuid,status,payment_method')
+            ->latest('created_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => CampaignTransactionResource::collection($transactions),
+            'campaign' => [
+                'id' => $campaign->id,
+                'uuid' => $campaign->uuid,
+                'name' => $campaign->name,
+                'slug' => $campaign->slug,
+            ],
         ]);
     }
 }

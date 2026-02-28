@@ -179,6 +179,11 @@ class Campaign extends Model implements ProductInterface
         return $this->morphMany(Payment::class, 'billable');
     }
 
+    public function campaignTransactions()
+    {
+        return $this->hasMany(CampaignTransaction::class);
+    }
+
     /**
      * Obtém o pagamento pendente mais recente da campanha (PIX aguardando).
      */

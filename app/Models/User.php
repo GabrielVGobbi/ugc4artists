@@ -104,6 +104,11 @@ class User extends Authenticatable implements Wallet, Customer
         return $this->hasMany(Campaign::class, 'user_id', 'id');
     }
 
+    public function campaignTransactions(): HasMany
+    {
+        return $this->hasMany(CampaignTransaction::class);
+    }
+
     /**
      * Retorna o perfil de onboarding do usuário.
      */

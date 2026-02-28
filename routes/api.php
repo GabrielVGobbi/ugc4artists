@@ -98,6 +98,7 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
     Route::prefix('campaigns')->name('campaigns.')->group(function () {
         Route::get('/', [CampaignApiController::class, 'index'])->name('index');
         Route::get('/stats', [CampaignApiController::class, 'stats'])->name('stats');
+        Route::get('/transactions', [CampaignApiController::class, 'transactions'])->name('transactions');
         Route::post('/', [CampaignApiController::class, 'store'])->name('store');
         Route::post('/{campaign}/approve', [CampaignModerationApiController::class, 'approve'])->middleware('role:admin')->name('approve');
         Route::post('/{campaign}/refuse', [CampaignModerationApiController::class, 'refuse'])->middleware('role:admin')->name('refuse');
@@ -109,6 +110,7 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
         Route::post('/{key}/duplicate', [CampaignApiController::class, 'duplicate'])->name('duplicate');
         Route::post('/{key}/checkout-preview', [CampaignApiController::class, 'checkoutPreview'])->name('checkout-preview');
         Route::post('/{key}/checkout', [CampaignApiController::class, 'checkout'])->name('checkout');
+        Route::get('/{key}/transactions', [CampaignApiController::class, 'campaignTransactions'])->name('campaign-transactions');
     });
 });
 
