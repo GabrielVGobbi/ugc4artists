@@ -39,6 +39,8 @@ class CampaignCheckoutService
      */
     public function processCheckout(Campaign $campaign, User $user, array $payload): CheckoutResult|array
     {
+        $userAuthWalletAmount = amountToDec($user->wallet->balanceFloat);
+
         // Calculate grand total (estimated_total + publication_fee)
         $pricePerInfluencer = (float) ($campaign->price_per_influencer ?? 0);
         $slotsToApprove = (int) ($campaign->slots_to_approve ?? 0);
@@ -52,9 +54,9 @@ class CampaignCheckoutService
 
         $useWalletBalance = $payload['use_wallet_balance'] ?? false;
         $walletAmount = min(
-            (float) ($payload['wallet_amount'] ?? 0),
+            (float) ($userAuthWalletAmount ?? 0),
             $user->wallet?->balanceFloat ?? 0,
-            $grandTotal // Can't use more than grand total
+            $grandTotal
         );
 
         //Total a pagar
@@ -71,6 +73,7 @@ class CampaignCheckoutService
             user: $user,
             amount: $remainingAmount,
             walletAmount: $useWalletBalance ? $walletAmount : 0,
+            useWalletBalance: $payload['use_wallet_balance'] ?? false,
             estimatedTotal: $estimatedTotal,
             publicationFee: $publicationFee,
             payload: $payload
@@ -106,8 +109,8 @@ class CampaignCheckoutService
     {
         return DB::transaction(function () use ($campaign, $user, $grandTotal) {
 
-        //TODO usar base do wallet
-            if ($user->wallet->balanceFloat < $grandTotal) {
+            //TODO usar base do wallet
+            if (amountToDec($user->wallet->balanceFloat) < ($grandTotal)) {
                 return [
                     'success' => false,
                     'message' => 'Saldo insuficiente na carteira.',
@@ -164,6 +167,7 @@ class CampaignCheckoutService
         User $user,
         float $amount,
         float $walletAmount,
+        bool $useWalletBalance,
         float $estimatedTotal,
         float $publicationFee,
         array $payload
@@ -182,9 +186,9 @@ class CampaignCheckoutService
             return CheckoutResult::pending($existingPayment);
         }
 
-        return DB::transaction(function () use ($campaign, $user, $amount, $walletAmount, $payload, $estimatedTotal, $publicationFee) {
+        return DB::transaction(function () use ($campaign, $user, $amount, $walletAmount, $payload, $estimatedTotal, $publicationFee, $useWalletBalance) {
             // Deduct wallet amount if any
-            if ($walletAmount > 0) {
+            if ($useWalletBalance && $walletAmount > 0) {
                 $user->withdraw(toCents($walletAmount), [
                     'description' => "Pagamento parcial da campanha - {$campaign->name}",
                     'campaign_id' => $campaign->id,
@@ -195,6 +199,7 @@ class CampaignCheckoutService
             }
 
             $paymentMethod = $this->resolvePaymentMethod($payload['payment_method']);
+
             $cents = toCents($amount);
 
             $metaProduct = $campaign->getMetaProduct();

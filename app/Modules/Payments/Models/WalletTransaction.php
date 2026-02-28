@@ -8,6 +8,6 @@ class WalletTransaction extends Transaction
 {
     public function onPaymentPaid(\App\Modules\Payments\Models\Payment $payment): void
     {
-        dd('oi');
+        dd('onPaymentPaid');
     }
 }

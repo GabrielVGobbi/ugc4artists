@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ============================================================
+   Admin Design System — app2.css
+   Based on Knowvio Dashboard Reference
+   ============================================================ */
+
+/* ── Light mode tokens ─────────────────────────────────────── */
+:root {
+    --bg-main: #f3f4f6;
+    --bg-surface: #ffffff;
+    --bg-hover: #e5e5e5;
+    --border-subtle: #e5e7eb;
+    --text-primary: #111827;
+    --text-sidebar: #332a23;
+    --text-secondary: #6b7280;
+    --accent: #ff7900;
+    --accent-hover: #e56a00;
+    --accent-subtle: rgba(255, 121, 0, 0.10);
+    --danger: #ef4444;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Dark mode tokens ──────────────────────────────────────── */
+.adm-dark {
+    --bg-main: #0f0f0f;
+    --bg-surface: #1a1a1a;
+    --bg-hover: #2a2a2a;
+    --border-subtle: #333333;
+    --text-primary: #ffffff;
+    --text-secondary: #a3a3a3;
+}
+
+/* ── Custom scrollbar ──────────────────────────────────────── */
+.adm-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.adm-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.adm-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--border-subtle);
+    border-radius: 20px;
+}
+
+.adm-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: var(--text-secondary);
+}
+
+.adm-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-subtle) transparent;
+}

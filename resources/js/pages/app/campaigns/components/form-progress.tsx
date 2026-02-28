@@ -2,12 +2,16 @@ import { ArrowLeft } from 'lucide-react'
 import { Link } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import type { StepConfig } from '../lib/form-config'
+import CampaignController from '@/actions/App/Http/Controllers/App/CampaignController'
+import { CampaignResource } from '@/types/campaign'
 
 interface FormProgressProps {
     steps: StepConfig[]
     currentStep: number
     progress: number
     onStepClick?: (step: number) => void
+    initialCampaign: CampaignResource
+
 }
 
 export function FormProgress({
@@ -15,12 +19,13 @@ export function FormProgress({
     currentStep,
     progress,
     onStepClick,
+    initialCampaign,
 }: FormProgressProps) {
     return (
         <div className="flex items-center justify-between mb-8">
             {/* Cancel Button */}
             <Link
-                href="/app/campaigns"
+                href={CampaignController.show(initialCampaign.uuid)}
                 className="group flex items-center gap-3 text-muted-foreground hover:text-foreground transition-all font-black uppercase text-[10px] tracking-[0.2em]"
             >
                 <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center group-hover:border-foreground transition-colors">

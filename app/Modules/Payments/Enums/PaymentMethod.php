@@ -11,14 +11,11 @@ enum PaymentMethod: string
     use GetsAttributes;
 
     case PIX = 'pix';
-
     case BOLETO = 'boleto_bancario';
-
     case CREDIT_CARD = 'credit_card';
-
     case NUBANK = 'nuconta';
-
     case BEST_PLAY_BANK = 'best_play_conta';
+    case WALLET = 'wallet';
 
     /**
      * Define which payment methods are active.
@@ -31,6 +28,7 @@ enum PaymentMethod: string
             self::BOLETO => false,
             self::NUBANK => false,
             self::BEST_PLAY_BANK => false,
+            self::WALLET => true,
         };
     }
 
@@ -50,7 +48,6 @@ enum PaymentMethod: string
                     $label = Str::replace('_', ' ', $label);
                 }
                 $options[] = [
-                    #'case' => $case->name,
                     'value' => $case->name,
                     'label' => Str::title($label),
                     'label_translate' => static::getLabelTextByLabel($case->value)
@@ -69,6 +66,7 @@ enum PaymentMethod: string
             'credit_card' => 'Cartão de Crédito',
             'nuconta' => 'Nubank',
             'best_play_conta' => 'Best Play Bank',
+            'wallet' => 'Carteira Digital',
         };
     }
 
@@ -83,6 +81,7 @@ enum PaymentMethod: string
             self::CREDIT_CARD => 'Cartão de Crédito',
             self::NUBANK => 'Nubank',
             self::BEST_PLAY_BANK => 'Best Play Bank',
+            self::WALLET => 'Carteira Digital',
         };
     }
 
@@ -97,6 +96,7 @@ enum PaymentMethod: string
             self::CREDIT_CARD => 'blue',
             self::NUBANK => 'purple',
             self::BEST_PLAY_BANK => 'orange',
+            self::WALLET => 'teal',
         };
     }
 
@@ -111,6 +111,7 @@ enum PaymentMethod: string
             self::CREDIT_CARD => '💳',
             self::NUBANK => '🏦',
             self::BEST_PLAY_BANK => '🏁',
+            self::WALLET => '👛',
         };
     }
 }

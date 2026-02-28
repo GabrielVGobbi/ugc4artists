@@ -38,9 +38,12 @@ export interface SharedData {
         user: ApiResource<Auth> | null
     }
     sidebarOpen: boolean
-    currentPath: string
+    currentPath: string,
+    currentPath: string,
+
     [key: string]: unknown
 }
+
 export interface User {
     id: number;
     name: string;
@@ -177,8 +180,16 @@ export interface PaginatedResponse<T> {
     links: PaginationLinks
 }
 
+export type FlashMessages = {
+    success: string | null;
+    error: string | null;
+    warning: string | null;
+    info: string | null;
+};
+
 declare global {
     interface Window {
         axios: import('axios').AxiosInstance;
     }
 }
+

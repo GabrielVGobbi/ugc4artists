@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\App;
 
+use App\Enums\CampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Campaign\CampaignCheckoutRequest;
 use App\Http\Resources\CampaignResource;
@@ -77,6 +78,9 @@ class CampaignController extends Controller
                 ->with('error', 'Esta campanha não pode ser editada.');
         }
 
+        $campaign->status = CampaignStatus::DRAFT;
+        $campaign->save();
+
         return Inertia::render('app/campaigns/edit', [
             'campaign' => new CampaignResource($campaign),
             'publicationPlans' => config('campaigns.publication_plans'),
@@ -115,11 +119,17 @@ class CampaignController extends Controller
                 ->with('error', 'Esta campanha foi cancelada.');
         }
 
+        if (!$campaign->isComplete()) {
+            return redirect()
+                ->route('app.campaigns.edit', $campaign->uuid)
+                ->with('error', 'Preencha todos os dados.');
+        }
+
         $user = auth()->user();
         $walletBalance = $user->wallet?->balanceFloat ?? 0;
 
         return Inertia::render('app/campaigns/pay', [
-            'campaignData' => new CampaignResource($campaign),
+            'campaignData' => new CampaignResource($campaign->refresh()),
             'wallet_balance' => $walletBalance,
         ]);
     }
@@ -178,7 +188,6 @@ class CampaignController extends Controller
             user: $request->user(),
             payload: $validated
         );
-
 
         // Non-gateway payment (wallet only or free campaign) — returns array
         if (is_array($result)) {

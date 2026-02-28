@@ -13,7 +13,7 @@ enum CampaignStatus: string implements StatusableEnum
 
     case DRAFT = 'draft';
     case PENDING = 'pending';
-    case UNDER_REVIEW = 'under_review'; // legacy status kept for backwards compatibility
+    case UNDER_REVIEW = 'under_review';
     case APPROVED = 'approved';
     case REFUSED = 'refused';
     case AWAITING_PAYMENT = 'awaiting_payment';

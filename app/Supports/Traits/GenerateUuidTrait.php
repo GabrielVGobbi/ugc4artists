@@ -23,10 +23,12 @@ trait GenerateUuidTrait
         self::creating(function ($model) {
             $table = $model->getTable();
 
-            if (Schema::hasColumn($table, 'uuid')) {
-                $model->uuid = uuid();
-            } elseif (Schema::hasColumn($table, 'identify')) {
-                $model->identify = uuid();
+            if (empty($model->uuid)) {
+                if (Schema::hasColumn($table, 'uuid')) {
+                    $model->uuid = uuid();
+                } elseif (Schema::hasColumn($table, 'identify')) {
+                    $model->identify = uuid();
+                }
             }
         });
 

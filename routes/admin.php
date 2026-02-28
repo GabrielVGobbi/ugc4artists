@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\DevController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Api\AccountApiController;
@@ -27,4 +28,7 @@ Route::name('admin.')->prefix('admin')->middleware(['auth', 'role:admin'])->grou
     Route::get('/teste-email', [AdminController::class, 'testeEmail'])->name('teste.email');
 
     Route::resource('users', UsersController::class);
+
+    Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
+    Route::get('/campaigns/{campaign}', [CampaignController::class, 'show'])->name('campaigns.show');
 });

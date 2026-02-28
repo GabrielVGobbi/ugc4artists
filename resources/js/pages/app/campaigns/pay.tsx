@@ -420,6 +420,8 @@ export default function CampaignCheckout() {
                             </div>
                         )}
 
+                        {/* Método de Pagamento - só mostra se houver saldo restante */}
+                        {remainingAmount > 0 && (
                         <div className="bg-white rounded-[2.5rem] p-8 border border-zinc-100 shadow-sm space-y-6">
                             <div className="space-y-1">
                                 <h3 className="text-2xl font-black tracking-tighter text-secondary">
@@ -516,17 +518,39 @@ export default function CampaignCheckout() {
                                 </div>
                             )}
                         </div>
+                        )}
 
-                        {/* Wallet Only Payment */}
+                        {/* Wallet Only Payment - Pagamento 100% com saldo */}
                         {canPayWithWalletOnly && data.use_wallet_balance && remainingAmount === 0 && (
-                            <div className="bg-emerald-50 rounded-[2rem] p-6 border border-emerald-200">
-                                <div className="flex items-center gap-4">
-                                    <CheckCircle2 size={24} className="text-emerald-600" />
-                                    <div>
-                                        <p className="font-bold text-emerald-900">Pagamento com saldo da carteira</p>
-                                        <p className="text-sm text-emerald-700">
-                                            O valor de {formatCurrency(grandTotal)} será debitado da sua carteira.
+                            <div className="bg-white rounded-[2.5rem] p-8 border border-zinc-100 shadow-sm">
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-black tracking-tighter text-secondary">
+                                            Pagamento Confirmado
+                                        </h3>
+                                        <p className="text-zinc-500 font-medium">
+                                            Sua campanha será paga 100% com o saldo da carteira.
                                         </p>
+                                    </div>
+
+                                    <div className="bg-emerald-50 rounded-2xl p-6 border-2 border-emerald-200">
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0">
+                                                <Wallet size={24} className="text-white" />
+                                            </div>
+                                            <div className="flex-1 space-y-3">
+                                                <div>
+                                                    <p className="font-bold text-emerald-900 text-lg">Saldo da Carteira</p>
+                                                    <p className="text-sm text-emerald-700">
+                                                        O valor de {formatCurrency(grandTotal)} será debitado automaticamente.
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-emerald-700">
+                                                    <CheckCircle2 size={16} />
+                                                    <span className="text-xs font-semibold">Nenhum pagamento adicional necessário</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -543,7 +567,7 @@ export default function CampaignCheckout() {
                             ) : (
                                 <>
                                     <Sparkles size={20} className="mr-3" />
-                                    {grandTotal > 0 ? 'Finalizar e Publicar' : 'Publicar Campanha'}
+                                    {remainingAmount > 0 ? 'Finalizar e Publicar' : 'Publicar Campanha'}
                                 </>
                             )}
                         </Button>

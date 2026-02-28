@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Services\Campaign;
 
 use App\Enums\CampaignStatus;
+use App\Http\Requests\Campaign\CampaignCheckoutRequest;
 use App\Models\Campaign;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CampaignService
 {
+    public function __construct(
+        protected CampaignCheckoutService $checkoutService,
+    ) {}
+
     /**
      * @param int[] $creatorIds
      */
@@ -125,5 +130,16 @@ class CampaignService
         ]);
 
         return $campaign->fresh(['user:id,name,email,avatar', 'approvedCreators:id,name,email,avatar,account_type']);
+    }
+
+    public function checkout(CampaignCheckoutRequest $request, Campaign $campaign)
+    {
+        $validated = $request->validated();
+
+        return $this->checkoutService->processCheckout(
+            campaign: $campaign,
+            user: $request->user(),
+            payload: $validated
+        );
     }
 }

@@ -151,6 +151,47 @@ export default function EditCampaign() {
     }, [])
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Prevent page reload/navigation with unsaved changes
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // Prevent browser refresh/close when there are pending changes
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (Object.keys(pendingChanges).length > 0 || isSilentUpdating) {
+                e.preventDefault()
+                // Modern browsers require returnValue to be set
+                e.returnValue = ''
+                return ''
+            }
+        }
+
+        window.addEventListener('beforeunload', handleBeforeUnload)
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+        }
+    }, [pendingChanges, isSilentUpdating])
+
+    // Prevent Inertia navigation when there are pending changes
+    useEffect(() => {
+        const handleInertiaNavigate = (event: CustomEvent) => {
+            if (Object.keys(pendingChanges).length > 0 || isSilentUpdating) {
+                const message = 'Você tem alterações não salvas. Deseja realmente sair?'
+                if (!window.confirm(message)) {
+                    event.preventDefault()
+                }
+            }
+        }
+
+        // Listen to Inertia's before event
+        document.addEventListener('inertia:before', handleInertiaNavigate as EventListener)
+
+        return () => {
+            document.removeEventListener('inertia:before', handleInertiaNavigate as EventListener)
+        }
+    }, [pendingChanges, isSilentUpdating])
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Field Handlers
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -430,6 +471,7 @@ export default function EditCampaign() {
                         currentStep={currentStep}
                         progress={progress}
                         onStepClick={handleGoToStep}
+                        initialCampaign={initialCampaign}
                     />
                 </div>
 

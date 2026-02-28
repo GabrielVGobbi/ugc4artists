@@ -1,35 +1,39 @@
 import { AppSidebar } from '@/components/app/app-sidebar'
 import { AppHeader } from '@/components/app/app-header'
 import { Toaster, ToastProvider } from '@/components/ui/sonner'
-import { useFlashErrors } from '@/hooks/use-flash-errors'
 import { HeaderProvider } from '@/contexts/header-context'
 import { WhatsAppProvider } from '@/contexts/whatsapp-context'
 import { WhatsAppButton } from '@/components/whatsapp/whatsapp-button'
 import { useEffect, type ReactNode } from 'react'
 import { usePage } from '@inertiajs/react'
 import { toast } from 'sonner'
+import { FlashMessages, SharedData } from '@/types'
 
 interface AppLayoutProps {
     children: ReactNode
 }
 
-export default function AppLayout({ children }: AppLayoutProps) {
-    const { props } = usePage();
-    // Hook para exibir erros de validação e mensagens flash automaticamente
-    // todo
-    //useFlashErrors()
-
+/**
+ * Converte flash messages do Laravel em toasts.
+ * Reage a cada navegação Inertia que traga novas flash messages.
+ */
+function useFlashToasts(flash: FlashMessages) {
     useEffect(() => {
-        const errors = props.errors as Record<string, string>;
+        if (!flash) return;
 
-        if (errors && Object.keys(errors).length > 0) {
-            Object.values(errors).forEach((message) => {
-                toast.error(message);
-            });
-            //setErrorOverlay(true);
-            //setTimeout(() => setErrorOverlay(false), 3000);
+        const types = ['success', 'error', 'warning', 'info'] as const;
+        for (const type of types) {
+            const message = flash[type];
+            if (message) {
+                toast[type](message);
+            }
         }
-    }, [props.errors]);
+    }, [flash]);
+}
+
+
+export default function AppLayout({ children }: AppLayoutProps) {
+    const { auth, flash, errors } = usePage<SharedData>().props;
 
     useEffect(() => {
         document.documentElement.classList.remove('dark')
@@ -37,6 +41,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
             document.documentElement.classList.remove('dark')
         }
     }, [])
+
+    useFlashToasts(flash);
 
     return (
         <HeaderProvider>

@@ -33,8 +33,8 @@ class CampaignResource extends JsonResource
             || ! empty($this->filter_min_followers);
 
         return [
-            'id' => $this->id,
-            'uuid' => $this->uuid ?? null, // se você tem coluna uuid via trait
+            #'id' => $this->id,
+            'uuid' => $this->uuid,
             'user_id' => $this->user_id,
 
             // Básico

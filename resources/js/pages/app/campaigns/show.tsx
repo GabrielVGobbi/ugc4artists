@@ -28,17 +28,19 @@ import {
     PlayCircle,
     Send,
     Files,
+    LucideIcon,
 } from 'lucide-react'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import AppLayout from '@/layouts/app-layout'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import type { CampaignResource, CampaignStatus as CampaignStatusType } from '@/types/campaign'
+import type { CampaignResource, CampaignStatus as CampaignStatusType, CampaignStatusValue } from '@/types/campaign'
 import { getCampaignStatusColor, PUBLICATION_PLAN_LABELS } from '@/types/campaign'
 import { formatCurrency } from '@/lib/utils'
 import type { SharedData } from '@/types'
 import { cn } from '@/lib/utils'
+import { ReactNode } from 'react'
 
 interface CampaignShowProps {
     campaign: { data?: CampaignResource } | CampaignResource
@@ -66,7 +68,7 @@ const OBJECTIVE_TAG_LABELS: Record<string, string> = {
     outros: 'Outros',
 }
 
-const STATUS_STEPS: { value: CampaignStatusType; label: string; icon: any }[] = [
+const STATUS_STEPS: { value: CampaignStatusValue; label: string; icon: LucideIcon   }[] = [
     { value: 'draft', label: 'Rascunho', icon: Edit3 },
     { value: 'awaiting_payment', label: 'Pagamento', icon: Wallet },
     { value: 'under_review', label: 'Revisão', icon: Search },
@@ -84,6 +86,8 @@ export default function CampaignShow({ campaign: campaignProp }: CampaignShowPro
     const currentStatus = campaign.status?.value || 'draft'
     const statusLabel = campaign.status?.label || 'Rascunho'
     const statusColor = getCampaignStatusColor(campaign.status)
+
+    console.log(currentStatus);
 
     const isActive = currentStatus === 'in_progress' || currentStatus === 'sent_to_creators'
     const canEdit = currentStatus === 'draft'
@@ -133,7 +137,7 @@ export default function CampaignShow({ campaign: campaignProp }: CampaignShowPro
                                     </Button>
                                 )}
 
-                                <Button onClick={() => router.visit(`/app/campaigns/${campaign.uuid}/edit`)}
+                                <Button onClick=""
                                     variant="secondary"
                                     size={'sm'}
                                     className="rounded-2xl font-black uppercase"

@@ -14,16 +14,19 @@ use App\Http\Resources\CampaignResource;
 use App\Models\Campaign;
 use App\Modules\Payments\Checkout\CheckoutResult;
 use App\Services\Campaign\CampaignCheckoutService;
+use App\Services\Campaign\CampaignService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class CampaignApiController extends Controller
 {
 
     public function __construct(
-        protected CampaignCheckoutService $checkoutService
+        protected CampaignCheckoutService $checkoutService,
+        protected CampaignService $campaignService
     ) {}
 
     /**
@@ -59,7 +62,7 @@ class CampaignApiController extends Controller
     public function store(StoreCampaignRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $data['user_id'] = auth()->id();
+        $data['user_id'] = Auth::id();
         $data['status'] = CampaignStatus::DRAFT;
 
         // Upload da imagem de capa
@@ -235,7 +238,7 @@ class CampaignApiController extends Controller
      */
     public function stats(): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         $stats = [
             'total' => Campaign::byUser($userId)->count(),
@@ -254,25 +257,13 @@ class CampaignApiController extends Controller
     /**
      * Processar checkout da campanha.
      */
-    public function checkout(CampaignCheckoutRequest $request, string $key): JsonResponse
+    public function checkout(CampaignCheckoutRequest $request, string $key)
     {
         $campaign = Campaign::byUser()
             ->byKey($key)
             ->firstOrFail();
 
-        if (!$campaign->canBePaid()) {
-            return response()->json([
-                'message' => 'Esta campanha já foi submetida.',
-            ], 422);
-        }
-
-        $validated = $request->validated();
-
-        $result = $this->checkoutService->processCheckout(
-            campaign: $campaign,
-            user: $request->user(),
-            payload: $validated
-        );
+        $result = $this->campaignService->checkout($request, $campaign);
 
         // Gateway payment (CheckoutResult) — PIX ou Cartão
         if ($result instanceof CheckoutResult) {

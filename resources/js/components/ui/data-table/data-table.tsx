@@ -150,7 +150,7 @@ export function DataTable<T>({
                 <table className="w-full caption-bottom text-sm">
                     <thead
                         className={cn(
-                            '[&_tr]:border-b [&_tr]:border-sidebar-border/70 ',
+                            '[&_tr]:border-b bg-[#291e16] [&_tr]:border-sidebar-border/70 ',
                             stickyHeader && 'sticky top-0 z-10 bg-primary backdrop-blur  supports-backdrop-filter:bg-primary'
                         )}
                     >

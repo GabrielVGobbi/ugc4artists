@@ -416,7 +416,7 @@ class Campaign extends Model implements ProductInterface
             return false;
         }
 
-        return $this->transitionTo(CampaignStatus::PENDING, [
+        return $this->transitionTo(CampaignStatus::UNDER_REVIEW, [
             'reviewed_at' =>  now(),
             'publication_paid_at' => $this->publication_paid_at ?? now(),
         ]);
@@ -551,4 +551,3 @@ class Campaign extends Model implements ProductInterface
         ];
     }
 }
-

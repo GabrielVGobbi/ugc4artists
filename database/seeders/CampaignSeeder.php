@@ -19,7 +19,9 @@ class CampaignSeeder extends Seeder
         // Usa um usuário existente ou cria um
         $user = User::where('id', 2)->first() ?? User::factory()->create();
 
-        Campaign::create([
+        Campaign::forceCreate([
+            'uuid' => '68e102c3-cb5c-4ec6-a9d2-cf34c92ba157',
+
             'user_id' => $user->id,
 
             // Básico

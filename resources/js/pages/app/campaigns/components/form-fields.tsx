@@ -1,6 +1,10 @@
 import { useCallback, useRef, useState } from 'react'
-import { Check, Plus, Minus, Upload, X, Info } from 'lucide-react'
+import { Check, Plus, Minus, Upload, X, Info, CalendarIcon } from 'lucide-react'
+import { format, parse } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { CustomField } from '@/components/ui/custom-field'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn, formatDateForInput, formatDateFromInput, formatCPF, formatPhoneFromDigits } from '@/lib/utils'
 import type { FieldConfig } from '../lib/form-config'
 
@@ -96,16 +100,12 @@ export function FieldRenderer({ field, value, error, onChange }: FieldRendererPr
 
         case 'date':
             return (
-                <CustomField
-                    label={field.label}
-                    placeholder={field.placeholder}
-                    value={value ? formatDateForInput(value as string) : ""}
-                    onChange={(e) => onChange(formatDateFromInput(e.target.value))}
-                    type="date"
-                    disabled={field.disabled}
+                <DatePickerField
+                    field={field}
+                    value={value as string}
                     error={error}
+                    onChange={onChange}
                 />
-
             )
 
         case 'select':
@@ -203,6 +203,102 @@ export function FieldRenderer({ field, value, error, onChange }: FieldRendererPr
         default:
             return null
     }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Date Picker Field
+// ─────────────────────────────────────────────────────────────────────────────
+
+function DatePickerField({ field, value, error, onChange }: FieldRendererProps & { value: string }) {
+    const [isOpen, setIsOpen] = useState(false)
+
+    // Parse date string (yyyy-MM-dd) to Date object
+    const parseDate = (dateStr: string): Date | undefined => {
+        if (!dateStr) return undefined
+        try {
+            return parse(dateStr, 'yyyy-MM-dd', new Date())
+        } catch {
+            return undefined
+        }
+    }
+
+    // Format Date object to string (yyyy-MM-dd)
+    const formatDate = (date: Date | undefined): string => {
+        if (!date) return ''
+        return format(date, 'yyyy-MM-dd')
+    }
+
+    const selectedDate = parseDate(value)
+
+    const handleDateSelect = (date: Date | undefined) => {
+        if (date) {
+            onChange(formatDate(date))
+            setIsOpen(false)
+        }
+    }
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const inputValue = e.target.value
+        // Allow user to type, convert yyyy-MM-dd format
+        onChange(formatDateFromInput(inputValue))
+    }
+
+    return (
+        <div className="space-y-2">
+            <label className="ml-1 text-[0.7em] font-black tracking-[0.1em] uppercase text-zinc-700">
+                {field.label}
+            </label>
+
+            <div className="relative">
+                <input
+                    type="date"
+                    value={value ? formatDateForInput(value) : ''}
+                    onChange={handleInputChange}
+                    disabled={field.disabled}
+                    className={cn(
+                        "w-full rounded-2xl border-2 bg-zinc-50/50 px-6 py-4 text-base font-semibold text-foreground outline-none transition-all",
+                        "placeholder:text-zinc-300 focus:border-primary focus:bg-white focus:shadow-lg focus:shadow-primary/5",
+                        error ? "border-red-500" : "border-zinc-100",
+                        "pr-14" // Space for calendar button
+                    )}
+                />
+
+                <Popover open={isOpen} onOpenChange={setIsOpen}>
+                    <PopoverTrigger asChild>
+                        <button
+                            type="button"
+                            disabled={field.disabled}
+                            className={cn(
+                                "absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-xl transition-all",
+                                "hover:bg-primary/10 text-zinc-400 hover:text-primary",
+                                field.disabled && "opacity-50 cursor-not-allowed"
+                            )}
+                        >
+                            <CalendarIcon size={18} />
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end" sideOffset={8}>
+                        <div className="p-3">
+                            <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                {field.label}
+                            </p>
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={handleDateSelect}
+                                locale={ptBR}
+                            />
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </div>
+
+            {error && <p className="text-red-500 text-xs font-medium ml-1">{error}</p>}
+            {field.helpText && !error && (
+                <p className="text-zinc-400 text-xs ml-1">{field.helpText}</p>
+            )}
+        </div>
+    )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

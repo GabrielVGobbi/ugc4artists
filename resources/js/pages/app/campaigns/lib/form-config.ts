@@ -229,7 +229,7 @@ export const stepSchemas = {
 
     step_03_briefing: z.object({
         briefing_mode: z.enum(['has_briefing', 'create_for_me']),
-        description: z.string().min(50, 'A descrição deve ter pelo menos 50 caracteres'),
+        description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres'),
         terms_accepted: z.literal(true, {
             message: 'Você precisa aceitar os termos',
         }),

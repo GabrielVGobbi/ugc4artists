@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 
 class UserResource extends JsonResource
 {
@@ -24,7 +25,7 @@ class UserResource extends JsonResource
             'avatar' => $this->avatar,
 
             'balance' => $this->when(
-                (auth()->check() && auth()->id() === $this->id) || auth()->user()->hasRole('developer'),
+                (auth()->check() && Auth::id() === $this->id) || auth()->user()->hasRole('developer'),
                 fn() => toCurrency($this->balanceFloat)
             ),
 

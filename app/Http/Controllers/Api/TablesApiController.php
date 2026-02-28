@@ -83,7 +83,7 @@ class TablesApiController extends Controller
         $params = [
             'endpoint' => $endpoint,
             'query' => $this->request->all(),
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
         ];
 
         return 'api:tables:' . md5(json_encode($params));

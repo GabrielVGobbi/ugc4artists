@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, File, Folder, LayoutGrid, Megaphone, User } from 'lucide-react';
 import AppLogo from './app-logo';
 import { dashboard } from '@/routes/app';
 
@@ -21,6 +21,24 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Campanhas',
+        href: '/admin/campaigns',
+        icon: Megaphone,
+    },
+];
+
+const mainNavItemsConfig: NavItem[] = [
+    {
+        title: 'Usuários',
+        href: dashboard(),
+        icon: User,
+    },
+    {
+        title: 'Documentos',
+        href: '/admin/campaigns',
+        icon: File,
     },
 ];
 
@@ -51,8 +69,12 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItems} itemsConfig={mainNavItemsConfig} />
+
+
             </SidebarContent>
+
+
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Campaign;
 
+use App\Enums\CampaignStatus;
+use App\Models\Campaign;
 use App\Services\UserService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -18,7 +21,31 @@ class CampaignCheckoutRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check();
+        return Auth::check();
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $key = $this->route('key'); // nome do param da rota {key}
+            if (! $key) return;
+
+            $campaign = Campaign::byUser()->byKey($key)->first();
+
+            if (! $campaign) {
+                $validator->errors()->add('general', 'Campanha não encontrada.');
+                return;
+            }
+
+            if ($campaign->status == CampaignStatus::DRAFT) {
+                $campaign->status = CampaignStatus::AWAITING_PAYMENT;
+                $campaign->save();
+            }
+
+            if (! $campaign->canBePaid()) {
+                $validator->errors()->add('general', 'Esta campanha já foi submetida.');
+            }
+        });
     }
 
     /**
@@ -32,6 +59,10 @@ class CampaignCheckoutRequest extends FormRequest
 
         $rules = [
             'payment_method' => ['required', Rule::in(['pix', 'card', 'wallet'])],
+            'phone' => ['required', 'celular_com_ddd'],
+            'document' => ['required', 'string', 'max:18', 'formato_cpf_ou_cnpj'],
+            'wallet_amount' =>  ['nullable', 'numeric', 'min:0'],
+            'use_wallet_balance' =>  ['boolean'],
             'address_id' => [
                 $this->addressRequired() ? 'required' : 'nullable',
                 function ($attribute, $value, $fail) {
@@ -53,9 +84,6 @@ class CampaignCheckoutRequest extends FormRequest
                     }
                 },
             ],
-            'phone' => ['required', 'celular_com_ddd'],
-            'document' => ['required', 'string', 'max:18', 'formato_cpf_ou_cnpj'],
-            'wallet_amount' =>  ['nullable', 'numeric', 'min:0'],
         ];
 
         if ($this->input('payment_method') === 'card') {
