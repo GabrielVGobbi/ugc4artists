@@ -6,6 +6,8 @@ export { useApiQuery, useApiLazyQuery } from './use-api-query'
 export { useAddresses } from './use-addresses'
 export { usePayments } from './use-payments'
 export type { Payment, PaymentStatus, PaymentMethod } from './use-payments'
+export { useAccountStatement } from './use-account-statement'
+export type { AccountStatement } from './use-account-statement'
 
 // Utility Hooks
 export { useClipboard } from './use-clipboard'

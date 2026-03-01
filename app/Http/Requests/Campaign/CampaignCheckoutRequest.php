@@ -79,7 +79,7 @@ class CampaignCheckoutRequest extends FormRequest
     {
 
         $rules = [
-            'payment_method' => ['nullable', Rule::in(['pix', 'card'])],
+            'payment_method' => ['nullable', Rule::in(['pix', 'card', 'wallet'])],
             'phone' => ['required', 'celular_com_ddd'],
             'document' => ['required', 'string', 'max:18', 'formato_cpf_ou_cnpj'],
             'use_wallet_balance' => ['required', 'boolean'],

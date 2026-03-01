@@ -50,13 +50,13 @@ class CampaignController extends Controller
             ->byKey($key)
             ->firstOrFail();
 
-        if ($campaign->isAwaitingPayment()) {
-            $pendingPayment = $campaign->getLatestPendingPayment();
-            if ($pendingPayment) {
-                return redirect()
-                    ->route('app.payments.show', $pendingPayment->uuid);
-            }
-        }
+        #if ($campaign->isAwaitingPayment()) {
+        #    $pendingPayment = $campaign->getLatestPendingPayment();
+        #    if ($pendingPayment) {
+        #        return redirect()
+        #            ->route('app.payments.show', $pendingPayment->uuid);
+        #    }
+        #}
 
         return Inertia::render('app/campaigns/show', [
             'campaign' => new CampaignResource($campaign),
@@ -78,8 +78,10 @@ class CampaignController extends Controller
                 ->with('error', 'Esta campanha não pode ser editada.');
         }
 
-        $campaign->status = CampaignStatus::DRAFT;
-        $campaign->save();
+         if ($campaign->status !== CampaignStatus::DRAFT) {
+            $campaign->status = CampaignStatus::DRAFT;
+            $campaign->save();
+        }
 
         return Inertia::render('app/campaigns/edit', [
             'campaign' => new CampaignResource($campaign),

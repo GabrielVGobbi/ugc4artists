@@ -48,8 +48,6 @@ class AdminController extends Controller
             ->useWallet(true)
             ->create();
 
-        dd($payment);
-
         $payment = $this->checkout->create($request->validated(), $user);
 
         if ($payment->gateway_amount_cents === 0) {

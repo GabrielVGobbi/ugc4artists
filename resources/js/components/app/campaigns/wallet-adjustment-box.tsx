@@ -57,7 +57,7 @@ export function WalletAdjustmentBox({
         >
             <div className="p-8">
                 {/* Header Section */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-5">
                         <div
                             className={cn(
@@ -98,7 +98,7 @@ export function WalletAdjustmentBox({
                             transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                             className="overflow-hidden"
                         >
-                            <div className="space-y-8 pt-2">
+                            <div className="space-y-8 hidden">
                                 {/* Large Input Display */}
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">

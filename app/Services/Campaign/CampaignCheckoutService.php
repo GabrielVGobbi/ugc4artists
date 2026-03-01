@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Campaign;
 
 use App\Enums\CampaignStatus;
+use App\Events\Account\ServicePaid;
 use App\Events\Campaign\CampaignCheckoutCompleted;
 use App\Models\Address;
 use App\Models\Campaign;
@@ -131,7 +132,7 @@ class CampaignCheckoutService
         if ($calculation->isWalletOnly()) {
             $result = $this->payWithWalletOnly($campaign, $user, $calculation);
 
-            // Dispatch event
+            // Dispatch events
             event(new CampaignCheckoutCompleted(
                 campaign: $campaign->fresh(),
                 payment: null,
@@ -139,6 +140,14 @@ class CampaignCheckoutService
                 checkoutType: 'wallet_only',
                 status: 'completed',
                 context: ['completed_at' => now()->toISOString()],
+            ));
+
+            event(new ServicePaid(
+                service: $campaign->fresh(),
+                payment: null,
+                calculation: $calculation,
+                category: 'campaign_payment',
+                status: 'completed',
             ));
 
             Log::info('Campaign checkout completed - Wallet only', [
@@ -372,7 +381,7 @@ class CampaignCheckoutService
                 $campaign->markAwaitingPayment();
             }
 
-            // Dispatch event
+            // Dispatch events
             event(new CampaignCheckoutCompleted(
                 campaign: $campaign->fresh(),
                 payment: $result->payment,
@@ -384,6 +393,14 @@ class CampaignCheckoutService
                     'is_immediate' => $result->isPaid(),
                     'created_at' => now()->toISOString(),
                 ],
+            ));
+
+            event(new ServicePaid(
+                service: $campaign->fresh(),
+                payment: $result->payment,
+                calculation: $calculation,
+                category: 'campaign_payment',
+                status: $status,
             ));
 
             return $result;

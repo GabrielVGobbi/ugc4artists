@@ -46,6 +46,8 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
     */
     Route::prefix('account')->name('account.')->group(function () {
         Route::get('/', [AccountApiController::class, 'me'])->name('account');
+        Route::get('/statement', [AccountApiController::class, 'statement'])->name('statement');
+        Route::get('/summary', [AccountApiController::class, 'summary'])->name('summary');
 
         /*
         |--------------------------------------------------------------------------

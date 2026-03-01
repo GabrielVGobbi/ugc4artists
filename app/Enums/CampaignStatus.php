@@ -214,7 +214,7 @@ enum CampaignStatus: string implements StatusableEnum
 
     public function canBeEdited(): bool
     {
-        return in_array($this, [self::DRAFT, self::UNDER_REVIEW, self::PENDING], true);
+        return in_array($this, [self::DRAFT,  self::PENDING], true);
     }
 
     public function canBePaid(): bool

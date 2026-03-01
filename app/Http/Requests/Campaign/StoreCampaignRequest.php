@@ -41,6 +41,12 @@ class StoreCampaignRequest extends FormRequest
                 'divulgar_clipe',
                 'divulgar_perfil',
                 'divulgar_trend',
+                "gerar_streams",
+                "alcance",
+                "divulgar_musica",
+                "divulgar_clipe",
+                "divulgar_perfil",
+                "divulgar_trend",
                 'outros',
             ])],
 

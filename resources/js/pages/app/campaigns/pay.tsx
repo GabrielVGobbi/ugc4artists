@@ -91,7 +91,7 @@ export default function CampaignCheckout() {
 
     const { data, setData, post, processing, errors } = useForm<FormData>({
         service: 'campaign',
-        payment_method: wallet_balance >= grandTotal ? 'wallet' : 'pix',
+        payment_method: 'pix', // Default: PIX (só aceita 'pix' ou 'card', não 'wallet')
         use_wallet_balance: wallet_balance > 0,
         wallet_amount: Math.min(wallet_balance, grandTotal),
         name: user?.name || '',
@@ -110,32 +110,39 @@ export default function CampaignCheckout() {
     const remainingAmount = Math.max(0, grandTotal - walletAmountToUse)
     const canPayWithWalletOnly = wallet_balance >= grandTotal
 
+    // Mostrar método de pagamento se: usuário não usa carteira OU se usar carteira mas sobrar valor
+    const shouldShowPaymentMethod = !data.use_wallet_balance || remainingAmount > 0
+
     // Validation
     const isFormValid = () => {
-        if (data.payment_method === 'wallet') {
+        // SEMPRE validar dados de faturamento (obrigatórios para NF e registro)
+        const billingOk = data.name?.trim() && data.document?.trim() && data.phone?.trim() && data.address_id
+        if (!billingOk) return false
+
+        // Validar CPF
+        if (!isMaskedCPF(data.document) && !isCPFComplete(data.document)) return false
+        if (!isMaskedCPF(data.document) && data.document && isCPFComplete(data.document)) {
+            const v = validateCPF(data.document)
+            if (!v.isValid) return false
+        }
+
+        // Se pagamento é 100% com carteira (não usa gateway)
+        if (remainingAmount === 0 && data.use_wallet_balance) {
             return canPayWithWalletOnly
         }
 
-        if (data.payment_method === 'card') {
-            const billingOk = data.name?.trim() && data.document?.trim() && data.phone?.trim() && data.address_id
-            const cardOk = data.card_number && data.card_holder_name && data.card_expiry && data.card_cvv
-            if (!billingOk || !cardOk) return false
-            if (!isMaskedCPF(data.document) && !isCPFComplete(data.document)) return false
-            if (!isMaskedCPF(data.document) && data.document && isCPFComplete(data.document)) {
-                const v = validateCPF(data.document)
-                if (!v.isValid) return false
-            }
-            return true
-        }
+        // Se precisa de método de pagamento, validar
+        if (shouldShowPaymentMethod) {
+            // Método de pagamento é obrigatório
+            if (!data.payment_method) return false
 
-        // PIX: billing required when there is remaining amount
-        if (remainingAmount > 0) {
-            if (!data.name?.trim() || !data.document?.trim() || !data.phone?.trim() || !data.address_id) return false
-            if (!isMaskedCPF(data.document) && !isCPFComplete(data.document)) return false
-            if (!isMaskedCPF(data.document) && data.document && isCPFComplete(data.document)) {
-                const v = validateCPF(data.document)
-                if (!v.isValid) return false
+            // Se escolheu cartão, validar dados do cartão
+            if (data.payment_method === 'card') {
+                const cardOk = data.card_number && data.card_holder_name && data.card_expiry && data.card_cvv
+                return cardOk
             }
+
+            // PIX: não precisa de validação adicional além do billing
             return true
         }
 
@@ -341,16 +348,17 @@ export default function CampaignCheckout() {
                             />
                         )}
 
-
-                        {/* Dados de Faturamento - quando há valor a pagar (PIX ou Cartão) */}
-                        {remainingAmount > 0 && (
-                            <div className="bg-white rounded-[2.5rem] p-8 border border-zinc-100 shadow-sm space-y-6">
+                        {/* Dados de Faturamento - SEMPRE obrigatório */}
+                        <div className="bg-white rounded-[2.5rem] p-8 border border-zinc-100 shadow-sm space-y-6">
                                 <div className="space-y-2">
                                     <h3 className="text-2xl font-black tracking-tighter text-secondary">
                                         Dados de Faturamento
                                     </h3>
                                     <p className="text-zinc-500 font-medium">
-                                        Precisamos dessas informações para processar seu pagamento com segurança.
+                                        {remainingAmount > 0
+                                            ? 'Precisamos dessas informações para processar seu pagamento com segurança.'
+                                            : 'Precisamos dessas informações para emissão da nota fiscal e registro da transação.'
+                                        }
                                     </p>
                                 </div>
 
@@ -418,10 +426,9 @@ export default function CampaignCheckout() {
                                     </div>
                                 </div>
                             </div>
-                        )}
 
-                        {/* Método de Pagamento - só mostra se houver saldo restante */}
-                        {remainingAmount > 0 && (
+                        {/* Método de Pagamento - obrigatório se não usar carteira OU se sobrar valor */}
+                        {shouldShowPaymentMethod && (
                         <div className="bg-white rounded-[2.5rem] p-8 border border-zinc-100 shadow-sm space-y-6">
                             <div className="space-y-1">
                                 <h3 className="text-2xl font-black tracking-tighter text-secondary">

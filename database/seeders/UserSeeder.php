@@ -21,6 +21,7 @@ class UserSeeder extends Seeder
             'name' => 'Admin',
             'email' => 'super@admin.com',
             'password' => 'superadmin',
+
             'account_type' => UserRoleType::tryFrom('artist'),
         ]);
 
@@ -35,6 +36,8 @@ class UserSeeder extends Seeder
                 'avatar' => 'https://lh3.googleusercontent.com/a/ACg8ocKp_-kEYe5y-keoPSHdjIV0PelDNCfUN5TrbEW0ybxarIA1Gww=s96-c',
                 'created_at' => '2026-01-20 23:32:15',
                 'updated_at' => '2026-01-20 23:32:44',
+                    'document' => '46562227801',
+            'phone' => '11971590068',
                 'onboarding_completed_at' => '2026-01-20 23:32:44',
                 'password' => Hash::make('superadmin'),
                 'remember_token' => null,

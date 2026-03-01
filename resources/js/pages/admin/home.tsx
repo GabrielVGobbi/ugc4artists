@@ -752,7 +752,7 @@ export default function Dashboard() {
         <AppLayout breadcrumbs={BREADCRUMBS}>
             <Head title="Dashboard" />
 
-            <div className="mx-auto max-w-7xl pt-5 space-y-7">
+            <div className="mx-auto max-w-7xl px-5 pt-5 space-y-7">
 
                 <div className="flex flex-1 flex-col gap-8 ">
                     {/* ━━━ Hero metrics ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
