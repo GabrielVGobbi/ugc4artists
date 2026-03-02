@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\App\WalletAppController as WalletApp;
 use App\Http\Controllers\Api\AccountApiController;
 use App\Http\Controllers\Api\Admin\CampaignModerationApiController;
+use App\Http\Controllers\Api\Admin\UsersApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
 use App\Http\Controllers\Api\CampaignApiController;
 use App\Http\Controllers\Api\NotificationController;
@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('auth', [AuthenticateApiController::class, 'auth'])->name('api.auth');
+Route::post('logout', [AuthenticateApiController::class, 'logout'])->middleware('auth:sanctum')->name('api.logout');
+Route::get('me', [AuthenticateApiController::class, 'me'])->middleware('auth:sanctum')->name('api.me');
 
 /*
 |--------------------------------------------------------------------------
@@ -121,19 +123,11 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
 | Routes Admin
 |--------------------------------------------------------------------------
 */
-Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:developer'])->group(function () {
-    Route::name('admin.')->prefix('admin')->group(function () {
-        Route::apiResource('users', UsersController::class);
-
-        Route::get('/teste-checkout', [AdminController::class, 'testeCheckout'])->name('teste.checkout');
-        Route::post('/teste-pagar', [AdminController::class, 'testePagarTransaction'])->name('teste.pagar');
-    });
-});
-
 Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::name('admin.dashboard.')->prefix('admin/dashboard')->group(function () {
         Route::get('/payments', [TablesApiController::class, 'dashboardPayments'])->name('payments');
         Route::get('/waitlist', [TablesApiController::class, 'dashboardWaitlist'])->name('waitlist');
+        Route::get('/recent-users', [TablesApiController::class, 'dashboardRecentUsers'])->name('recent-users');
     });
 
     Route::name('admin.campaigns.')->prefix('admin/campaigns')->group(function () {
@@ -142,6 +136,13 @@ Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:admin'])->
         Route::post('/{campaign}/approve', [CampaignModerationApiController::class, 'approve'])->name('approve');
         Route::post('/{campaign}/refuse', [CampaignModerationApiController::class, 'refuse'])->name('refuse');
         Route::patch('/{campaign}/status', [CampaignModerationApiController::class, 'updateStatus'])->name('status');
+    });
+
+    Route::middleware(['role:developer'])->group(function () {
+        Route::apiResource('users', UsersApiController::class);
+
+        Route::get('/teste-checkout', [AdminController::class, 'testeCheckout'])->name('teste.checkout');
+        Route::post('/teste-pagar', [AdminController::class, 'testePagarTransaction'])->name('teste.pagar');
     });
 });
 

@@ -283,7 +283,6 @@ export function FlexibleDataTable<TData>({
                         </div>
                     )}
 
-                    {/* Quick filters after search (default) */}
                     {quickFiltersPosition === 'after' && renderQuickFilters()}
 
                     {/* Advanced filter panel */}
@@ -380,6 +379,7 @@ export function FlexibleDataTable<TData>({
         } = infiniteScrollConfig
 
         return (
+
             <InfiniteScrollContainer
                 height={height}
                 isLoadingMore={isFetchingMore}
@@ -438,9 +438,19 @@ export function FlexibleDataTable<TData>({
             {/* Toolbar Section */}
             {renderToolbar()}
 
+
+{/*
+            {filterConfig?.quickFilters && filterConfig.quickFilters.length > 0 && (
+                <QuickFilters
+                    filters={filterConfig.quickFilters}
+                    values={filterConfig.values}
+                    onChange={filterConfig.onChange}
+                />
+            )}
+*/}
             {/* Table Content - Mode-specific rendering */}
             {isInfiniteScrollMode ? renderInfiniteScrollMode() : renderPaginationMode()}
-        </div>
+        </div >
     )
 }
 

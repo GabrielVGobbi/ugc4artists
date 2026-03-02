@@ -15,11 +15,30 @@ class AuthenticateApiController extends Controller
     {
         $request->authenticate();
 
-        $token = Auth::user()->createToken('api');
+        $request->session()->regenerate();
 
         return response()->json([
-            'token' => $token->plainTextToken,
             'user' => new UserResource(Auth::user()),
+            'message' => 'Login realizado com sucesso',
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json([
+            'message' => 'Logout realizado com sucesso',
+        ]);
+    }
+
+    public function me(Request $request)
+    {
+        return response()->json([
+            'user' => new UserResource($request->user()),
         ]);
     }
 }

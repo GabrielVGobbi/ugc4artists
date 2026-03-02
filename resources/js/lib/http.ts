@@ -150,3 +150,114 @@ export type HttpConfig = Omit<AxiosRequestConfig, 'url' | 'method' | 'data'>
 export function createAbortController(): AbortController {
     return new AbortController()
 }
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pagination Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PaginationMeta {
+    current_page: number
+    from: number | null
+    last_page: number
+    per_page: number
+    to: number | null
+    total: number
+}
+
+export interface PaginationLinks {
+    first: string | null
+    last: string | null
+    prev: string | null
+    next: string | null
+}
+
+export interface PaginatedResponse<T> {
+    data: T[]
+    meta: PaginationMeta
+    links: PaginationLinks
+}
+
+export interface ListParams {
+    page?: number
+    per_page?: number
+    search?: string
+    sort_by?: string
+    sort_direction?: 'asc' | 'desc'
+    [key: string]: unknown
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// API Functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET request
+ */
+export async function httpGet<T>(
+    url: string,
+    config?: HttpConfig
+): Promise<T> {
+    const response = await http.get<T>(url, config)
+    return response.data
+}
+
+/**
+ * POST request
+ */
+export async function httpPost<T, D = unknown>(
+    url: string,
+    data?: D,
+    config?: HttpConfig
+): Promise<T> {
+    const response = await http.post<T>(url, data, config)
+    return response.data
+}
+
+/**
+ * PUT request
+ */
+export async function httpPut<T, D = unknown>(
+    url: string,
+    data?: D,
+    config?: HttpConfig
+): Promise<T> {
+    const response = await http.put<T>(url, data, config)
+    return response.data
+}
+
+/**
+ * PATCH request
+ */
+export async function httpPatch<T, D = unknown>(
+    url: string,
+    data?: D,
+    config?: HttpConfig
+): Promise<T> {
+    const response = await http.patch<T>(url, data, config)
+    return response.data
+}
+
+/**
+ * DELETE request
+ */
+export async function httpDelete<T>(
+    url: string,
+    config?: HttpConfig
+): Promise<T> {
+    const response = await http.delete<T>(url, config)
+    return response.data
+}
+
+/**
+ * Extract a user-friendly error message from an ApiError
+ * For validation errors, returns the first field error or the general message
+ */
+export function getErrorMessage(error: ApiError): string {
+    if (error.type === 'validation') {
+        const firstError = Object.values(error.errors)[0] as string | undefined
+        return firstError || error.message
+    }
+    return error.message
+}

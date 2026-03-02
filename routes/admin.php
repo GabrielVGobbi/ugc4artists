@@ -21,14 +21,13 @@ use Laravel\Fortify\Features;
 
 Route::name('admin.')->prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
-    Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
-    Route::get('/components/{componentName?}', [DevController::class, 'index'])->name('dev.component');
+    Route::resource('users', UsersController::class);
+
 
 
     Route::get('/teste-email', [AdminController::class, 'testeEmail'])->name('teste.email');
-
-    Route::resource('users', UsersController::class);
-
     Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
     Route::get('/campaigns/{campaign}', [CampaignController::class, 'show'])->name('campaigns.show');
+    Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/components/{componentName?}', [DevController::class, 'index'])->name('dev.component');
 });

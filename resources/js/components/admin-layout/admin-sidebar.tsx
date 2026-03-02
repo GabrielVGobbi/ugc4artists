@@ -54,12 +54,7 @@ const NAVIGATION: NavItemDef[] = [
         icon: Users,
         route: '/admin/users',
         section: 'management',
-        children: [
-            { id: 'users_all', label: 'Todos Usuários', route: '/admin/users' },
-            { id: 'users_creators', label: 'Criadores', route: '/admin/users?role=creator' },
-            { id: 'users_brands', label: 'Marcas', route: '/admin/users?role=brand' },
-            { id: 'users_artists', label: 'Artistas', route: '/admin/users?role=artist' },
-        ],
+
     },
     {
         id: 'campaigns',

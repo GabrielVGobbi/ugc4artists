@@ -381,19 +381,19 @@ class TablesApiController extends Controller
                 'gateway_amount_cents' => (int) $gatewayAmountCents,
                 'average_ticket_cents' => $paidPaymentsCount > 0 ? (int) round($paidRevenueCents / $paidPaymentsCount) : 0,
                 'paid_conversion_rate' => $totalPayments > 0 ? round(($paidPaymentsCount / $totalPayments) * 100, 2) : 0,
-                'status_breakdown' => $statusBreakdown->map(fn ($item) => [
+                'status_breakdown' => $statusBreakdown->map(fn($item) => [
                     'status' => $item->status,
                     'total' => (int) $item->total,
                     'amount_cents' => (int) $item->amount_cents,
                 ]),
             ],
-            'series' => $dailyRevenue->map(fn ($item) => [
+            'series' => $dailyRevenue->map(fn($item) => [
                 'date' => $item->date,
                 'payments_count' => (int) $item->payments_count,
                 'paid_revenue_cents' => (int) $item->paid_revenue_cents,
             ]),
             'table' => [
-                'data' => collect($payments->items())->map(fn (Payment $payment) => [
+                'data' => collect($payments->items())->map(fn(Payment $payment) => [
                     'id' => $payment->id,
                     'uuid' => $payment->uuid,
                     'user_name' => $payment->user?->name,
@@ -471,17 +471,17 @@ class TablesApiController extends Controller
                 'total_registrations' => $totalRegistrations,
                 'unique_emails' => $uniqueEmails,
                 'registrations_today' => $registrationsToday,
-                'availability_breakdown' => $availabilityBreakdown->map(fn ($item) => [
+                'availability_breakdown' => $availabilityBreakdown->map(fn($item) => [
                     'creation_availability' => $item->creation_availability,
                     'total' => (int) $item->total,
                 ]),
             ],
-            'series' => $dailyRegistrations->map(fn ($item) => [
+            'series' => $dailyRegistrations->map(fn($item) => [
                 'date' => $item->date,
                 'registrations_count' => (int) $item->registrations_count,
             ]),
             'table' => [
-                'data' => collect($registrations->items())->map(fn (WaitlistRegistration $registration) => [
+                'data' => collect($registrations->items())->map(fn(WaitlistRegistration $registration) => [
                     'id' => $registration->id,
                     'stage_name' => $registration->stage_name,
                     'contact_email' => $registration->contact_email,
@@ -498,6 +498,48 @@ class TablesApiController extends Controller
                     'total' => $registrations->total(),
                 ],
             ],
+        ]);
+    }
+
+    public function dashboardRecentUsers(Request $request)
+    {
+        $limit = (int) $request->input('limit', 8);
+        $limit = max(5, min($limit, 20));
+
+        $users = User::query()
+            ->select(['id', 'uuid', 'name', 'email', 'account_type', 'avatar', 'email_verified_at', 'created_at', 'account_type'])
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+
+        $totalToday = User::query()
+            ->whereDate('created_at', Carbon::today())
+            ->count();
+
+        $totalThisMonth = User::query()
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
+
+        $totalAll = User::count();
+
+        return response()->json([
+            'summary' => [
+                'total_today' => $totalToday,
+                'total_this_month' => $totalThisMonth,
+                'total' => $totalAll,
+            ],
+            'data' => $users->map(fn(User $user) => [
+                'id' => $user->id,
+                'uuid' => $user->uuid,
+                'name' => $user->name,
+                'email' => $user->email,
+                'account_type' => $user->account_type->toPresenterArray(),
+                'avatar' => $user->avatar,
+                'email_verified' => ! is_null($user->email_verified_at),
+                'created_at' => $user->created_at?->diffForHumans(),
+                'created_at_formatted' => $user->created_at?->format('d/m/Y H:i'),
+            ]),
         ]);
     }
 

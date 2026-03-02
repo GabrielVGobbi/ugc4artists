@@ -46,18 +46,47 @@ export interface SharedData {
 
 export interface User {
     id: number;
+    uuid?: string;
     name: string;
     email: string;
     phone?: string | null;
+    phone_formatted?: string | null;
     document?: string | null;
-    google_id?: string | null;
+    document_formatted?: string | null;
+    account_type: string;
+    account_type_label?: string;
+    account_type_color?: string;
+    account_type_icon?: string;
     avatar?: string | null;
     bio?: string | null;
+
+    // Status
     email_verified_at: string | null;
+    email_verified?: boolean;
     onboarding_completed_at?: string | null;
-    two_factor_enabled?: boolean;
+    onboarding_completed?: boolean;
+
+    // Timestamps
     created_at: string;
+    created_at_human?: string;
     updated_at: string;
+    updated_at_human?: string;
+
+    // Financial
+    balance?: string | null;
+    balance_float?: number;
+
+    // Counts
+    campaigns_count?: number;
+    campaign_transactions_count?: number;
+    account_statements_count?: number;
+
+    // Relationships
+    onboarding_profile?: {
+        role?: string;
+        [key: string]: unknown;
+    };
+
     [key: string]: unknown;
 }
 
@@ -187,9 +216,63 @@ export type FlashMessages = {
     info: string | null;
 };
 
+type BreadcrumbItem = {
+    title: string
+    href: string
+}
+
 declare global {
     interface Window {
         axios: import('axios').AxiosInstance;
     }
 }
 
+
+export interface UserAdminDetail {
+  id: number;
+  uuid: string;
+
+  name: string;
+  email: string;
+
+  phone: string | null;
+  phone_formatted: string | null;
+
+  document: string | null;
+  document_formatted: string | null;
+
+  avatar: string | null;
+  bio: string | null;
+
+  // Account details (Enum no backend -> string no payload)
+  account_type: string | null;
+  account_type_label: string | null;
+  account_type_color: string | null;
+  account_type_icon: string | null;
+
+  // Status
+  email_verified_at: ISODateTimeString | null;
+  email_verified: boolean;
+
+  onboarding_completed_at: ISODateTimeString | null;
+  onboarding_completed: boolean;
+
+  // Timestamps
+  created_at: ISODateTimeString | null;
+  created_at_human: string | null;
+
+  updated_at: ISODateTimeString | null;
+  updated_at_human: string | null;
+
+  // Financial
+  balance: string; // ex: "R$ 1.234,56" (toCurrency)
+  balance_float: number;
+
+  // Counts (whenCounted => pode ser null se não veio com loadCount)
+  campaigns_count: number | null;
+  campaign_transactions_count: number | null;
+  account_statements_count: number | null;
+
+  // Relationships (whenLoaded => pode ser null/undefined dependendo do carregamento)
+  onboarding_profile: UserOnboardingProfileDTO | null;
+}

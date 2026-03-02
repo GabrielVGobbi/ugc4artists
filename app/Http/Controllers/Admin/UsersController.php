@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\UserDetailResource;
 use App\Models\User;
 use App\Supports\TheOneResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class UsersController extends Controller
             return UserResource::collection(User::paginate());
         }
 
-        return Inertia::render('admin/dashboard', []);
+        return Inertia::render('admin/users/index', []);
     }
 
     /**
@@ -31,16 +32,19 @@ class UsersController extends Controller
      */
     public function show($id)
     {
-        if (!$user = User::find($id)) {
+        $user = User::with(['onboardingProfile'])
+            ->withCount(['campaigns', 'campaignTransactions', 'accountStatements'])
+            ->find($id);
+
+        if (!$user) {
             return TheOneResponse::notFound(
                 __('Record not found'),
                 'admin.users.index'
             );
         }
 
-        return TheOneResponse::ok(
-            ['userData' => new UserResource($user)],
-            'admin/dashboard'
-        );
+        return Inertia::render('admin/users/show', [
+            'userData' => new UserDetailResource($user),
+        ]);
     }
 }

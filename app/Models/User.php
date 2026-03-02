@@ -146,6 +146,56 @@ class User extends Authenticatable implements Wallet, Customer
         return $query->where('account_type', $type);
     }
 
+    /**
+     * Scope to apply dynamic filters
+     */
+    public function scopeFiltered($query, array $filters)
+    {
+        // Account type filter (single or multiple)
+        if (isset($filters['account_type'])) {
+            $accountTypes = is_array($filters['account_type']) ? $filters['account_type'] : [$filters['account_type']];
+            $query->whereIn('account_type', $accountTypes);
+        }
+
+        // Email verified filter
+        if (isset($filters['email_verified'])) {
+            if ($filters['email_verified'] === 'verified' || $filters['email_verified'] === true) {
+                $query->whereNotNull('email_verified_at');
+            } elseif ($filters['email_verified'] === 'unverified' || $filters['email_verified'] === false) {
+                $query->whereNull('email_verified_at');
+            }
+        }
+
+        // Onboarding completed filter
+        if (isset($filters['onboarding_completed'])) {
+            if ($filters['onboarding_completed'] === 'completed' || $filters['onboarding_completed'] === true) {
+                $query->whereNotNull('onboarding_completed_at');
+            } elseif ($filters['onboarding_completed'] === 'pending' || $filters['onboarding_completed'] === false) {
+                $query->whereNull('onboarding_completed_at');
+            }
+        }
+
+        // Has document filter
+        if (isset($filters['has_document'])) {
+            if ($filters['has_document'] === true || $filters['has_document'] === '1') {
+                $query->whereNotNull('document');
+            } elseif ($filters['has_document'] === false || $filters['has_document'] === '0') {
+                $query->whereNull('document');
+            }
+        }
+
+        // Has phone filter
+        if (isset($filters['has_phone'])) {
+            if ($filters['has_phone'] === true || $filters['has_phone'] === '1') {
+                $query->whereNotNull('phone');
+            } elseif ($filters['has_phone'] === false || $filters['has_phone'] === '0') {
+                $query->whereNull('phone');
+            }
+        }
+
+        return $query;
+    }
+
     public function hasValidDocumentAndPhone(): bool
     {
         return filled($this->document) && filled($this->phone);

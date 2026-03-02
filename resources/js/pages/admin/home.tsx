@@ -18,7 +18,7 @@ import AppLayout from '@/layouts/app2-layout'
 import { CampaignModerationBoard } from '@/pages/admin/components/campaign-moderation-board'
 import { type BreadcrumbItem } from '@/types'
 import { useQuery } from '@tanstack/react-query'
-import { Head } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react'
 import {
     Activity,
     ArrowDownRight,
@@ -36,6 +36,11 @@ import {
     CheckCircle2,
     XCircle,
     AlertTriangle,
+    ExternalLink,
+    ShieldCheck,
+    Mail,
+    CalendarDays,
+    Icon,
 } from 'lucide-react'
 import { useMemo, useState, useCallback } from 'react'
 import {
@@ -52,6 +57,7 @@ import {
     XAxis,
     YAxis,
 } from 'recharts'
+import { StatustoPresenterArray, toPresenterArray } from '@/types/app'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -73,7 +79,7 @@ interface PaymentRow {
     uuid: string
     user_name: string | null
     user_email: string | null
-    status: string
+    status: StatustoPresenterArray
     payment_method: string | null
     gateway: string | null
     amount_cents: number
@@ -152,6 +158,28 @@ interface WaitlistResponse {
         data: WaitlistRow[]
         meta: ApiTableMeta
     }
+}
+
+interface RecentUserItem {
+    id: number
+    uuid: string
+    name: string
+    email: string
+    account_type: toPresenterArray
+    account_type_value: string | null
+    avatar: string | null
+    email_verified: boolean
+    created_at: string
+    created_at_formatted: string
+}
+
+interface RecentUsersResponse {
+    summary: {
+        total_today: number
+        total_this_month: number
+        total: number
+    }
+    data: RecentUserItem[]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -420,6 +448,239 @@ const TOOLTIP_STYLE = {
     color: '#fafafa',
 }
 
+const ACCOUNT_TYPE_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
+    artist: { bg: 'bg-violet-50 border-violet-200', text: 'text-violet-700', dot: 'bg-violet-500' },
+    brand: { bg: 'bg-blue-50 border-blue-200', text: 'text-blue-700', dot: 'bg-blue-500' },
+    company: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', dot: 'bg-amber-500' },
+    admin: { bg: 'bg-rose-50 border-rose-200', text: 'text-rose-700', dot: 'bg-rose-500' },
+}
+
+function getAccountTypeStyle(value: string | null) {
+    if (!value) return { bg: 'bg-zinc-50 border-zinc-200', text: 'text-zinc-600', dot: 'bg-zinc-400' }
+    return ACCOUNT_TYPE_STYLES[value] ?? { bg: 'bg-zinc-50 border-zinc-200', text: 'text-zinc-600', dot: 'bg-zinc-400' }
+}
+
+function getInitials(name: string): string {
+    return name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((n) => n[0].toUpperCase())
+        .join('')
+}
+
+const AVATAR_GRADIENTS = [
+    'from-violet-400 to-purple-600',
+    'from-blue-400 to-cyan-600',
+    'from-emerald-400 to-teal-600',
+    'from-orange-400 to-red-500',
+    'from-pink-400 to-rose-600',
+    'from-amber-400 to-yellow-600',
+    'from-indigo-400 to-blue-600',
+    'from-teal-400 to-emerald-600',
+]
+
+function getAvatarGradient(id: number): string {
+    return AVATAR_GRADIENTS[id % AVATAR_GRADIENTS.length]
+}
+
+function UserAvatar({ user }: { user: RecentUserItem }) {
+    if (user.avatar) {
+        return (
+            <img
+                src={user.avatar}
+                alt={user.name}
+                className="size-9 rounded-full object-cover ring-2 ring-white"
+            />
+        )
+    }
+    return (
+        <div
+            className={`size-9 rounded-full bg-gradient-to-br ${getAvatarGradient(user.id)} flex items-center justify-center ring-2 ring-white`}
+        >
+            <span className="text-[11px] font-bold text-white">
+                {getInitials(user.name)}
+            </span>
+        </div>
+    )
+}
+
+function RecentUsersSkeleton() {
+    return (
+        <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-2.5 animate-pulse">
+                    <div className="size-9 rounded-full bg-zinc-100 shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                        <div className="h-3 bg-zinc-100 rounded w-2/5" />
+                        <div className="h-2.5 bg-zinc-100 rounded w-3/5" />
+                    </div>
+                    <div className="h-5 w-16 bg-zinc-100 rounded-full shrink-0" />
+                </div>
+            ))}
+        </div>
+    )
+}
+
+function RecentUsersWidget() {
+    const query = useQuery({
+        queryKey: ['admin-dashboard-recent-users'],
+        queryFn: async () => {
+            const res = await http.get<RecentUsersResponse>(
+                '/api/v1/admin/dashboard/recent-users',
+                { params: { limit: 8 } },
+            )
+            return res.data
+        },
+        refetchInterval: 60_000,
+    })
+
+    const summary = query.data?.summary
+    const users = query.data?.data ?? []
+
+    return (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-zinc-100">
+                <div className="flex items-center gap-3">
+
+                    <div>
+                        <h3 className="text-base font-bold text-zinc-900 leading-tight">
+                            Últimos Usuários Cadastros
+                        </h3>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                            Usuários mais recentes do sistema
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => query.refetch()}
+                        disabled={query.isFetching}
+                        className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-colors disabled:opacity-40"
+                        aria-label="Atualizar lista de usuários"
+                    >
+                        <RefreshCw className={`size-3.5 ${query.isFetching ? 'animate-spin' : ''}`} />
+                    </button>
+                    <Link
+                        href="/admin/users"
+                        className="flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+                        aria-label="Ver todos os usuários"
+                    >
+                        Ver todos
+                        <ExternalLink className="size-3" />
+                    </Link>
+                </div>
+            </div>
+
+            {/* Summary pills */}
+            {summary && (
+                <div className="flex items-center gap-2 px-5 py-3 bg-zinc-50/60 border-b border-zinc-100">
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-600">
+                        <CalendarDays className="size-3.5 text-zinc-400" />
+                        <span className="font-semibold text-zinc-900">{summary.total_today}</span>
+                        <span>hoje</span>
+                    </div>
+                    <span className="text-zinc-200">·</span>
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-600">
+                        <span className="font-semibold text-zinc-900">{summary.total_this_month}</span>
+                        <span>este mês</span>
+                    </div>
+                    <span className="text-zinc-200">·</span>
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-600">
+                        <Users className="size-3.5 text-zinc-400" />
+                        <span className="font-semibold text-zinc-900">{summary.total.toLocaleString('pt-BR')}</span>
+                        <span>total</span>
+                    </div>
+                </div>
+            )}
+
+            {/* List */}
+            <div className="divide-y divide-zinc-50">
+                {query.isLoading ? (
+                    <div className="py-2">
+                        <RecentUsersSkeleton />
+                    </div>
+                ) : query.isError ? (
+                    <div className="flex flex-col items-center justify-center py-10 gap-2 text-zinc-400">
+                        <XCircle className="size-8 text-rose-300" />
+                        <p className="text-sm">Falha ao carregar usuários</p>
+                        <button
+                            type="button"
+                            onClick={() => query.refetch()}
+                            className="text-xs text-zinc-500 underline hover:text-zinc-800"
+                        >
+                            Tentar novamente
+                        </button>
+                    </div>
+                ) : users.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 gap-2 text-zinc-400">
+                        <Users className="size-8" />
+                        <p className="text-sm">Nenhum usuário cadastrado ainda</p>
+                    </div>
+                ) : (
+                    users.map((user) => {
+                        return (
+                            <div
+                                key={user.id}
+                                className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50/70 transition-colors group"
+                            >
+                                <div className="relative shrink-0">
+                                    <UserAvatar user={user} />
+                                    {user.email_verified && (
+                                        <span
+                                            className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-white flex items-center justify-center"
+                                            title="E-mail verificado"
+                                        >
+                                            <ShieldCheck className="size-2.5 text-emerald-500" />
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-zinc-900 truncate leading-tight">
+                                        {user.name}
+                                    </p>
+                                    <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                                        {user.email}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                    {user.account_type && (
+                                        <Badge className={`${user.account_type.classes} gap-1 border`}>
+                                            {user.account_type.label}
+                                        </Badge>
+                                    )}
+                                    <span className="text-[10px] text-zinc-400 whitespace-nowrap">
+                                        {user.created_at}
+                                    </span>
+                                </div>
+                            </div>
+                        )
+                    })
+                )}
+            </div>
+
+            {/* Footer */}
+            {!query.isLoading && users.length > 0 && (
+                <div className="px-5 py-3 border-t border-zinc-100 bg-zinc-50/40">
+                    <Link
+                        href="/admin/users"
+                        className="flex items-center justify-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors w-full"
+                        aria-label="Ver todos os usuários cadastrados"
+                    >
+                        Ver todos os usuários cadastrados
+                        <ArrowUpRight className="size-3" />
+                    </Link>
+                </div>
+            )}
+        </div>
+    )
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -575,9 +836,9 @@ export default function Dashboard() {
                     const info = getStatusInfo(row.status)
                     const StatusIcon = info.icon
                     return (
-                        <Badge className={`${info.bg} ${info.color} gap-1 border`}>
+                        <Badge className={`${info.bg} ${row.status.classes} gap-1 border`}>
                             <StatusIcon className="size-3" />
-                            {info.label}
+                            {row.status.label}
                         </Badge>
                     )
                 },
@@ -806,12 +1067,11 @@ export default function Dashboard() {
 
                 </div>
 
-                <div className=" ">
-
-                    <div className=" grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <section
-                            aria-label="Moderação de campanhas"
-                            className="rounded-2xl border border-zinc-200/80 "
+                            aria-label="Status das campanhas"
+                            className="rounded-2xl border border-zinc-200/80"
                         >
                             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
                                 <div className="flex items-center justify-between mb-6">
@@ -829,7 +1089,6 @@ export default function Dashboard() {
                                     </div>
                                 </div>
 
-                                {/* Progress Bar Stacked */}
                                 <div className="flex h-3 rounded-full overflow-hidden mb-8">
                                     <div className="bg-black w-[45%]"></div>
                                     <div className="bg-[#ff7900] w-[30%]"></div>
@@ -837,7 +1096,6 @@ export default function Dashboard() {
                                     <div className="bg-gray-300 w-[10%]"></div>
                                 </div>
 
-                                {/* Legend List */}
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center text-sm">
                                         <div className="flex items-center gap-2">
@@ -871,109 +1129,12 @@ export default function Dashboard() {
                             </div>
                         </section>
 
-                        <section aria-label="Moderação de campanhas"
-                            className="rounded-2xl border border-zinc-200/80 ">
-
-                            {/* Breakdown List */}
-                            <div className="bg-white p-6 rounded-2xl  border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-                                <h3 className="text-lg font-bold text-gray-900 mb-5 ">Investimento por Plataforma</h3>
-
-                                <div className="space-y-6">
-                                    {BUDGET_BREAKDOWN.map((item, index) => (
-                                        <div key={index}>
-                                            <div className="flex justify-between items-center mb-2 text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
-                                                    <span className="font-medium text-gray-700">{item.category} <span className="text-gray-400 font-normal">({item.percentage}%)</span></span>
-                                                </div>
-                                                <span className="font-bold text-gray-900">{item.value}</span>
-                                            </div>
-                                            <div className="w-full bg-gray-100 rounded-full h-1.5">
-                                                <div className={`${item.color} h-1.5 rounded-full`} style={{ width: `${item.percentage}%` }}></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-
-
-                            </div>
-                        </section>
-
-                    </div>
-                </div>
-
-                <div className=" hidden ">
-
-                    <div className=" grid grid-cols-1 md:grid-cols-2 gap-3">
                         <section
-                            aria-label="Moderação de campanhas"
-                            className="rounded-2xl border border-zinc-200/80 "
+                            aria-label="Investimento por plataforma"
+                            className="rounded-2xl border border-zinc-200/80"
                         >
-                            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-lg font-bold text-gray-900">Status das Campanhas</h3>
-                                    <button className="px-3 py-1 border border-gray-200 rounded-md text-xs font-medium text-gray-600 hover:bg-gray-50">
-                                        Geral
-                                    </button>
-                                </div>
-
-                                <div className="mb-6">
-                                    <p className="text-sm text-gray-500 mb-1">Total alocado</p>
-                                    <div className="flex items-baseline gap-2">
-                                        <h4 className="text-3xl font-bold text-gray-900">R$ 45.800,00</h4>
-                                        <span className="text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded">+5.2%</span>
-                                    </div>
-                                </div>
-
-                                {/* Progress Bar Stacked */}
-                                <div className="flex h-3 rounded-full overflow-hidden mb-8">
-                                    <div className="bg-black w-[45%]"></div>
-                                    <div className="bg-[#ff7900] w-[30%]"></div>
-                                    <div className="bg-yellow-400 w-[15%]"></div>
-                                    <div className="bg-gray-300 w-[10%]"></div>
-                                </div>
-
-                                {/* Legend List */}
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-black"></div>
-                                            <span className="text-gray-600">Em Andamento</span>
-                                        </div>
-                                        <span className="font-semibold text-gray-900">R$ 20.610</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-[#ff7900]"></div>
-                                            <span className="text-gray-600">Aprovadas (Pagar)</span>
-                                        </div>
-                                        <span className="font-semibold text-gray-900">R$ 13.740</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                                            <span className="text-gray-600">Em Análise</span>
-                                        </div>
-                                        <span className="font-semibold text-gray-900">R$ 6.870</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                                            <span className="text-gray-600">Rascunho</span>
-                                        </div>
-                                        <span className="font-semibold text-gray-900">R$ 4.580</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section aria-label="Moderação de campanhas"
-                            className="rounded-2xl border border-zinc-200/80 ">
-
-                            {/* Breakdown List */}
-                            <div className="bg-white p-6 rounded-2xl  border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-                                <h3 className="text-lg font-bold text-gray-900 mb-5 ">Investimento por Plataforma</h3>
+                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                                <h3 className="text-lg font-bold text-gray-900 mb-5">Investimento por Plataforma</h3>
 
                                 <div className="space-y-6">
                                     {BUDGET_BREAKDOWN.map((item, index) => (
@@ -981,7 +1142,10 @@ export default function Dashboard() {
                                             <div className="flex justify-between items-center mb-2 text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
-                                                    <span className="font-medium text-gray-700">{item.category} <span className="text-gray-400 font-normal">({item.percentage}%)</span></span>
+                                                    <span className="font-medium text-gray-700">
+                                                        {item.category}{' '}
+                                                        <span className="text-gray-400 font-normal">({item.percentage}%)</span>
+                                                    </span>
                                                 </div>
                                                 <span className="font-bold text-gray-900">{item.value}</span>
                                             </div>
@@ -991,14 +1155,20 @@ export default function Dashboard() {
                                         </div>
                                     ))}
                                 </div>
-
-
-
                             </div>
                         </section>
 
+                        {/* ── Últimos Usuários Cadastrados ────────────────── */}
+
                     </div>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2">
+                    <section aria-label="Últimos usuários cadastrados">
+                        <RecentUsersWidget />
+                    </section>
+                </div>
+
             </div>
         </AppLayout>
     )

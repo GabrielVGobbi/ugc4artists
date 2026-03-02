@@ -205,3 +205,13 @@ export function formatDateFromInput(dateStr: string) {
     const [year, month, day] = dateStr.split("-");
     return `${day}/${month}/${year}`;
 }
+
+export function formatDateShort(dateString: string | null | undefined): string {
+    if (!dateString) return '-'
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    })
+}
+

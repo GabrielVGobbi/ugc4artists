@@ -19,5 +19,4 @@ const { container } = render(
 )
 
 const headerCells = container.querySelectorAll('thead th')
-console.log('Header cells count:', headerCells.length)
-console.log('Expected: 1')
+

@@ -20,7 +20,6 @@ class DashboardService
             'featuredCampaign' => $this->getFeaturedCampaign($user),
             'recentCampaigns' => $this->getRecentCampaigns($user),
             'recentPayments' => $this->getRecentPayments($user),
-            'topArtists' => [], // TODO: implementar depois
         ];
     }
 
@@ -91,9 +90,7 @@ class DashboardService
                 'id' => $p->id,
                 'uuid' => $p->uuid,
                 'amount' => $p->amount_cents,
-                'status' => $p->status->value,
-                'statusLabel' => $p->status->getLabelText(),
-                'statusColor' => $p->status->getLabelColor(),
+                'status' => $p->status->toPresenterArray(),
                 'paymentMethod' => $p->payment_method?->value,
                 'createdAt' => $p->created_at?->format('d/m/Y H:i'),
                 'paidAt' => $p->paid_at?->format('d/m/Y H:i'),

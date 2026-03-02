@@ -150,8 +150,8 @@ export function DataTable<T>({
                 <table className="w-full caption-bottom text-sm">
                     <thead
                         className={cn(
-                            '[&_tr]:border-b bg-[#291e16] [&_tr]:border-sidebar-border/70 ',
-                            stickyHeader && 'sticky top-0 z-10 bg-primary backdrop-blur  supports-backdrop-filter:bg-primary'
+                            '[&_tr]:border-b [&_tr]:border-sidebar-border/70 ',
+                            stickyHeader && 'sticky top-0 z-10 bg-[#333333] backdrop-blur  '
                         )}
                     >
                         <tr className="border-b border-sidebar-border/70 transition-colors data-[state=selected]:bg-muted">
@@ -188,7 +188,7 @@ export function DataTable<T>({
                                 <th
                                     key={column.key}
                                     className={cn(
-                                        'h-12 px-4 text-left align-middle font-medium text-white [&:has([role=checkbox])]:pr-0',
+                                        'h-13 px-4 text-left text-xs align-middle font-extralight text-white [&:has([role=checkbox])]:pr-0',
                                         // Add rounded corners to first and last columns since we removed overflow-hidden from container
                                         'first:rounded-tl-xl last:rounded-tr-xl',
                                         alignmentClasses[column.align ?? 'left'],

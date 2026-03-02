@@ -1,84 +1,52 @@
-import { ReactNode } from 'react';
-
 type ExpandableTruncateControlledProps = {
-    text?: string;
-    children?: ReactNode;
-    expandedContent?: ReactNode;
+    text: string;
     maxWidth?: number | string;
     isOpen: boolean;
     onOpen: () => void;
     onClose: () => void;
-    className?: string;
-    expandedClassName?: string;
 };
 
 export function ExpandableTruncateControlled({
     text,
-    children,
-    expandedContent,
     maxWidth = 240,
     isOpen,
     onOpen,
     onClose,
-    className = '',
-    expandedClassName = '',
 }: ExpandableTruncateControlledProps) {
-    // Se children foi fornecido, usa ele; senão usa text truncado
-    const renderTrigger = () => {
-        if (children) {
-            return children;
-        }
-
-        return (
-            <span
-                className="block"
-                style={{
-                    maxWidth,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                }}
-            >
-                {text}
-            </span>
-        );
-    };
-
-    // Se expandedContent foi fornecido, usa ele; senão usa text
-    const renderExpanded = () => {
-        if (expandedContent) {
-            return expandedContent;
-        }
-
-        return (
-            <div className="text-sm whitespace-pre-wrap wrap-break-word select-text">
-                {text}
-            </div>
-        );
-    };
-
     return (
-        <div className={`relative ${className}`}>
+        <div className="relative">
             <button
                 type="button"
                 onClick={onOpen}
                 className="cursor-pointer block text-left w-full"
                 aria-expanded={isOpen}
-                title={typeof text === 'string' ? text : undefined}
+                title={text}
             >
-                {renderTrigger()}
+                <span
+                    className="block"
+                    style={{
+                        maxWidth,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                    }}
+                >
+                    {text}
+                </span>
             </button>
 
             {isOpen && (
                 <div
-                    className={`cursor-pointer absolute z-50 mt-2 w-[min(28rem,80vw)] rounded-xl border bg-white p-3 shadow-lg ${expandedClassName}`}
+                    className="cursor-pointer absolute z-50 mt-2 w-[min(28rem,80vw)] rounded-xl border bg-white p-3 shadow-lg"
                     role="dialog"
                     tabIndex={-1}
                     onKeyDown={(e) => {
                         if (e.key === "Escape") onClose();
                     }}
                 >
-                    {renderExpanded()}
+                    <div className="text-sm whitespace-pre-wrap wrap-break-word select-text">
+                        {text}
+                    </div>
 
                     <div className="mt-3 flex justify-end">
                         <button
