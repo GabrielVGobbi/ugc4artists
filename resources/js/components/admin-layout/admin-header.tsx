@@ -35,14 +35,18 @@ const getPageMeta = (breadcrumbs: BreadcrumbItem[]) => {
 
 interface AdminHeaderProps {
     breadcrumbs?: BreadcrumbItem[]
+    title?: string
     onMobileMenuOpen: () => void
 }
 
-export const AdminHeader = ({ breadcrumbs = [], onMobileMenuOpen }: AdminHeaderProps) => {
+export const AdminHeader = ({ breadcrumbs = [], title: pageTitle, onMobileMenuOpen }: AdminHeaderProps) => {
     const { props } = usePage<SharedData>()
     const user = props.auth?.user?.data ?? null
     const { title, subtitle } = getPageMeta(breadcrumbs)
     const [hasNotification] = useState(true)
+
+    // Use pageTitle if provided, otherwise use the title from breadcrumbs, fallback to 'Dashboard'
+    const displayTitle = pageTitle || title || 'Dashboard'
 
     const handleLogout = () => router.post(logout().url)
 
@@ -67,7 +71,7 @@ export const AdminHeader = ({ breadcrumbs = [], onMobileMenuOpen }: AdminHeaderP
                         Painel administrativo
                     </p>
                     <h1 className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">
-                        Dashboard
+                        {displayTitle}
                     </h1>
                 </div>
 

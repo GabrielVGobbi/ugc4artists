@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\DevController;
 use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\Admin\WaitlistController;
 use App\Http\Controllers\Api\AccountApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
 use App\Http\Controllers\App\DashboardAppController;
@@ -28,6 +29,8 @@ Route::name('admin.')->prefix('admin')->middleware(['auth', 'role:admin'])->grou
     Route::get('/teste-email', [AdminController::class, 'testeEmail'])->name('teste.email');
     Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
     Route::get('/campaigns/{campaign}', [CampaignController::class, 'show'])->name('campaigns.show');
+    Route::get('/waitlist', [WaitlistController::class, 'index'])->name('waitlist.index');
+    Route::get('/waitlist/{id}', [WaitlistController::class, 'show'])->name('waitlist.show');
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('/components/{componentName?}', [DevController::class, 'index'])->name('dev.component');
 });

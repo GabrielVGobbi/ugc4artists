@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             AddressSeeder::class,
             #NotificationSeeder::class,
             CampaignSeeder::class,
+            WaitlistRegistrationSeeder::class,
         ]);
     }
 }

@@ -137,7 +137,7 @@ export default function ShowUser({ userData }: ShowProps) {
     const AccountTypeIcon = accountType.icon
 
     return (
-        <AdminLayoutWrapper>
+        <AdminLayoutWrapper title={`Usuário - ${user.name}`}>
             <Head title={user.name} />
 
             {/* Header */}

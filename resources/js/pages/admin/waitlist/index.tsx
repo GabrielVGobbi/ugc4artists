@@ -1,8 +1,8 @@
-import { Head, Link } from '@inertiajs/react'
-import { Eye, } from 'lucide-react'
+import { Head, router } from '@inertiajs/react'
+import { Calendar, Mail, MapPin, Music, User } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { CopyText } from '@/components/copy-text'
-import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { FlexibleDataTable, type Column } from '@/components/ui/data-table'
 import { useTableFilters } from '@/hooks/use-table-filters'
 import type {
@@ -13,52 +13,44 @@ import type {
 import { filterValuesToQueryParams } from '@/types/filters'
 import { ExpandableTruncateControlled } from '@/components/ui/data-table/expanded-cell'
 import { AdminLayoutWrapper } from '@/components/admin-layout'
-import type { User } from '@/types'
-import UsersController from '@/actions/App/Http/Controllers/Admin/UsersController'
+import type { WaitlistRegistration } from '@/types'
 import { useGenericResource } from '@/hooks/resources/generic'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
+import WaitlistController from '@/actions/App/Http/Controllers/Admin/WaitlistController'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-//const breadcrumbs: BreadcrumbItem[] = [
-//    { title: 'Dashboard', href: '/dashboard' },
-//    { title: 'Usuários', href: '/users' },
-//]
-
 /**
- * Filter categories configuration for users
+ * Filter categories configuration
  */
 const filterCategories: FilterCategoryConfig[] = [
     {
-        id: 'account_type',
-        title: 'Tipo de Conta',
+        id: 'creation_availability',
+        title: 'Disponibilidade',
         type: 'select',
         options: [
-            { value: 'artist', label: 'Artista' },
-            { value: 'brand', label: 'Curador' },
-            { value: 'company', label: 'Empresa' },
+            { value: 'immediate', label: 'Imediato' },
+            { value: '1-2_weeks', label: '1-2 semanas' },
+            { value: '1_month', label: '1 mês' },
+            { value: 'not_sure', label: 'Não tenho certeza' },
         ],
     },
     {
-        id: 'email_verified',
-        title: 'Email Verificado',
+        id: 'email_sent',
+        title: 'Email Enviado',
         type: 'select',
         options: [
-            { value: 'verified', label: 'Verificado' },
-            { value: 'unverified', label: 'Não Verificado' },
+            { value: 'sent', label: 'Enviado' },
+            { value: 'pending', label: 'Pendente' },
         ],
     },
     {
-        id: 'onboarding_completed',
-        title: 'Onboarding',
+        id: 'terms_accepted',
+        title: 'Termos Aceitos',
         type: 'select',
         options: [
-            { value: 'completed', label: 'Completado' },
+            { value: 'accepted', label: 'Aceito' },
             { value: 'pending', label: 'Pendente' },
         ],
     },
@@ -68,8 +60,7 @@ const filterCategories: FilterCategoryConfig[] = [
  * Date columns for the header date filter section
  */
 const dateFilterColumns: DateColumn[] = [
-    { value: 'created_at', label: 'Data de Criação' },
-    { value: 'updated_at', label: 'Última Atualização' },
+    { value: 'created_at', label: 'Data de Cadastro' },
 ]
 
 const quickFilters: QuickFilter[] = []
@@ -78,21 +69,21 @@ const quickFilters: QuickFilter[] = []
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function UsersIndex() {
+export default function WaitlistIndex() {
     // ─────────────────────────────────────────────────────────────────────────
     // State
     // ─────────────────────────────────────────────────────────────────────────
     const [search, setSearch] = useState('')
-    const [sortBy, setSortBy] = useState<string>('name')
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-    const [openId, setOpenId] = useState<string | number | null>(null);
+    const [sortBy, setSortBy] = useState<string>('created_at')
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+    const [openId, setOpenId] = useState<string | number | null>(null)
 
     // ─────────────────────────────────────────────────────────────────────────
     // Filters Hook
     // ─────────────────────────────────────────────────────────────────────────
     const filters = useTableFilters({
         categories: filterCategories,
-        cacheKey: 'users',
+        cacheKey: 'waitlist',
         cacheConfig: {
             ttl: 24 * 60 * 60 * 1000, // 24 horas
             version: 1,
@@ -107,7 +98,7 @@ export default function UsersIndex() {
     // ─────────────────────────────────────────────────────────────────────────
     // Data Fetching
     // ─────────────────────────────────────────────────────────────────────────
-    const users = useGenericResource<User>('users', {
+    const waitlist = useGenericResource<WaitlistRegistration>('waitlist', {
         search,
         sortBy,
         sortDirection,
@@ -129,28 +120,30 @@ export default function UsersIndex() {
         [sortBy]
     )
 
+    const handleRowClick = useCallback((registration: WaitlistRegistration) => {
+        router.visit(WaitlistController.show(registration.id))
+    }, [])
+
     // ─────────────────────────────────────────────────────────────────────────
     // Columns Definition
     // ─────────────────────────────────────────────────────────────────────────
 
-    const columns: Column<User>[] = [
+    const columns: Column<WaitlistRegistration>[] = [
         {
-            key: 'name',
-            header: 'Nome',
-            accessorKey: 'name',
+            key: 'stage_name',
+            header: 'Artista',
+            accessorKey: 'stage_name',
             sortable: true,
             cell: (row) => {
-                const name = row.name;
-                const user = row;
-                if (!name) return <span>-</span>;
+                const name = row.stage_name
+                if (!name) return <span>-</span>
 
-                const uniqueRowId = row.id;
+                const uniqueRowId = row.id
 
                 return (
-
                     <div className="flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-primary/20 to-primary/10 text-sm font-semibold text-primary">
-                            {user.name.charAt(0).toUpperCase()}
+                        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                            {name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex flex-col">
                             <ExpandableTruncateControlled
@@ -161,37 +154,105 @@ export default function UsersIndex() {
                                 onClose={() => setOpenId(null)}
                             />
                             <span className="text-xs text-muted-foreground">
-                                {user.email}
+                                {row.contact_email}
                             </span>
                         </div>
                     </div>
-                );
-            }
+                )
+            },
         },
 
         {
-            key: 'phone',
-            header: 'Telefone',
-            cell: (user: User) => (
-                <div className="font-mono text-sm">
-                    <span className="flex items-center gap-1">
-                        <CopyText text={user.phone ?? ''}>
-                            {user.phone}
-                        </CopyText>
-                    </span>
+            key: 'city_state',
+            header: 'Localização',
+            cell: (row: WaitlistRegistration) => (
+                <div className="flex items-center gap-2 text-sm">
+                    {row.city_state ? (
+                        <>
+                            <MapPin className="size-3.5 text-muted-foreground" />
+                            <span>{row.city_state}</span>
+                        </>
+                    ) : (
+                        <span className="text-muted-foreground">-</span>
+                    )}
                 </div>
             ),
             hideOnMobile: true,
         },
 
         {
-            key: 'account_type',
-            header: 'Tipo de Conta',
-            cell: (user: User) => (
-                <div className="font-mono text-sm">
-                    <span className="flex items-center gap-1">
-                        {user.account_type}
+            key: 'artist_types',
+            header: 'Tipos',
+            cell: (row: WaitlistRegistration) => (
+                <div className="flex flex-wrap gap-1">
+                    {row.artist_types && row.artist_types.length > 0 ? (
+                        row.artist_types.slice(0, 2).map((type, idx) => (
+                            <Badge
+                                key={idx}
+                                variant="primary"
+                                className="text-xs"
+                            >
+                                {type}
+                            </Badge>
+                        ))
+                    ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                    )}
+                    {row.artist_types && row.artist_types.length > 2 && (
+                        <Badge variant="outline" className="text-xs">
+                            +{row.artist_types.length - 2}
+                        </Badge>
+                    )}
+                </div>
+            ),
+            hideOnMobile: true,
+        },
+
+        {
+            key: 'creation_availability',
+            header: 'Disponibilidade',
+            cell: (row: WaitlistRegistration) => {
+                const availabilityLabels: Record<string, string> = {
+                    immediate: 'Imediato',
+                    '1-2_weeks': '1-2 semanas',
+                    '1_month': '1 mês',
+                    not_sure: 'Não tenho certeza',
+                }
+
+                return (
+                    <span className="text-sm">
+                        {row.creation_availability
+                            ? availabilityLabels[row.creation_availability] ||
+                              row.creation_availability
+                            : '-'}
                     </span>
+                )
+            },
+            hideOnMobile: true,
+        },
+
+        {
+            key: 'status',
+            header: 'Status',
+            cell: (row: WaitlistRegistration) => (
+                <div className="flex flex-col gap-1">
+                    {row.email_sent ? (
+                        <Badge
+                            variant="default"
+                            className="gap-1 bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                        >
+                            <Mail className="size-3" />
+                            Email enviado
+                        </Badge>
+                    ) : (
+                        <Badge
+                            variant="outline"
+                            className="gap-1 border-amber-500/20 bg-amber-500/10 text-amber-600"
+                        >
+                            <Mail className="size-3" />
+                            Pendente
+                        </Badge>
+                    )}
                 </div>
             ),
             hideOnMobile: true,
@@ -199,32 +260,14 @@ export default function UsersIndex() {
 
         {
             key: 'created_at',
-            header: 'Criado em',
+            header: 'Cadastrado',
             sortable: true,
-            cell: (user: User) => (
-                <>{user.created_at}</>
+            cell: (row: WaitlistRegistration) => (
+                <span className="text-sm text-muted-foreground">
+                    {row.created_at_human || row.created_at}
+                </span>
             ),
             hideOnMobile: true,
-        },
-        {
-            key: 'actions',
-            header: 'Ações',
-            align: 'right',
-            width: '150px',
-            cell: (user: User) => (
-                <div className="flex items-center justify-end gap-1">
-                    <Link href={UsersController.show(user.id)} prefetch>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 hover:bg-primary/10 hover:text-primary"
-                            aria-label="Ver detalhes"
-                        >
-                            <Eye className="size-4" />
-                        </Button>
-                    </Link>
-                </div>
-            ),
         },
     ]
 
@@ -233,22 +276,23 @@ export default function UsersIndex() {
     // ─────────────────────────────────────────────────────────────────────────
 
     return (
-        <AdminLayoutWrapper title="Usuários">
-            <Head title="Usuários" />
+        <AdminLayoutWrapper title="Lista de Espera">
+            <Head title="Lista de Espera" />
 
-            <div className="mx-auto  max-w-7xl px-4 lg:px-8 pt-5">
-
-                {/* Table Container - now letting FlexibleDataTable handle the border/radius */}
-                <FlexibleDataTable<User>
+            <div className="mx-auto max-w-7xl px-4 pt-5 lg:px-8">
+                {/* Table Container */}
+                <FlexibleDataTable<WaitlistRegistration>
                     mode="infinite-scroll"
-                    resource={users}
+                    resource={waitlist}
                     columns={columns}
-                    keyExtractor={(users) => users.id}
+                    keyExtractor={(registration) => registration.id}
+                    onRowClick={handleRowClick}
                     searchConfig={{
                         value: search,
                         onChange: setSearch,
-                        placeholder: 'Buscar por nome, email ou documento...',
-                        className: 'sm:w-96 rounded-lg'
+                        placeholder:
+                            'Buscar por nome, email, cidade ou redes sociais...',
+                        className: 'sm:w-96 rounded-lg',
                     }}
                     sortConfig={{
                         sortBy,
@@ -263,19 +307,17 @@ export default function UsersIndex() {
                         showDateFilter: true,
                         dateFilterColumns,
                         showActiveFilters: true,
-                        // Quick filters appear beside search for instant access
                         quickFilters,
                         quickFiltersPosition: 'after',
                     }}
                     infiniteScrollConfig={{
-                        height: 'calc(100vh - 280px)', // Dynamic height calculation
-                        endOfListMessage: 'Todos os usuários foram carregados.',
+                        height: 'calc(100vh - 280px)',
+                        endOfListMessage:
+                            'Todos os cadastros foram carregados.',
                     }}
-                    emptyMessage="Nenhum usuário encontrado"
+                    emptyMessage="Nenhum cadastro encontrado"
                 />
             </div>
-
-
         </AdminLayoutWrapper>
     )
 }

@@ -228,6 +228,42 @@ declare global {
 }
 
 
+export interface WaitlistRegistration {
+    id: number;
+    stage_name: string;
+    contact_email: string;
+
+    // Social handles
+    instagram_handle?: string | null;
+    youtube_handle?: string | null;
+    tiktok_handle?: string | null;
+
+    // Details
+    artist_types: string[];
+    other_artist_type?: string | null;
+    main_genre?: string | null;
+    participation_types: string[];
+    portfolio_link?: string | null;
+    city_state?: string | null;
+    creation_availability?: string | null;
+
+    // Status
+    terms_accepted_at?: string | null;
+    terms_accepted: boolean;
+    email_sent_at?: string | null;
+    email_sent: boolean;
+
+    // Timestamps
+    created_at: string;
+    created_at_human?: string;
+    created_at_formatted?: string;
+    updated_at: string;
+    updated_at_human?: string;
+    updated_at_formatted?: string;
+    terms_accepted_at_formatted?: string | null;
+    email_sent_at_formatted?: string | null;
+}
+
 export interface UserAdminDetail {
   id: number;
   uuid: string;

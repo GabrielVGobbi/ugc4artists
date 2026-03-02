@@ -5,6 +5,7 @@ use App\Http\Controllers\App\WalletAppController as WalletApp;
 use App\Http\Controllers\Api\AccountApiController;
 use App\Http\Controllers\Api\Admin\CampaignModerationApiController;
 use App\Http\Controllers\Api\Admin\UsersApiController;
+use App\Http\Controllers\Api\Admin\WaitlistApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
 use App\Http\Controllers\Api\CampaignApiController;
 use App\Http\Controllers\Api\NotificationController;
@@ -128,6 +129,8 @@ Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:admin'])->
         Route::get('/payments', [TablesApiController::class, 'dashboardPayments'])->name('payments');
         Route::get('/waitlist', [TablesApiController::class, 'dashboardWaitlist'])->name('waitlist');
         Route::get('/recent-users', [TablesApiController::class, 'dashboardRecentUsers'])->name('recent-users');
+        Route::get('/recent-waitlist', [TablesApiController::class, 'dashboardRecentWaitlist'])->name('recent-waitlist');
+        Route::get('/campaigns-stats', [TablesApiController::class, 'dashboardCampaignsStats'])->name('campaigns-stats');
     });
 
     Route::name('admin.campaigns.')->prefix('admin/campaigns')->group(function () {
@@ -137,6 +140,13 @@ Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:admin'])->
         Route::post('/{campaign}/refuse', [CampaignModerationApiController::class, 'refuse'])->name('refuse');
         Route::patch('/{campaign}/status', [CampaignModerationApiController::class, 'updateStatus'])->name('status');
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lista de Espera
+    |--------------------------------------------------------------------------
+    */
+    Route::get('waitlist', [WaitlistApiController::class, 'index'])->name('index');
 
     Route::middleware(['role:developer'])->group(function () {
         Route::apiResource('users', UsersApiController::class);

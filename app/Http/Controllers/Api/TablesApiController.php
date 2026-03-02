@@ -543,6 +543,79 @@ class TablesApiController extends Controller
         ]);
     }
 
+    public function dashboardRecentWaitlist(Request $request)
+    {
+        $limit = (int) $request->input('limit', 8);
+        $limit = max(5, min($limit, 20));
+
+        $registrations = WaitlistRegistration::query()
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+
+        $totalToday = WaitlistRegistration::query()
+            ->whereDate('created_at', Carbon::today())
+            ->count();
+
+        $totalThisMonth = WaitlistRegistration::query()
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
+
+        $totalAll = WaitlistRegistration::count();
+
+        return response()->json([
+            'summary' => [
+                'total_today' => $totalToday,
+                'total_this_month' => $totalThisMonth,
+                'total' => $totalAll,
+            ],
+            'data' => $registrations->map(fn(WaitlistRegistration $registration) => [
+                'id' => $registration->id,
+                'stage_name' => $registration->stage_name,
+                'contact_email' => $registration->contact_email,
+                'city_state' => $registration->city_state,
+                'creation_availability' => $registration->creation_availability,
+                'artist_types' => $registration->artist_types ?? [],
+                'email_sent' => ! is_null($registration->email_sent_at),
+                'created_at' => $registration->created_at?->diffForHumans(),
+                'created_at_formatted' => $registration->created_at?->format('d/m/Y H:i'),
+            ]),
+        ]);
+    }
+
+    public function dashboardCampaignsStats(Request $request)
+    {
+        // Placeholder: Como não temos model Campaign ainda, vamos retornar dados zerados
+        // Quando o model Campaign estiver disponível, substitua esta implementação
+
+        $totalAllocated = 0;
+        $statusBreakdown = [
+            ['status' => 'in_progress', 'label' => 'Em Andamento', 'amount_cents' => 0, 'color' => 'bg-black'],
+            ['status' => 'approved', 'label' => 'Aprovadas (Pagar)', 'amount_cents' => 0, 'color' => 'bg-[#ff7900]'],
+            ['status' => 'under_review', 'label' => 'Em Análise', 'amount_cents' => 0, 'color' => 'bg-yellow-400'],
+            ['status' => 'draft', 'label' => 'Rascunho', 'amount_cents' => 0, 'color' => 'bg-gray-300'],
+        ];
+
+        $platformBreakdown = [
+            ['platform' => 'TikTok', 'amount_cents' => 0, 'percentage' => 0, 'color' => 'bg-black'],
+            ['platform' => 'Instagram Reels', 'amount_cents' => 0, 'percentage' => 0, 'color' => 'bg-[#ff7900]'],
+            ['platform' => 'YouTube Shorts', 'amount_cents' => 0, 'percentage' => 0, 'color' => 'bg-gray-300'],
+            ['platform' => 'Outros', 'amount_cents' => 0, 'percentage' => 0, 'color' => 'bg-gray-800'],
+        ];
+
+        // TODO: Quando o model Campaign existir, implementar queries reais:
+        // $campaigns = Campaign::query()->get();
+        // Calcular totalAllocated, statusBreakdown, platformBreakdown baseado nos dados reais
+
+        return response()->json([
+            'total_allocated_cents' => $totalAllocated,
+            'growth_rate' => 0.0,
+            'status_breakdown' => $statusBreakdown,
+            'platform_breakdown' => $platformBreakdown,
+        ]);
+    }
+
     private function resolveDashboardDateRange(Request $request): array
     {
         $period = $request->string('period')->toString() ?: 'month';

@@ -41,6 +41,7 @@ import {
     Mail,
     CalendarDays,
     Icon,
+    Music,
 } from 'lucide-react'
 import { useMemo, useState, useCallback } from 'react'
 import {
@@ -180,6 +181,48 @@ interface RecentUsersResponse {
         total: number
     }
     data: RecentUserItem[]
+}
+
+interface RecentWaitlistItem {
+    id: number
+    stage_name: string
+    contact_email: string
+    city_state: string | null
+    creation_availability: string
+    artist_types: string[]
+    email_sent: boolean
+    created_at: string
+    created_at_formatted: string
+}
+
+interface RecentWaitlistResponse {
+    summary: {
+        total_today: number
+        total_this_month: number
+        total: number
+    }
+    data: RecentWaitlistItem[]
+}
+
+interface CampaignStatusItem {
+    status: string
+    label: string
+    amount_cents: number
+    color: string
+}
+
+interface PlatformBreakdownItem {
+    platform: string
+    amount_cents: number
+    percentage: number
+    color: string
+}
+
+interface CampaignsStatsResponse {
+    total_allocated_cents: number
+    growth_rate: number
+    status_breakdown: CampaignStatusItem[]
+    platform_breakdown: PlatformBreakdownItem[]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -481,7 +524,8 @@ const AVATAR_GRADIENTS = [
 ]
 
 function getAvatarGradient(id: number): string {
-    return AVATAR_GRADIENTS[id % AVATAR_GRADIENTS.length]
+    //return AVATAR_GRADIENTS[id % AVATAR_GRADIENTS.length]
+    return 'from-amber-400 to-yellow-600';
 }
 
 function UserAvatar({ user }: { user: RecentUserItem }) {
@@ -681,6 +725,200 @@ function RecentUsersWidget() {
     )
 }
 
+function WaitlistAvatar({ registration }: { registration: RecentWaitlistItem }) {
+    return (
+        <div
+            className={`size-9 rounded-full bg-gradient-to-br ${getAvatarGradient(registration.id)} flex items-center justify-center ring-2 ring-white`}
+        >
+            <span className="text-[11px] font-bold text-white">
+                {getInitials(registration.stage_name)}
+            </span>
+        </div>
+    )
+}
+
+function RecentWaitlistSkeleton() {
+    return (
+        <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-2.5 animate-pulse">
+                    <div className="size-9 rounded-full bg-zinc-100 shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                        <div className="h-3 bg-zinc-100 rounded w-2/5" />
+                        <div className="h-2.5 bg-zinc-100 rounded w-3/5" />
+                    </div>
+                    <div className="h-5 w-16 bg-zinc-100 rounded-full shrink-0" />
+                </div>
+            ))}
+        </div>
+    )
+}
+
+const AVAILABILITY_LABELS: Record<string, string> = {
+    immediate: 'Imediato',
+    '1-2_weeks': '1-2 semanas',
+    '1_month': '1 mês',
+    not_sure: 'Não tenho certeza',
+}
+
+function RecentWaitlistWidget() {
+    const query = useQuery({
+        queryKey: ['admin-dashboard-recent-waitlist'],
+        queryFn: async () => {
+            const res = await http.get<RecentWaitlistResponse>(
+                '/api/v1/admin/dashboard/recent-waitlist',
+                { params: { limit: 8 } },
+            )
+            return res.data
+        },
+        refetchInterval: 60_000,
+    })
+
+    const summary = query.data?.summary
+    const registrations = query.data?.data ?? []
+
+    return (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-zinc-100">
+                <div className="flex items-center gap-3">
+                    <div>
+                        <h3 className="text-base font-bold text-zinc-900 leading-tight">
+                            Últimos Cadastros na Waitlist
+                        </h3>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                            Artistas mais recentes na lista de espera
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => query.refetch()}
+                        disabled={query.isFetching}
+                        className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-colors disabled:opacity-40"
+                        aria-label="Atualizar lista de waitlist"
+                    >
+                        <RefreshCw className={`size-3.5 ${query.isFetching ? 'animate-spin' : ''}`} />
+                    </button>
+                    <Link
+                        href="/admin/waitlist"
+                        className="flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+                        aria-label="Ver todos os cadastros"
+                    >
+                        Ver todos
+                        <ExternalLink className="size-3" />
+                    </Link>
+                </div>
+            </div>
+
+            {/* Summary pills */}
+            {summary && (
+                <div className="flex items-center gap-2 px-5 py-3 bg-zinc-50/60 border-b border-zinc-100">
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-600">
+                        <CalendarDays className="size-3.5 text-zinc-400" />
+                        <span className="font-semibold text-zinc-900">{summary.total_today}</span>
+                        <span>hoje</span>
+                    </div>
+                    <span className="text-zinc-200">·</span>
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-600">
+                        <span className="font-semibold text-zinc-900">{summary.total_this_month}</span>
+                        <span>este mês</span>
+                    </div>
+                    <span className="text-zinc-200">·</span>
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-600">
+                        <Music className="size-3.5 text-zinc-400" />
+                        <span className="font-semibold text-zinc-900">{summary.total.toLocaleString('pt-BR')}</span>
+                        <span>total</span>
+                    </div>
+                </div>
+            )}
+
+            {/* List */}
+            <div className="divide-y divide-zinc-50">
+                {query.isLoading ? (
+                    <div className="py-2">
+                        <RecentWaitlistSkeleton />
+                    </div>
+                ) : query.isError ? (
+                    <div className="flex flex-col items-center justify-center py-10 gap-2 text-zinc-400">
+                        <XCircle className="size-8 text-rose-300" />
+                        <p className="text-sm">Falha ao carregar cadastros</p>
+                        <button
+                            type="button"
+                            onClick={() => query.refetch()}
+                            className="text-xs text-zinc-500 underline hover:text-zinc-800"
+                        >
+                            Tentar novamente
+                        </button>
+                    </div>
+                ) : registrations.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 gap-2 text-zinc-400">
+                        <Music className="size-8" />
+                        <p className="text-sm">Nenhum cadastro na waitlist ainda</p>
+                    </div>
+                ) : (
+                    registrations.map((registration) => {
+                        return (
+                            <div
+                                key={registration.id}
+                                className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50/70 transition-colors group"
+                            >
+                                <div className="relative shrink-0">
+                                    <WaitlistAvatar registration={registration} />
+                                    {registration.email_sent && (
+                                        <span
+                                            className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-white flex items-center justify-center"
+                                            title="E-mail enviado"
+                                        >
+                                            <Mail className="size-2.5 text-emerald-500" />
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-zinc-900 truncate leading-tight">
+                                        {registration.stage_name}
+                                    </p>
+                                    <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                                        {registration.contact_email}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                    {registration.creation_availability && (
+                                        <Badge variant="outline" className="border-zinc-200 text-zinc-700 text-[10px]">
+                                            {AVAILABILITY_LABELS[registration.creation_availability] || registration.creation_availability}
+                                        </Badge>
+                                    )}
+                                    <span className="text-[10px] text-zinc-400 whitespace-nowrap">
+                                        {registration.created_at}
+                                    </span>
+                                </div>
+                            </div>
+                        )
+                    })
+                )}
+            </div>
+
+            {/* Footer */}
+            {!query.isLoading && registrations.length > 0 && (
+                <div className="px-5 py-3 border-t border-zinc-100 bg-zinc-50/40">
+                    <Link
+                        href="/admin/waitlist"
+                        className="flex items-center justify-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors w-full"
+                        aria-label="Ver todos os cadastros da waitlist"
+                    >
+                        Ver todos os cadastros da waitlist
+                        <ArrowUpRight className="size-3" />
+                    </Link>
+                </div>
+            )}
+        </div>
+    )
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -721,6 +959,17 @@ export default function Dashboard() {
             )
             return res.data
         },
+    })
+
+    const campaignsStatsQuery = useQuery({
+        queryKey: ['admin-dashboard-campaigns-stats'],
+        queryFn: async () => {
+            const res = await http.get<CampaignsStatsResponse>(
+                '/api/v1/admin/dashboard/campaigns-stats',
+            )
+            return res.data
+        },
+        refetchInterval: 60_000,
     })
 
     // ── Handlers ───────────────────────────────────────────────────────
@@ -993,20 +1242,12 @@ export default function Dashboard() {
         [waitlistSummary?.availability_breakdown],
     )
 
-    const RECENT_PROPOSALS = [
-        { id: 'PRP-001', artist: 'Banda Fator X', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d', campaign: 'Lançamento Single "Neon"', platform: 'TikTok', value: 'R$ 850,00' },
-        { id: 'PRP-002', artist: 'DJ Clara', avatar: 'https://i.pravatar.cc/150?u=a04258a2462d826712d', campaign: 'Trend Challenge "Verão"', platform: 'Reels', value: 'R$ 1.200,00' },
-        { id: 'PRP-003', artist: 'MC Silva', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', campaign: 'Divulgação EP Acústico', platform: 'Shorts', value: 'R$ 500,00' },
-        { id: 'PRP-004', artist: 'Ana & Vitória', avatar: 'https://i.pravatar.cc/150?u=a048581f4e29026701d', campaign: 'Lançamento Single "Neon"', platform: 'TikTok', value: 'R$ 900,00' },
-        { id: 'PRP-005', artist: 'Grupo Sambô', avatar: 'https://i.pravatar.cc/150?u=a04258114e29026702d', campaign: 'Cobertura de Show', platform: 'Reels', value: 'R$ 2.500,00' },
-    ];
-
-    const BUDGET_BREAKDOWN = [
-        { category: 'TikTok Creators', value: 'R$ 22.900', percentage: 50, color: 'bg-black' },
-        { category: 'Instagram Reels', value: 'R$ 13.740', percentage: 30, color: 'bg-[#ff7900]' },
-        { category: 'YouTube Shorts', value: 'R$ 6.870', percentage: 15, color: 'bg-gray-300' },
-        { category: 'Outros (Twitch, etc)', value: 'R$ 2.290', percentage: 5, color: 'bg-gray-800' },
-    ];
+    // Campaign stats data
+    const campaignsStats = campaignsStatsQuery.data
+    const statusBreakdown = campaignsStats?.status_breakdown ?? []
+    const platformBreakdown = campaignsStats?.platform_breakdown ?? []
+    const totalAllocated = campaignsStats?.total_allocated_cents ?? 0
+    const growthRate = campaignsStats?.growth_rate ?? 0
 
     // ── Render ─────────────────────────────────────────────────────────
     return (
@@ -1076,56 +1317,77 @@ export default function Dashboard() {
                             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-lg font-bold text-gray-900">Status das Campanhas</h3>
-                                    <button className="px-3 py-1 border border-gray-200 rounded-md text-xs font-medium text-gray-600 hover:bg-gray-50">
-                                        Geral
+                                    <button
+                                        type="button"
+                                        onClick={() => campaignsStatsQuery.refetch()}
+                                        className="px-3 py-1 border border-gray-200 rounded-md text-xs font-medium text-gray-600 hover:bg-gray-50"
+                                    >
+                                        {campaignsStatsQuery.isFetching ? 'Atualizando...' : 'Atualizar'}
                                     </button>
                                 </div>
 
                                 <div className="mb-6">
                                     <p className="text-sm text-gray-500 mb-1">Total alocado</p>
                                     <div className="flex items-baseline gap-2">
-                                        <h4 className="text-3xl font-bold text-gray-900">R$ 45.800,00</h4>
-                                        <span className="text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded">+5.2%</span>
+                                        <h4 className="text-3xl font-bold text-gray-900">
+                                            {formatCurrency(totalAllocated)}
+                                        </h4>
+                                        {growthRate !== 0 && (
+                                            <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                                                growthRate > 0
+                                                    ? 'text-green-600 bg-green-50'
+                                                    : 'text-red-600 bg-red-50'
+                                            }`}>
+                                                {growthRate > 0 ? '+' : ''}{growthRate.toFixed(1)}%
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="flex h-3 rounded-full overflow-hidden mb-8">
-                                    <div className="bg-black w-[45%]"></div>
-                                    <div className="bg-[#ff7900] w-[30%]"></div>
-                                    <div className="bg-yellow-400 w-[15%]"></div>
-                                    <div className="bg-gray-300 w-[10%]"></div>
-                                </div>
+                                {statusBreakdown.length > 0 && (
+                                    <>
+                                        <div className="flex h-3 rounded-full overflow-hidden mb-8">
+                                            {statusBreakdown.map((item, idx) => {
+                                                const percentage = totalAllocated > 0
+                                                    ? (item.amount_cents / totalAllocated) * 100
+                                                    : 0
+                                                return percentage > 0 ? (
+                                                    <div
+                                                        key={idx}
+                                                        className={item.color}
+                                                        style={{ width: `${percentage}%` }}
+                                                    />
+                                                ) : null
+                                            })}
+                                        </div>
 
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-black"></div>
-                                            <span className="text-gray-600">Em Andamento</span>
+                                        <div className="space-y-4">
+                                            {statusBreakdown.map((item, idx) => (
+                                                <div key={idx} className="flex justify-between items-center text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
+                                                        <span className="text-gray-600">{item.label}</span>
+                                                    </div>
+                                                    <span className="font-semibold text-gray-900">
+                                                        {formatCurrency(item.amount_cents)}
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
-                                        <span className="font-semibold text-gray-900">R$ 20.610</span>
+                                    </>
+                                )}
+
+                                {statusBreakdown.length === 0 && !campaignsStatsQuery.isLoading && (
+                                    <div className="text-center py-8 text-gray-400">
+                                        <p className="text-sm">Nenhuma campanha cadastrada ainda</p>
                                     </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-[#ff7900]"></div>
-                                            <span className="text-gray-600">Aprovadas (Pagar)</span>
-                                        </div>
-                                        <span className="font-semibold text-gray-900">R$ 13.740</span>
+                                )}
+
+                                {campaignsStatsQuery.isLoading && (
+                                    <div className="text-center py-8">
+                                        <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
                                     </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                                            <span className="text-gray-600">Em Análise</span>
-                                        </div>
-                                        <span className="font-semibold text-gray-900">R$ 6.870</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                                            <span className="text-gray-600">Rascunho</span>
-                                        </div>
-                                        <span className="font-semibold text-gray-900">R$ 4.580</span>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </section>
 
@@ -1136,25 +1398,46 @@ export default function Dashboard() {
                             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
                                 <h3 className="text-lg font-bold text-gray-900 mb-5">Investimento por Plataforma</h3>
 
-                                <div className="space-y-6">
-                                    {BUDGET_BREAKDOWN.map((item, index) => (
-                                        <div key={index}>
-                                            <div className="flex justify-between items-center mb-2 text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
-                                                    <span className="font-medium text-gray-700">
-                                                        {item.category}{' '}
-                                                        <span className="text-gray-400 font-normal">({item.percentage}%)</span>
+                                {platformBreakdown.length > 0 && (
+                                    <div className="space-y-6">
+                                        {platformBreakdown.map((item, index) => (
+                                            <div key={index}>
+                                                <div className="flex justify-between items-center mb-2 text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
+                                                        <span className="font-medium text-gray-700">
+                                                            {item.platform}{' '}
+                                                            <span className="text-gray-400 font-normal">
+                                                                ({item.percentage.toFixed(0)}%)
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                    <span className="font-bold text-gray-900">
+                                                        {formatCurrency(item.amount_cents)}
                                                     </span>
                                                 </div>
-                                                <span className="font-bold text-gray-900">{item.value}</span>
+                                                <div className="w-full bg-gray-100 rounded-full h-1.5">
+                                                    <div
+                                                        className={`${item.color} h-1.5 rounded-full`}
+                                                        style={{ width: `${item.percentage}%` }}
+                                                    ></div>
+                                                </div>
                                             </div>
-                                            <div className="w-full bg-gray-100 rounded-full h-1.5">
-                                                <div className={`${item.color} h-1.5 rounded-full`} style={{ width: `${item.percentage}%` }}></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {platformBreakdown.length === 0 && !campaignsStatsQuery.isLoading && (
+                                    <div className="text-center py-8 text-gray-400">
+                                        <p className="text-sm">Nenhum dado de plataforma disponível</p>
+                                    </div>
+                                )}
+
+                                {campaignsStatsQuery.isLoading && (
+                                    <div className="text-center py-8">
+                                        <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                                    </div>
+                                )}
                             </div>
                         </section>
 
@@ -1163,9 +1446,13 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <section aria-label="Últimos usuários cadastrados">
                         <RecentUsersWidget />
+                    </section>
+
+                    <section aria-label="Últimos cadastros da waitlist">
+                        <RecentWaitlistWidget />
                     </section>
                 </div>
 

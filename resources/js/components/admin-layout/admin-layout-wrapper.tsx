@@ -11,11 +11,13 @@ import { AdminSidebar } from './admin-sidebar'
 interface AdminLayoutWrapperProps {
     children: ReactNode
     breadcrumbs?: BreadcrumbItem[]
+    title?: string
 }
 
 export const AdminLayoutWrapper = ({
     children,
     breadcrumbs = [],
+    title,
 }: AdminLayoutWrapperProps) => {
     const [isMobileOpen, setIsMobileOpen] = useState(false)
 
@@ -45,6 +47,7 @@ export const AdminLayoutWrapper = ({
                 {/* Header */}
                 <AdminHeader
                     breadcrumbs={breadcrumbs}
+                    title={title}
                     onMobileMenuOpen={handleMobileOpen}
                 />
 

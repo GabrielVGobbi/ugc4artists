@@ -3,6 +3,7 @@ import { type SharedData } from '@/types'
 import { Link, router, usePage } from '@inertiajs/react'
 import {
     AlertTriangle,
+    ChartBarBig,
     ChevronDown,
     FileText,
     LayoutDashboard,
@@ -57,16 +58,20 @@ const NAVIGATION: NavItemDef[] = [
 
     },
     {
+        id: 'users',
+        label: 'Lista de Espera',
+        icon: ChartBarBig,
+        route: '/admin/waitlist',
+        section: 'management',
+
+    },
+    {
         id: 'campaigns',
         label: 'Campanhas',
         icon: Megaphone,
         route: '/admin/campaigns',
         section: 'management',
-        children: [
-            { id: 'campaigns_pending', label: 'Pendentes', route: '/admin/campaigns?status=pending_approval' },
-            { id: 'campaigns_active', label: 'Ativas', route: '/admin/campaigns?status=active' },
-            { id: 'campaigns_completed', label: 'Concluídas', route: '/admin/campaigns?status=completed' },
-        ],
+
     },
     {
         id: 'payments',
