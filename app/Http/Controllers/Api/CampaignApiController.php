@@ -23,6 +23,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class CampaignApiController extends Controller
@@ -251,7 +252,7 @@ class CampaignApiController extends Controller
             'sent_to_creators' => Campaign::byUser($userId)->byStatus(CampaignStatus::SENT_TO_CREATORS)->count(),
             'in_progress' => Campaign::byUser($userId)->byStatus(CampaignStatus::IN_PROGRESS)->count(),
             'completed' => Campaign::byUser($userId)->byStatus(CampaignStatus::COMPLETED)->count(),
-            'total_budget' => Campaign::byUser($userId)->active()->sum(\DB::raw('slots_to_approve * price_per_influencer')),
+            'total_budget' => Campaign::byUser($userId)->active()->sum(DB::raw('slots_to_approve * price_per_influencer')),
             'total_applications' => Campaign::byUser($userId)->sum('applications_count'),
         ];
 

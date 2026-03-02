@@ -45,6 +45,8 @@ export default function CampaignsIndex() {
     const [searchTerm, setSearchTerm] = useState('')
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [statusFilter, setStatusFilter] = useState<CampaignStatus | 'all'>('all')
+    const [dateFrom, setDateFrom] = useState<string>('')
+    const [dateTo, setDateTo] = useState<string>('')
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
     const [showCreateModal, setShowCreateModal] = useState(false)
 
@@ -146,9 +148,11 @@ export default function CampaignsIndex() {
         setSearchTerm('')
         setDebouncedSearch('')
         setStatusFilter('all')
+        setDateFrom('')
+        setDateTo('')
     }, [])
 
-    const hasFilters = debouncedSearch !== '' || statusFilter !== 'all'
+    const hasFilters = debouncedSearch !== '' || statusFilter !== 'all' || dateFrom !== '' || dateTo !== ''
 
     return (
         <AppLayout>
@@ -158,87 +162,145 @@ export default function CampaignsIndex() {
                 {/* Stats */}
                 <CampaignStats />
 
-                {/* Header Actions */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div className="flex-1 flex items-center gap-4 max-w-3xl">
-                        {/* Search */}
-                        <div className="relative flex-1 group">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
-                            <Input
-                                type="text"
-                                placeholder="Buscar campanhas..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-white border-border rounded-2xl py-3.5 pl-14 pr-6 text-xs font-medium focus:ring-4 focus:ring-primary/5 transition-all shadow-sm h-auto"
-                            />
-                        </div>
-
-                        {/* Status Filter */}
-                        <Select
-                            value={statusFilter}
-                            onValueChange={(value) => setStatusFilter(value as CampaignStatus | 'all')}
-                        >
-                            <SelectTrigger className="cursor-pointer w-48 bg-white rounded-2xl h-auto py-3.5 border-border shadow-sm">
-                                <div className="flex items-center gap-2">
-                                    <Filter size={14} className="text-muted-foreground" />
-                                    <SelectValue placeholder="Status" />
-                                </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos os Status</SelectItem>
-                                {Object.entries(CAMPAIGN_STATUS_LABELS).map(([value, label]) => (
-                                    <SelectItem key={value} value={value}>
-                                        {label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-
-                        {/* View Toggle */}
-                        <div className="flex items-center bg-white p-1 rounded-xl border border-border shadow-sm">
-                            <button
-                                onClick={() => setViewMode('grid')}
-                                className={`cursor-pointer p-2.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-secondary text-secondary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'}`}
-                            >
-                                <LayoutGrid size={16} />
-                            </button>
-                            <button
-                                onClick={() => setViewMode('table')}
-                                className={`cursor-pointer p-2.5 rounded-lg transition-all ${viewMode === 'table' ? 'bg-secondary text-secondary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'}`}
-                            >
-                                <List size={16} />
-                            </button>
-                        </div>
-
-                        {/* Refresh Button */}
-                        <button
-                            onClick={handleRefresh}
-                            disabled={isRefreshing || isLoading}
-                            className="cursor-pointer p-3 bg-white rounded-xl border border-border shadow-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Atualizar lista"
-                        >
-                            <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-                        </button>
-                    </div>
-
-                    {/* Create Button */}
+                {/* Header with Create Button */}
+                <div className="flex items-center justify-between gap-4">
+                    <h2 className="text-2xl font-bold text-foreground">Minhas Campanhas</h2>
                     <Button
                         onClick={() => setShowCreateModal(true)}
-                        className="bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-black uppercase text-[9px] tracking-[0.3em] flex items-center justify-center gap-2.5 hover:bg-primary/90 hover:-translate-y-0.5 transition-all shadow-xl shadow-primary/15 active:scale-95 group h-auto"
+                        className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 group"
                     >
-                        <Plus size={16} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
-                        <span>Criar Campanha</span>
+                        <Plus size={18} strokeWidth={2.5} className="group-hover:rotate-90 transition-transform" />
+                        <span>Nova Campanha</span>
                     </Button>
                 </div>
 
-                {/* Results count */}
-                {!isLoading && campaigns.length > 0 && (
-                    <div className="hidden flex items-center justify-between">
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                            {total} campanha{total !== 1 ? 's' : ''} encontrada{total !== 1 ? 's' : ''}
-                        </p>
+                {/* Filters Section */}
+                <div className="bg-white rounded-2xl border border-border shadow-sm p-6 space-y-4">
+                    {/* First Row: Search and Status */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        {/* Search */}
+                        <div className="lg:col-span-5">
+                            <div className="relative group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                                <Input
+                                    type="text"
+                                    placeholder="Buscar por título, descrição..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-11 pr-4 h-11 text-sm rounded-xl border-border focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Status Filter */}
+                        <div className="lg:col-span-3">
+                            <Select
+                                value={statusFilter}
+                                onValueChange={(value) => setStatusFilter(value as CampaignStatus | 'all')}
+                            >
+                                <SelectTrigger className="w-full h-11 rounded-xl border-border">
+                                    <div className="flex items-center gap-2">
+                                        <Filter size={16} className="text-muted-foreground" />
+                                        <SelectValue placeholder="Todos os Status" />
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todos os Status</SelectItem>
+                                    {Object.entries(CAMPAIGN_STATUS_LABELS).map(([value, label]) => (
+                                        <SelectItem key={value} value={value}>
+                                            {label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Date From */}
+                        <div className="lg:col-span-2">
+                            <Input
+                                type="date"
+                                value={dateFrom}
+                                onChange={(e) => setDateFrom(e.target.value)}
+                                placeholder="Data início"
+                                className="w-full h-11 text-sm rounded-xl border-border"
+                            />
+                        </div>
+
+                        {/* Date To */}
+                        <div className="lg:col-span-2">
+                            <Input
+                                type="date"
+                                value={dateTo}
+                                onChange={(e) => setDateTo(e.target.value)}
+                                placeholder="Data fim"
+                                className="w-full h-11 text-sm rounded-xl border-border"
+                            />
+                        </div>
                     </div>
-                )}
+
+                    {/* Second Row: Actions */}
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                        <div className="flex items-center gap-2">
+                            {/* View Toggle */}
+                            <div className="flex items-center bg-muted/50 p-1 rounded-lg border border-border/50">
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('grid')}
+                                    className={`p-2 rounded-md transition-all ${
+                                        viewMode === 'grid'
+                                            ? 'bg-white text-primary shadow-sm'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                    title="Visualização em Grade"
+                                >
+                                    <LayoutGrid size={16} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('table')}
+                                    className={`p-2 rounded-md transition-all ${
+                                        viewMode === 'table'
+                                            ? 'bg-white text-primary shadow-sm'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                    title="Visualização em Tabela"
+                                >
+                                    <List size={16} />
+                                </button>
+                            </div>
+
+                            {/* Refresh Button */}
+                            <button
+                                type="button"
+                                onClick={handleRefresh}
+                                disabled={isRefreshing || isLoading}
+                                className="p-2 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Atualizar lista"
+                            >
+                                <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+                            </button>
+
+                            {/* Results Count */}
+                            {!isLoading && campaigns.length > 0 && (
+                                <span className="text-sm text-muted-foreground ml-2">
+                                    {total} {total === 1 ? 'campanha encontrada' : 'campanhas encontradas'}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Clear Filters */}
+                        {hasFilters && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleClearFilters}
+                                className="text-xs text-muted-foreground hover:text-foreground"
+                            >
+                                Limpar filtros
+                            </Button>
+                        )}
+                    </div>
+                </div>
 
                 {/* Content Area */}
                 {isLoading ? (

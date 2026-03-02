@@ -1,14 +1,16 @@
 import { useCallback, useMemo, useState } from 'react'
 import { router } from '@inertiajs/react'
-import { Search, X, CalendarDays, Filter } from 'lucide-react'
+import { Search, X, Filter, Calendar } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { QuickFilterSelect } from '@/components/ui/quick-filter-select'
 import type {
 	CampaignIndexFilters,
 	CampaignStatusOption,
 } from '@/types/campaign'
+import type { FilterOption } from '@/types/filters'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -25,6 +27,14 @@ interface CampaignFiltersProps {
 
 const DEBOUNCE_MS = 400
 
+const STATUS_COLOR_MAP: Record<string, string> = {
+	gray: '#71717a',
+	warning: '#f59e0b',
+	info: '#3b82f6',
+	success: '#10b981',
+	danger: '#ef4444',
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -33,7 +43,7 @@ const DEBOUNCE_MS = 400
  * Campaign filters panel with search, status multi-select, and date range.
  * Syncs filters with Inertia query params for server-side filtering.
  *
- * Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5
+ * Clean, compact design with QuickFilterSelect dropdowns.
  */
 function CampaignFilters({ filters, statusOptions }: CampaignFiltersProps) {
 	const [searchValue, setSearchValue] = useState(filters.search ?? '')
@@ -80,19 +90,22 @@ function CampaignFilters({ filters, statusOptions }: CampaignFiltersProps) {
 		[applyFilters, debounceTimer],
 	)
 
-	// ── Status toggle ────────────────────────────────────────────────
+	// ── Status filter (using QuickFilterSelect) ──────────────────────
 
-	const handleStatusToggle = useCallback(
-		(statusValue: string) => {
-			const current = filters.statuses ?? []
-			const isActive = current.includes(statusValue)
-			const next = isActive
-				? current.filter((s) => s !== statusValue)
-				: [...current, statusValue]
+	const statusFilterOptions = useMemo((): FilterOption[] => {
+		return statusOptions.map((opt) => ({
+			value: opt.value,
+			label: opt.label,
+			color: STATUS_COLOR_MAP[opt.color] || STATUS_COLOR_MAP.gray,
+		}))
+	}, [statusOptions])
 
-			applyFilters({ statuses: next })
+	const handleStatusChange = useCallback(
+		(_id: string, value: string | string[] | undefined) => {
+			const statuses = Array.isArray(value) ? value : value ? [value] : []
+			applyFilters({ statuses })
 		},
-		[filters.statuses, applyFilters],
+		[applyFilters],
 	)
 
 	// ── Date filters ─────────────────────────────────────────────────
@@ -136,114 +149,104 @@ function CampaignFilters({ filters, statusOptions }: CampaignFiltersProps) {
 
 	const hasActiveFilters = activeFilterCount > 0
 
-	// ── Status color mapping ─────────────────────────────────────────
-
-	const statusColorMap: Record<string, string> = {
-		gray: 'border-zinc-300 bg-zinc-100 text-zinc-700',
-		warning: 'border-amber-300 bg-amber-100 text-amber-700',
-		info: 'border-blue-300 bg-blue-100 text-blue-700',
-		success: 'border-emerald-300 bg-emerald-100 text-emerald-700',
-		danger: 'border-rose-300 bg-rose-100 text-rose-700',
-	}
-
 	// ── Render ────────────────────────────────────────────────────────
 
 	return (
-		<div className="space-y-4">
-			{/* Search + Date row */}
-			<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
-					<Input
-						placeholder="Buscar por nome, slug ou Instagram..."
-						value={searchValue}
-						onChange={handleSearchChange}
-						className="h-10 pl-10 text-sm"
-						aria-label="Buscar campanhas"
-					/>
-					{searchValue && (
-						<button
-							type="button"
-							onClick={() => {
-								setSearchValue('')
-								applyFilters({ search: '' })
-							}}
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
-							aria-label="Limpar busca"
-							tabIndex={0}
-						>
-							<X className="size-4" />
-						</button>
-					)}
-				</div>
-
-				<div className="flex items-center gap-2">
-					<CalendarDays className="size-4 text-zinc-400" />
-					<Input
-						type="date"
-						value={filters.date_from ?? ''}
-						onChange={handleDateFromChange}
-						className="h-10 w-36 text-sm"
-						aria-label="Data inicial"
-					/>
-					<span className="text-xs text-zinc-400">até</span>
-					<Input
-						type="date"
-						value={filters.date_to ?? ''}
-						onChange={handleDateToChange}
-						className="h-10 w-36 text-sm"
-						aria-label="Data final"
-					/>
-				</div>
-			</div>
-
-			{/* Status chips */}
-			<div className="flex flex-wrap items-center gap-2">
-				<div className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
-					<Filter className="size-3.5" />
-					Status:
-				</div>
-				{statusOptions.map((option) => {
-					const isActive = (filters.statuses ?? []).includes(option.value)
-					const colorClasses = isActive
-						? statusColorMap[option.color] ?? 'border-zinc-300 bg-zinc-100 text-zinc-700'
-						: 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700'
-
-					return (
-						<button
-							key={option.value}
-							type="button"
-							onClick={() => handleStatusToggle(option.value)}
-							className={`cursor-pointer inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all duration-200 ${colorClasses}`}
-							aria-label={`Filtrar por status ${option.label}`}
-							aria-pressed={isActive}
-							tabIndex={0}
-						>
-							{option.label}
-							{isActive && (
-								<X className="ml-1.5 size-3" />
+		<div className="flex flex-col lg:flex-row gap-3">
+					{/* Search */}
+					<div className="flex-1 min-w-0">
+						<div className="relative group">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
+							<Input
+								placeholder="Buscar por nome, slug ou Instagram..."
+								value={searchValue}
+								onChange={handleSearchChange}
+								className="w-full pl-9 pr-8 h-9 text-sm rounded-lg border-border focus:ring-2 focus:ring-primary/20"
+								aria-label="Buscar campanhas"
+							/>
+							{searchValue && (
+								<button
+									type="button"
+									onClick={() => {
+										setSearchValue('')
+										applyFilters({ search: '' })
+									}}
+									className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground transition-colors rounded-sm hover:bg-muted"
+									aria-label="Limpar busca"
+									tabIndex={0}
+								>
+									<X className="size-3.5" />
+								</button>
 							)}
-						</button>
-					)
-				})}
+						</div>
+					</div>
 
-				{hasActiveFilters && (
+					{/* Status Filter Dropdown */}
+					<div className="flex-shrink-0">
+						<QuickFilterSelect
+							id="statuses"
+							label="Status"
+							placeholder="Todos os status"
+							options={statusFilterOptions}
+							value={filters.statuses ?? []}
+							onChange={handleStatusChange}
+							multiple={true}
+							minWidth={180}
+							icon={Filter}
+							size="sm"
+						/>
+					</div>
+
+					{/* Date From */}
+					<div className="flex-shrink-0">
+						<div className="relative">
+							<Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={14} />
+							<Input
+								type="date"
+								value={filters.date_from ?? ''}
+								onChange={handleDateFromChange}
+								placeholder="Data início"
+								className="w-full lg:w-[160px] pl-9 h-9 text-xs rounded-lg border-border"
+								aria-label="Data inicial"
+							/>
+						</div>
+					</div>
+
+					{/* Date To */}
+					<div className="flex-shrink-0">
+						<div className="relative">
+							<Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={14} />
+							<Input
+								type="date"
+								value={filters.date_to ?? ''}
+								onChange={handleDateToChange}
+								placeholder="Data fim"
+								className="w-full lg:w-[160px] pl-9 h-9 text-xs rounded-lg border-border"
+								aria-label="Data final"
+							/>
+						</div>
+					</div>
+
+			{/* Clear all button */}
+			{hasActiveFilters && (
+				<div className="flex-shrink-0">
 					<Button
 						variant="ghost"
 						size="sm"
 						onClick={handleClearAll}
-						className="ml-2 h-7 text-xs text-zinc-500 hover:text-zinc-700"
+						className="h-9 text-xs text-muted-foreground hover:text-foreground gap-1.5"
 					>
-						Limpar filtros
+						<X className="size-3.5" />
+						Limpar
 						<Badge
 							variant="secondary"
-							className="ml-1.5 size-5 justify-center rounded-full p-0 text-[10px]"
+							className="size-4 justify-center rounded-full p-0 text-[10px]"
 						>
 							{activeFilterCount}
 						</Badge>
 					</Button>
-				)}
-			</div>
+				</div>
+			)}
 		</div>
 	)
 }

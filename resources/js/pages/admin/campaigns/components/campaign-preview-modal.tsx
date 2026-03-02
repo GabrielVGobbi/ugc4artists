@@ -25,7 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { Campaign, CampaignStatusValue } from '@/types/campaign'
 
 import { StatusBadge } from './status-badge'
-import { formatCurrency, formatDate } from './campaign-table'
+import { formatCurrency } from '@/lib/utils'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Status transition rules (subset for approve/reject actions)

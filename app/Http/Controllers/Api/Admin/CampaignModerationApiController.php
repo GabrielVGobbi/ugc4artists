@@ -26,15 +26,27 @@ class CampaignModerationApiController extends Controller
         $perPage = min(max((int) $request->integer('per_page', 20), 1), 100);
         $search = trim((string) $request->input('search', ''));
 
+        // Admin-visible statuses (UNDER_REVIEW onwards)
+        $adminStatuses = [
+            CampaignStatus::UNDER_REVIEW,
+            CampaignStatus::APPROVED,
+            CampaignStatus::REFUSED,
+            CampaignStatus::SENT_TO_CREATORS,
+            CampaignStatus::IN_PROGRESS,
+            CampaignStatus::COMPLETED,
+            CampaignStatus::CANCELLED,
+        ];
+
         $query = Campaign::query()
             ->with(['user:id,name,email,avatar', 'approvedCreators:id,name,email,avatar,account_type'])
+            ->whereIn('status', array_map(fn(CampaignStatus $s): string => $s->value, $adminStatuses))
             ->latest('created_at');
 
         $statusParam = $request->input('status');
         if (is_string($statusParam) && $statusParam !== '') {
             $statuses = collect(explode(',', $statusParam))
                 ->map(fn(string $value): ?CampaignStatus => CampaignStatus::tryFrom(trim($value)))
-                ->filter()
+                ->filter(fn(?CampaignStatus $s): bool => $s !== null && in_array($s, $adminStatuses, true))
                 ->values()
                 ->all();
 

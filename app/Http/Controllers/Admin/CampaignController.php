@@ -27,6 +27,7 @@ class CampaignController extends Controller
 
     /**
      * Display the campaigns listing page with filters, sorting and pagination.
+     * Shows only campaigns from UNDER_REVIEW onwards (excludes DRAFT, PENDING, AWAITING_PAYMENT)
      */
     public function index(Request $request): Response
     {
@@ -46,20 +47,32 @@ class CampaignController extends Controller
         $sortDir = strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
         $perPage = min(max($perPage, 5), 100);
 
+        // Admin-visible statuses (UNDER_REVIEW onwards)
+        $adminStatuses = [
+            CampaignStatus::UNDER_REVIEW,
+            CampaignStatus::APPROVED,
+            CampaignStatus::REFUSED,
+            CampaignStatus::SENT_TO_CREATORS,
+            CampaignStatus::IN_PROGRESS,
+            CampaignStatus::COMPLETED,
+            CampaignStatus::CANCELLED,
+        ];
+
         $query = Campaign::query()
             ->with(['user:id,name,email,avatar'])
-            ->withCount('approvedCreators');
+            ->withCount('approvedCreators')
+            ->whereIn('status', array_map(fn($s) => $s->value, $adminStatuses));
 
         // Apply search scope
         if ($search) {
             $query->search($search);
         }
 
-        // Apply status filter
+        // Apply status filter (only if within allowed statuses)
         if (! empty($statuses)) {
             $statusEnums = collect($statuses)
                 ->map(fn (string $value) => CampaignStatus::tryFrom($value))
-                ->filter()
+                ->filter(fn($s) => in_array($s, $adminStatuses, true))
                 ->all();
 
             if (! empty($statusEnums)) {
@@ -93,7 +106,7 @@ class CampaignController extends Controller
                 'sort_by' => $sortBy,
                 'sort_dir' => $sortDir,
             ],
-            'statusOptions' => collect(CampaignStatus::cases())
+            'statusOptions' => collect($adminStatuses)
                 ->map(fn (CampaignStatus $s) => [
                     'value' => $s->value,
                     'label' => $s->getLabelText(),

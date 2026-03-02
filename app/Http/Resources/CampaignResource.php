@@ -139,9 +139,9 @@ class CampaignResource extends JsonResource
             }, []),
 
             // Metas
-            'created_at' => $this->formatDateTime($this->created_at),
-            'updated_at' => $this->formatDateTime($this->updated_at),
-            'deleted_at' => $this->formatDateTime($this->deleted_at),
+            'created_at' => $this->created_at?->format('d/m/Y'),
+            'updated_at' => $this->updated_at?->format('d/m/Y'),
+            'deleted_at' => $this->deleted_at?->format('d/m/Y'),
             'use_my_data' => $this->use_my_data,
 
             'user' => $this->whenLoaded('user', fn() => new UserResource($this->user)),

@@ -38,10 +38,10 @@ import type { BreadcrumbItem } from '@/types'
 import type { Campaign, CampaignStatusValue } from '@/types/campaign'
 
 import { StatusBadge } from './components/status-badge'
-import { formatCurrency, formatDate } from './components/campaign-table'
 import { canApprove, canReject } from './components/campaign-preview-modal'
 import { ApproveDialog } from './components/approve-dialog'
 import { RejectDialog } from './components/reject-dialog'
+import { formatCurrency } from '@/lib/utils'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants

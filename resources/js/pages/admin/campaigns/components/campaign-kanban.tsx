@@ -35,7 +35,7 @@ import type {
 } from '@/types/campaign'
 
 import { StatusBadge } from './status-badge'
-import { formatCurrency, formatDate } from './campaign-table'
+import { formatCurrency } from '@/lib/utils'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Kanban Column Definitions
@@ -286,7 +286,7 @@ function KanbanCard({ campaign, isDragOverlay = false, onPreview }: KanbanCardPr
                 <div className="flex items-center gap-1.5 text-xs text-zinc-500">
                     <Calendar className="size-3 shrink-0" />
                     <span className="tabular-nums">
-                        {formatDate(campaign.created_at)}
+                        {(campaign.created_at)}
                     </span>
                 </div>
             </div>

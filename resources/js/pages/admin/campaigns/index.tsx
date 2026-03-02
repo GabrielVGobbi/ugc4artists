@@ -1,8 +1,17 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Head } from '@inertiajs/react'
-import { Megaphone } from 'lucide-react'
+import {
+	Megaphone,
+	TrendingUp,
+	Clock,
+	CheckCircle2,
+	XCircle,
+	AlertCircle,
+	CheckCheck,
+} from 'lucide-react'
 
 import AppLayout from '@/layouts/app2-layout'
+import { Card } from '@/components/ui/card'
 import type { BreadcrumbItem, PaginatedResponse } from '@/types'
 import type {
 	Campaign,
@@ -56,6 +65,41 @@ interface CampaignsIndexProps {
 	statusOptions: CampaignStatusOption[]
 }
 
+interface StatCardProps {
+	icon: React.ElementType
+	label: string
+	value: number
+	color: string
+	bgColor: string
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Components
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Stat card for campaign overview
+ */
+function StatCard({ icon: Icon, label, value, color, bgColor }: StatCardProps) {
+	return (
+		<Card className="p-4 border-border">
+			<div className="flex items-center gap-3">
+				<div
+					className={`flex items-center justify-center size-10 rounded-lg ${bgColor}`}
+				>
+					<Icon className={`size-5 ${color}`} strokeWidth={2} />
+				</div>
+				<div className="flex-1 min-w-0">
+					<p className="text-xs font-medium text-muted-foreground">
+						{label}
+					</p>
+					<p className="text-2xl font-bold text-foreground">{value}</p>
+				</div>
+			</div>
+		</Card>
+	)
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -64,7 +108,7 @@ interface CampaignsIndexProps {
  * Admin campaigns index page with table/kanban views, filters,
  * and preview modal support.
  *
- * Validates: Requirements 2.1, 4.1, 4.2, 4.3
+ * Clean, modern design with stats overview.
  */
 export default function CampaignsIndex({
 	campaigns,
@@ -123,6 +167,29 @@ export default function CampaignsIndex({
 		setRejectCampaign(null)
 	}, [])
 
+	// ── Compute stats from campaigns data ────────────────────────
+
+	const stats = useMemo(() => {
+		const total = campaigns.meta.total || 0
+		const underReview = campaigns.data.filter(
+			(c) => c.status.value === 'under_review'
+		).length
+		const approved = campaigns.data.filter(
+			(c) => c.status.value === 'approved'
+		).length
+		const active = campaigns.data.filter(
+			(c) => c.status.value === 'sent_to_creators' || c.status.value === 'in_progress'
+		).length
+		const completed = campaigns.data.filter(
+			(c) => c.status.value === 'completed'
+		).length
+		const refused = campaigns.data.filter(
+			(c) => c.status.value === 'refused' || c.status.value === 'cancelled'
+		).length
+
+		return { total, underReview, approved, active, completed, refused }
+	}, [campaigns])
+
 	// ── Render ────────────────────────────────────────────────────────
 
 	return (
@@ -130,21 +197,74 @@ export default function CampaignsIndex({
 			<Head title="Campanhas" />
 
 			<div className="flex flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8">
-				{/* ── Header ──────────────────────────────────────────── */}
-				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-
-					<ViewToggle
-						value={viewMode}
-						onChange={handleViewModeChange}
-					/>
+				{/* ── Header with Stats ──────────────────────────────── */}
+				<div className="space-y-4">
+					{/* Stats Grid */}
+					<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+						<StatCard
+							icon={TrendingUp}
+							label="Total"
+							value={stats.total}
+							color="text-primary"
+							bgColor="bg-primary/10"
+						/>
+						<StatCard
+							icon={AlertCircle}
+							label="Em Análise"
+							value={stats.underReview}
+							color="text-amber-600"
+							bgColor="bg-amber-50"
+						/>
+						<StatCard
+							icon={CheckCircle2}
+							label="Aprovadas"
+							value={stats.approved}
+							color="text-blue-600"
+							bgColor="bg-blue-50"
+						/>
+						<StatCard
+							icon={Clock}
+							label="Ativas"
+							value={stats.active}
+							color="text-emerald-600"
+							bgColor="bg-emerald-50"
+						/>
+						<StatCard
+							icon={CheckCheck}
+							label="Finalizadas"
+							value={stats.completed}
+							color="text-green-600"
+							bgColor="bg-green-50"
+						/>
+						<StatCard
+							icon={XCircle}
+							label="Recusadas"
+							value={stats.refused}
+							color="text-red-600"
+							bgColor="bg-red-50"
+						/>
+					</div>
 				</div>
 
-				{/* ── Filters ─────────────────────────────────────────── */}
-				<CampaignFilters
-					filters={filters}
-					statusOptions={statusOptions}
-				/>
+				{/* ── Filters with ViewToggle ─────────────────────────── */}
+				<div className="bg-white rounded-2xl border border-border shadow-sm p-4 space-y-3">
+					{/* Toolbar with ViewToggle */}
+					<div className="flex items-center justify-between">
+						<h3 className="text-sm font-semibold text-foreground">
+							Filtros
+						</h3>
+						<ViewToggle
+							value={viewMode}
+							onChange={handleViewModeChange}
+						/>
+					</div>
+
+					{/* Filters */}
+					<CampaignFilters
+						filters={filters}
+						statusOptions={statusOptions}
+					/>
+				</div>
 
 				{/* ── Content ─────────────────────────────────────────── */}
 				{viewMode === 'table' ? (
