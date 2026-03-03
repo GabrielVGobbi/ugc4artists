@@ -14,6 +14,7 @@ use App\Models\Campaign;
 use App\Models\User;
 use App\Services\Campaign\CampaignService;
 use App\Supports\Enums\Users\UserRoleType;
+use App\Supports\TheOneResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -21,7 +22,7 @@ class CampaignModerationApiController extends Controller
 {
     public function __construct(private CampaignService $campaignService) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
         $perPage = min(max((int) $request->integer('per_page', 20), 1), 100);
         $search = trim((string) $request->input('search', ''));
@@ -38,7 +39,7 @@ class CampaignModerationApiController extends Controller
         ];
 
         $query = Campaign::query()
-            ->with(['user:id,name,email,avatar', 'approvedCreators:id,name,email,avatar,account_type'])
+            ->with(['user:id,name,email,avatar', 'approvedCreators:id,name,email,avatar,account_type', 'user.wallet'])
             ->whereIn('status', array_map(fn(CampaignStatus $s): string => $s->value, $adminStatuses))
             ->latest('created_at');
 
@@ -63,8 +64,52 @@ class CampaignModerationApiController extends Controller
             });
         }
 
-        return response()->json(CampaignResource::collection($query->paginate($perPage)));
+        return CampaignResource::collection($query->paginate($perPage));
     }
+
+    public function stats(): JsonResponse
+    {
+        $adminStatuses = [
+            CampaignStatus::UNDER_REVIEW->value,
+            CampaignStatus::APPROVED->value,
+            CampaignStatus::REFUSED->value,
+            CampaignStatus::SENT_TO_CREATORS->value,
+            CampaignStatus::IN_PROGRESS->value,
+            CampaignStatus::COMPLETED->value,
+            CampaignStatus::CANCELLED->value,
+        ];
+
+        $placeholders = implode(',', array_fill(0, count($adminStatuses), '?'));
+
+        $row = Campaign::query()
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as under_review,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as approved,
+                SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as active,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as refused
+            ", [
+                CampaignStatus::UNDER_REVIEW->value,
+                CampaignStatus::APPROVED->value,
+                CampaignStatus::SENT_TO_CREATORS->value,
+                CampaignStatus::IN_PROGRESS->value,
+                CampaignStatus::COMPLETED->value,
+                CampaignStatus::REFUSED->value,
+            ])
+            ->whereRaw("status IN ({$placeholders})", $adminStatuses)
+            ->first();
+
+        return response()->json([
+            'total' => (int) $row->total,
+            'under_review' => (int) $row->under_review,
+            'approved' => (int) $row->approved,
+            'active' => (int) $row->active,
+            'completed' => (int) $row->completed,
+            'refused' => (int) $row->refused,
+        ]);
+    }
+
 
     public function creators(Request $request): JsonResponse
     {
@@ -98,8 +143,12 @@ class CampaignModerationApiController extends Controller
         ]);
     }
 
-    public function approve(ApproveCampaignRequest $request, Campaign $campaign): JsonResponse
+    public function approve(ApproveCampaignRequest $request,  $campaignToken)
     {
+        if (!$campaign = Campaign::bytoken($campaignToken)->first()) {
+            return TheOneResponse::unprocessable();
+        }
+
         $updatedCampaign = $this->campaignService->approve(
             campaign: $campaign,
             creatorIds: $request->creatorIds(),
@@ -112,8 +161,12 @@ class CampaignModerationApiController extends Controller
         ]);
     }
 
-    public function refuse(RefuseCampaignRequest $request, Campaign $campaign): JsonResponse
+    public function refuse(RefuseCampaignRequest $request,  $campaignToken)
     {
+        if (!$campaign = Campaign::bytoken($campaignToken)->first()) {
+            return TheOneResponse::unprocessable();
+        }
+
         $updatedCampaign = $this->campaignService->refuse(
             campaign: $campaign,
             reason: $request->reason(),
@@ -126,8 +179,12 @@ class CampaignModerationApiController extends Controller
         ]);
     }
 
-    public function updateStatus(UpdateCampaignStatusRequest $request, Campaign $campaign): JsonResponse
+    public function updateStatus(UpdateCampaignStatusRequest $request, $campaignToken)
     {
+        if (!$campaign = Campaign::bytoken($campaignToken)->first()) {
+            return TheOneResponse::unprocessable();
+        }
+
         $updatedCampaign = $this->campaignService->updateStatus(
             campaign: $campaign,
             status: $request->status(),

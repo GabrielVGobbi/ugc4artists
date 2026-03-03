@@ -189,12 +189,14 @@ function CampaignPreviewModal ({
 		}}>
 			<DialogContent
 				className="sm:max-w-lg max-h-[85vh] overflow-y-auto"
+				aria-modal="true"
+				aria-labelledby="campaign-preview-title"
 				aria-describedby="campaign-preview-description"
 			>
 				{isLoading || campaign === null ? (
 					<>
 						<DialogHeader>
-							<DialogTitle>
+							<DialogTitle id="campaign-preview-title">
 								Pré-visualização da Campanha
 							</DialogTitle>
 							<DialogDescription id="campaign-preview-description">
@@ -212,7 +214,10 @@ function CampaignPreviewModal ({
 									<Megaphone className="size-4 text-amber-400" />
 								</div>
 								<div className="min-w-0 flex-1">
-									<DialogTitle className="line-clamp-2 text-base">
+									<DialogTitle
+										id="campaign-preview-title"
+										className="line-clamp-2 text-base"
+									>
 										{campaign.name}
 									</DialogTitle>
 									<DialogDescription

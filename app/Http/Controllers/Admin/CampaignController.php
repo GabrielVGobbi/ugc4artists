@@ -59,7 +59,7 @@ class CampaignController extends Controller
         ];
 
         $query = Campaign::query()
-            ->with(['user:id,name,email,avatar'])
+            ->with(['user:id,name,email,avatar', 'user.wallet'])
             ->withCount('approvedCreators')
             ->whereIn('status', array_map(fn($s) => $s->value, $adminStatuses));
 

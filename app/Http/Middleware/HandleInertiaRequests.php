@@ -38,7 +38,9 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $user = Auth::check() ? new UserResource($request->user()) : null;
+        $user = Auth::check()
+            ? new UserResource($request->user()->load('wallet'))
+            : null;
 
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 

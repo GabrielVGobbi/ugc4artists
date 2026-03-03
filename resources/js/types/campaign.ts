@@ -380,3 +380,254 @@ export interface PublicationPlanOption {
 	description: string
 	features?: string[]
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Campaigns — Status Transitions (mirrors CampaignStatus PHP enum)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Map of valid status transitions for kanban drag-and-drop.
+ * Mirrors `CampaignStatus::getAvailableTransitions()` from the backend.
+ *
+ * Used by the kanban to validate whether a drag-and-drop move is allowed
+ * before sending the request to the API.
+ */
+export const VALID_STATUS_TRANSITIONS: Record<
+	CampaignStatusValue,
+	readonly CampaignStatusValue[]
+> = {
+	draft: ['awaiting_payment', 'cancelled'],
+	awaiting_payment: [
+		'pending',
+		'under_review',
+		'draft',
+		'cancelled',
+	],
+	under_review: [
+		'pending',
+		'approved',
+		'refused',
+		'draft',
+		'cancelled',
+	],
+	pending: [
+		'approved',
+		'refused',
+		'sent_to_creators',
+		'draft',
+		'cancelled',
+	],
+	approved: ['sent_to_creators', 'in_progress', 'cancelled'],
+	refused: ['draft'],
+	sent_to_creators: ['in_progress', 'cancelled'],
+	in_progress: ['completed', 'cancelled'],
+	completed: [],
+	cancelled: ['draft'],
+} as const
+
+/**
+ * Checks whether a status transition is valid for kanban drag-and-drop.
+ *
+ * @param from - Current campaign status
+ * @param to - Target campaign status
+ * @returns Whether the transition is allowed
+ */
+export const isValidStatusTransition = (
+	from: CampaignStatusValue,
+	to: CampaignStatusValue,
+): boolean => {
+	const allowed = VALID_STATUS_TRANSITIONS[from]
+	return allowed.includes(to)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Campaigns — Filters State (useCampaignFilters hook)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * State managed by the `useCampaignFilters` hook.
+ * Represents all filter values for the admin campaigns page,
+ * with bidirectional URL sync.
+ */
+export interface CampaignFiltersState {
+	/** Text search query (debounced 400ms before triggering fetch) */
+	search: string
+	/** Selected status values for filtering */
+	statuses: CampaignStatusValue[]
+	/** Start date filter (ISO 8601 date string, e.g. '2024-01-01') */
+	dateFrom: string | null
+	/** End date filter (ISO 8601 date string, e.g. '2024-12-31') */
+	dateTo: string | null
+	/** Column key to sort by */
+	sortBy: string
+	/** Sort direction */
+	sortDir: 'asc' | 'desc'
+}
+
+/** Default filter values used for initialization and reset */
+export const DEFAULT_CAMPAIGN_FILTERS: CampaignFiltersState = {
+	search: '',
+	statuses: [],
+	dateFrom: null,
+	dateTo: null,
+	sortBy: 'created_at',
+	sortDir: 'desc',
+}
+
+/**
+ * Query parameters sent to the campaigns API.
+ * Derived from `CampaignFiltersState` by the filters hook.
+ */
+export interface CampaignFilterParams {
+	search?: string
+	status?: string
+	date_from?: string
+	date_to?: string
+	sort_by?: string
+	sort_direction?: 'asc' | 'desc'
+	per_page?: number
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Campaigns — Stats Response (useCampaignStats hook)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Response from `GET /api/v1/admin/campaigns/stats`.
+ * Contains aggregated counts by status for the stats grid.
+ */
+export interface CampaignStatsResponse {
+	total: number
+	under_review: number
+	approved: number
+	active: number
+	completed: number
+	refused: number
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Campaigns — Mutation Response
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Response from approve, refuse, and updateStatus API endpoints */
+export interface CampaignMutationResponse {
+	message: string
+	campaign: Campaign
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Campaigns — Kanban Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** A single kanban column with its campaigns */
+export interface CampaignKanbanColumn {
+	/** Status value used as column identifier */
+	status: CampaignStatusValue
+	/** Display label for the column header */
+	label: string
+	/** Campaigns belonging to this column */
+	campaigns: Campaign[]
+}
+
+/**
+ * Admin-visible statuses displayed as kanban columns.
+ * Matches the statuses filtered by the backend controller.
+ */
+export const KANBAN_COLUMN_STATUSES: readonly CampaignStatusValue[] = [
+	'under_review',
+	'approved',
+	'sent_to_creators',
+	'in_progress',
+	'completed',
+	'refused',
+] as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Campaigns — Hook Return Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Return type for the `useCampaignFilters` hook */
+export interface UseCampaignFiltersReturn {
+	/** Current filter state */
+	filters: CampaignFiltersState
+	/** Debounced search value (400ms delay) for use in query keys */
+	debouncedSearch: string
+	/** Set the search input value (raw, before debounce) */
+	setSearch: (value: string) => void
+	/** Set the selected status filters */
+	setStatuses: (statuses: CampaignStatusValue[]) => void
+	/** Set the start date filter */
+	setDateFrom: (date: string | null) => void
+	/** Set the end date filter */
+	setDateTo: (date: string | null) => void
+	/** Set the sort column */
+	setSortBy: (column: string) => void
+	/** Set the sort direction */
+	setSortDir: (direction: 'asc' | 'desc') => void
+	/** Reset all filters to defaults and update the URL */
+	clearFilters: () => void
+	/** Whether any filter is active (non-default) */
+	hasActiveFilters: boolean
+	/** Filter params ready to pass to API hooks */
+	filterParams: CampaignFilterParams
+}
+
+/** Return type for the `useCampaignStats` hook */
+export interface UseCampaignStatsReturn {
+	/** Stats data from the server */
+	data: CampaignStatsResponse | undefined
+	/** Whether the initial load is in progress */
+	isLoading: boolean
+	/** Error if the fetch failed */
+	error: Error | null
+	/** Refetch stats data */
+	refetch: () => void
+}
+
+/** Return type for the `useCampaignKanban` hook */
+export interface UseCampaignKanbanReturn {
+	/** Campaigns grouped by status into kanban columns */
+	columns: CampaignKanbanColumn[]
+	/** Flat list of all campaigns from the kanban query */
+	campaigns: Campaign[]
+	/** Whether the initial load is in progress */
+	isLoading: boolean
+	/** Whether data is being refetched in the background */
+	isFetching: boolean
+	/** Error if the fetch failed */
+	error: Error | null
+	/** Refetch kanban data */
+	refetch: () => void
+}
+
+/** Mutation input for approving a campaign */
+export interface ApproveCampaignInput {
+	campaignUuid: string
+	creatorIds: number[]
+}
+
+/** Mutation input for refusing a campaign */
+export interface RefuseCampaignInput {
+	campaignUuid: string
+	reason: string
+}
+
+/** Mutation input for updating campaign status (drag-and-drop) */
+export interface UpdateCampaignStatusInput {
+	campaignUuid: string
+	status: CampaignStatusValue
+	creatorIds?: number[]
+	reasonForRefusal?: string
+}
+
+/** Return type for the `useCampaignMutations` hook */
+export interface UseCampaignMutationsReturn {
+	/** Approve a campaign with selected creators */
+	approve: (input: ApproveCampaignInput) => Promise<void>
+	/** Refuse a campaign with a reason */
+	refuse: (input: RefuseCampaignInput) => Promise<void>
+	/** Update campaign status (used by kanban drag-and-drop) */
+	updateStatus: (input: UpdateCampaignStatusInput) => Promise<void>
+	/** Whether any mutation is currently in progress */
+	isPending: boolean
+}

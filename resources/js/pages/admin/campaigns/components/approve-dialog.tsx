@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { router } from '@inertiajs/react'
 import {
 	CheckCircle2,
 	Loader2,
 	Search,
 	Users,
 } from 'lucide-react'
-import { toast } from 'sonner'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -19,7 +17,11 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog'
-import { http, toApiError } from '@/lib/http'
+import { http } from '@/lib/http'
+import type {
+	ApproveCampaignInput,
+	Campaign,
+} from '@/types/campaign'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -38,9 +40,10 @@ interface CreatorsResponse {
 }
 
 interface ApproveDialogProps {
-	campaignId: number
+	campaign: Campaign | null
 	isOpen: boolean
 	onClose: () => void
+	onApprove: (input: ApproveCampaignInput) => Promise<void>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,9 +65,6 @@ const getInitials = (name: string): string =>
 		.join('')
 		.toUpperCase()
 
-const buildApproveUrl = (campaignId: number): string =>
-	`/api/v1/admin/campaigns/${campaignId}/approve`
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -75,12 +75,17 @@ const buildApproveUrl = (campaignId: number): string =>
  * checkboxes, and inline validation requiring at least one
  * creator selected.
  *
- * Validates: Requirements 8.1, 8.2, 8.3, 8.4, 8.5
+ * Mutations are passed as props from the parent — no direct
+ * API calls for approve. On success the dialog closes; on
+ * error the error message is shown and the dialog stays open.
+ *
+ * Validates: Requirements 8.1, 8.2, 8.3, 8.4, 8.5, 9.1, 9.2
  */
 function ApproveDialog ({
-	campaignId,
+	campaign,
 	isOpen,
 	onClose,
+	onApprove,
 }: ApproveDialogProps) {
 	const [searchTerm, setSearchTerm] = useState('')
 	const [creators, setCreators] = useState<Creator[]>([])
@@ -90,6 +95,9 @@ function ApproveDialog ({
 	const [isSearching, setIsSearching] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
+	const [errorMessage, setErrorMessage] = useState<string | null>(
+		null,
+	)
 
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(
 		null,
@@ -98,7 +106,8 @@ function ApproveDialog ({
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
 	const hasSelection = selectedIds.size > 0
-	const shouldShowError = hasAttemptedSubmit && !hasSelection
+	const shouldShowValidationError =
+		hasAttemptedSubmit && !hasSelection
 
 	// ── Fetch creators with debounce ─────────────────────────────
 	const fetchCreators = useCallback(
@@ -172,6 +181,7 @@ function ApproveDialog ({
 			setSelectedIds(new Set())
 			setHasAttemptedSubmit(false)
 			setIsSubmitting(false)
+			setErrorMessage(null)
 			setCreators([])
 
 			// Focus search input after dialog animation
@@ -207,6 +217,7 @@ function ApproveDialog ({
 			}
 			return next
 		})
+		setErrorMessage(null)
 	}, [])
 
 	// ── Handle search input change ───────────────────────────────
@@ -217,35 +228,34 @@ function ApproveDialog ({
 		[],
 	)
 
-	// ── Submit approval ──────────────────────────────────────────
+	// ── Submit approval via mutation prop ─────────────────────────
 	const handleSubmit = useCallback(async () => {
 		setHasAttemptedSubmit(true)
+		setErrorMessage(null)
 
-		if (selectedIds.size === 0) return
+		if (selectedIds.size === 0 || !campaign) return
 
 		setIsSubmitting(true)
 
 		try {
-			await http.post(buildApproveUrl(campaignId), {
-				creator_ids: Array.from(selectedIds),
+			await onApprove({
+				campaignUuid: campaign.uuid,
+				creatorIds: Array.from(selectedIds),
 			})
 
-			toast.success('Campanha aprovada com sucesso.')
+			// Success — close dialog (cache update handled by mutation)
 			onClose()
-			router.visit(window.location.href, {
-				preserveScroll: true,
-			})
 		} catch (err: unknown) {
-			const apiError = toApiError(err)
-			const errorMessage =
-				apiError.type === 'validation'
-					? 'Dados inválidos. Verifique os creators selecionados.'
-					: apiError.message
-			toast.error(errorMessage ?? 'Erro ao aprovar campanha.')
+			// Error — keep dialog open and show error message
+			const message =
+				err instanceof Error
+					? err.message
+					: 'Erro ao aprovar campanha.'
+			setErrorMessage(message)
 		} finally {
 			setIsSubmitting(false)
 		}
-	}, [campaignId, selectedIds, onClose])
+	}, [campaign, selectedIds, onApprove, onClose])
 
 	// ── Handle dialog open change ────────────────────────────────
 	const handleOpenChange = useCallback(
@@ -261,6 +271,8 @@ function ApproveDialog ({
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
 			<DialogContent
 				className="sm:max-w-lg max-h-[85vh] flex flex-col"
+				aria-modal="true"
+				aria-labelledby="approve-dialog-title"
 				aria-describedby="approve-dialog-description"
 			>
 				{/* ── Header ──────────────────────────────── */}
@@ -270,7 +282,10 @@ function ApproveDialog ({
 							<CheckCircle2 className="size-5" />
 						</div>
 						<div>
-							<DialogTitle className="text-base">
+							<DialogTitle
+								id="approve-dialog-title"
+								className="text-base"
+							>
 								Aprovar Campanha
 							</DialogTitle>
 							<DialogDescription
@@ -386,12 +401,23 @@ function ApproveDialog ({
 				</div>
 
 				{/* ── Validation Error ────────────────────── */}
-				{shouldShowError && (
+				{shouldShowValidationError && (
 					<p
 						className="text-sm text-rose-500 font-medium"
 						role="alert"
 					>
 						Selecione ao menos um creator
+					</p>
+				)}
+
+				{/* ── API Error ───────────────────────────── */}
+				{errorMessage && (
+					<p
+						className="text-sm text-rose-500 font-medium"
+						role="alert"
+						aria-live="assertive"
+					>
+						{errorMessage}
 					</p>
 				)}
 

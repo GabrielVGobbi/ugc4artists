@@ -247,6 +247,14 @@ class Campaign extends Model implements ProductInterface
     // Scopes
     // ─────────────────────────────────────────────────────────────────────────────
 
+    public function scopeByToken(Builder $query, $tokenId = null): Builder
+    {
+        return $query->where(function ($q) use ($tokenId) {
+            $q->where('id', $tokenId);
+            $q->orWhere('uuid', $tokenId);
+        });
+    }
+
     public function scopeByUser(Builder $query, ?int $userId = null): Builder
     {
         return $query->where('user_id', $userId ?? auth()->id());

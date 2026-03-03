@@ -106,9 +106,9 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
         Route::get('/stats', [CampaignApiController::class, 'stats'])->name('stats');
         Route::get('/transactions', [CampaignApiController::class, 'transactions'])->name('transactions');
         Route::post('/', [CampaignApiController::class, 'store'])->name('store');
-        Route::post('/{campaign}/approve', [CampaignModerationApiController::class, 'approve'])->middleware('role:admin')->name('approve');
-        Route::post('/{campaign}/refuse', [CampaignModerationApiController::class, 'refuse'])->middleware('role:admin')->name('refuse');
-        Route::patch('/{campaign}/status', [CampaignModerationApiController::class, 'updateStatus'])->middleware('role:admin')->name('status');
+        #Route::post('/{campaign}/approve', [CampaignModerationApiController::class, 'approve'])->middleware('role:admin')->name('approve');
+        #Route::post('/{campaign}/refuse', [CampaignModerationApiController::class, 'refuse'])->middleware('role:admin')->name('refuse');
+        #Route::patch('/{campaign}/status', [CampaignModerationApiController::class, 'updateStatus'])->middleware('role:admin')->name('status');
         Route::get('/{key}', [CampaignApiController::class, 'show'])->name('show');
         Route::put('/{key}', [CampaignApiController::class, 'update'])->name('update');
         Route::delete('/{key}', [CampaignApiController::class, 'destroy'])->name('destroy');
@@ -136,6 +136,7 @@ Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:admin'])->
 
     Route::name('admin.campaigns.')->prefix('admin/campaigns')->group(function () {
         Route::get('/', [CampaignModerationApiController::class, 'index'])->name('index');
+        Route::get('/stats', [CampaignModerationApiController::class, 'stats'])->name('stats');
         Route::get('/creators', [CampaignModerationApiController::class, 'creators'])->name('creators');
         Route::post('/{campaign}/approve', [CampaignModerationApiController::class, 'approve'])->name('approve');
         Route::post('/{campaign}/refuse', [CampaignModerationApiController::class, 'refuse'])->name('refuse');

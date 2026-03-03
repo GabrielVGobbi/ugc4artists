@@ -44,7 +44,7 @@ class CampaignApiController extends Controller
         $search = $request->get('search');
 
         $query = Campaign::byUser()
-            ->with('user:id,name,avatar')
+            ->with('user:id,name,avatar', 'user.wallet')
             ->latest('created_at');
 
         if ($status) {

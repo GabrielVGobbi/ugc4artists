@@ -15,6 +15,16 @@ class AuthenticateApiController extends Controller
     {
         $request->authenticate();
 
+        if ($request->expectsJson()) {
+
+            $token = Auth::user()->createToken('api');
+
+            return response()->json([
+                'token' => $token->plainTextToken,
+                'user' => new UserResource(Auth::user()),
+            ]);
+        }
+
         $request->session()->regenerate();
 
         return response()->json([

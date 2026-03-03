@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\ServiceProvider;
 use App\Events\Account\ServicePaid;
 use App\Events\Campaign\CampaignCheckoutCompleted;
 use App\Listeners\Account\LogAccountStatement;
@@ -13,7 +14,11 @@ use App\Modules\Payments\Events\PaymentFailed;
 use App\Modules\Payments\Events\PaymentPaid;
 use App\Modules\Payments\Events\PaymentRefunded;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\ServiceProvider;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureDefaults();
         $this->registerCampaignEvents();
         $this->registerAccountEvents();
     }
@@ -86,5 +92,27 @@ class AppServiceProvider extends ServiceProvider
             PaymentRefunded::class,
             [UpdateAccountStatementStatus::class, 'handleRefunded']
         );
+    }
+
+    protected function configureDefaults(): void
+    {
+        Date::use(CarbonImmutable::class);
+
+        DB::prohibitDestructiveCommands(
+            app()->isProduction(),
+        );
+
+        Password::defaults(
+            fn(): ?Password => app()->isProduction()
+                ? Password::min(12)
+                ->mixedCase()
+                ->letters()
+                ->numbers()
+                ->symbols()
+                ->uncompromised()
+                : null
+        );
+
+        Model::preventLazyLoading(!app()->isProduction());
     }
 }

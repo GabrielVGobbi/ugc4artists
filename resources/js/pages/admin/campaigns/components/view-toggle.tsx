@@ -1,7 +1,19 @@
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { useEffect, useCallback } from 'react'
 import type { ViewMode } from '@/types/campaign'
 import { Kanban, LayoutList } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SESSION_KEY = 'admin-campaigns-view'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -14,61 +26,118 @@ interface ViewToggleProps {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+const isValidViewMode = (v: unknown): v is ViewMode =>
+	v === 'table' || v === 'kanban'
+
+const readStoredMode = (): ViewMode | null => {
+	try {
+		const stored = sessionStorage.getItem(SESSION_KEY)
+		if (isValidViewMode(stored)) {
+			return stored
+		}
+	} catch {
+		// sessionStorage unavailable (SSR or privacy mode)
+	}
+	return null
+}
+
+const persistMode = (mode: ViewMode): void => {
+	try {
+		sessionStorage.setItem(SESSION_KEY, mode)
+	} catch {
+		// sessionStorage unavailable
+	}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Toggle between table and kanban view modes.
+ * Persists the selected mode in sessionStorage and restores it on mount.
  *
- * Validates: Requirement 4.1
+ * Validates: Requirements 7.1, 7.2, 9.1
  */
 function ViewToggle({ value, onChange, className }: ViewToggleProps) {
-	const handleValueChange = (next: string) => {
-		if (next === 'table' || next === 'kanban') {
-			onChange(next)
+	// Restore persisted view mode on mount
+	useEffect(() => {
+		const stored = readStoredMode()
+		if (stored && stored !== value) {
+			onChange(stored)
 		}
-	}
+		// Only run on mount — intentionally omitting value/onChange
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	const handleSelect = useCallback(
+		(mode: ViewMode) => {
+			persistMode(mode)
+			onChange(mode)
+		},
+		[onChange],
+	)
+
+	const options: Array<{
+		mode: ViewMode
+		label: string
+		icon: typeof LayoutList
+	}> = [
+		{ mode: 'table', label: 'Tabela', icon: LayoutList },
+		{ mode: 'kanban', label: 'Kanban', icon: Kanban },
+	]
 
 	return (
 		<TooltipProvider delayDuration={300}>
-			<ToggleGroup
-				type="single"
-				value={value}
-				onValueChange={handleValueChange}
-				variant="outline"
-				size="sm"
-				className={className}
-				aria-label="Modo de visualização"
+			<div
+				role="tablist"
+				aria-label="Alternar modo de visualização"
+				className={cn(
+					'inline-flex items-center rounded-md border border-border shadow-xs',
+					className,
+				)}
 			>
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<ToggleGroupItem
-							value="table"
-							aria-label="Visualização em tabela"
-							aria-pressed={value === 'table'}
-						>
-							<LayoutList className="size-4" />
-						</ToggleGroupItem>
-					</TooltipTrigger>
-					<TooltipContent side="bottom">Tabela</TooltipContent>
-				</Tooltip>
+				{options.map(({ mode, label, icon: Icon }) => {
+					const isSelected = value === mode
 
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<ToggleGroupItem
-							value="kanban"
-							aria-label="Visualização Kanban"
-							aria-pressed={value === 'kanban'}
-						>
-							<Kanban className="size-4" />
-						</ToggleGroupItem>
-					</TooltipTrigger>
-					<TooltipContent side="bottom">Kanban</TooltipContent>
-				</Tooltip>
-			</ToggleGroup>
+					return (
+						<Tooltip key={mode}>
+							<TooltipTrigger asChild>
+								<button
+									type="button"
+									role="tab"
+									aria-selected={isSelected}
+									aria-label={`Visualização ${label}`}
+									tabIndex={isSelected ? 0 : -1}
+									onClick={() => handleSelect(mode)}
+									className={cn(
+										'inline-flex items-center justify-center',
+										'h-8 px-2.5 text-sm font-medium',
+										'cursor-pointer transition-colors',
+										'first:rounded-l-md last:rounded-r-md',
+										'focus-visible:outline-none focus-visible:ring-2',
+										'focus-visible:ring-ring focus-visible:ring-offset-2',
+										isSelected
+											? 'bg-accent text-accent-foreground'
+											: 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground',
+									)}
+								>
+									<Icon className="size-4" />
+								</button>
+							</TooltipTrigger>
+							<TooltipContent side="bottom">
+								{label}
+							</TooltipContent>
+						</Tooltip>
+					)
+				})}
+			</div>
 		</TooltipProvider>
 	)
 }
 
-export { ViewToggle }
+export { ViewToggle, SESSION_KEY }
 export type { ViewToggleProps }

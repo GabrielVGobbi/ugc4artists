@@ -58,7 +58,7 @@ const NAVIGATION: NavItemDef[] = [
 
     },
     {
-        id: 'users',
+        id: 'waitlist',
         label: 'Lista de Espera',
         icon: ChartBarBig,
         route: '/admin/waitlist',
