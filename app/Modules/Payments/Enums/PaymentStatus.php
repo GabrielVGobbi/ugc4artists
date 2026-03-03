@@ -18,6 +18,21 @@ enum PaymentStatus: string
     case CANCELED = 'canceled';
     case REFUNDED = 'refunded';
 
+    public static function getLabelTextByLabel(string $label): string
+    {
+        return match ($label) {
+            'draft'           => 'Rascunho',
+            'pending'         => 'Pendente',
+            'requires_action' => 'Requer Ação',
+            'paid'            => 'Pago',
+            'failed'          => 'Falhou',
+            'canceled'        => 'Cancelado',
+            'refunded'        => 'Reembolsado',
+            default           => 'Desconhecido',
+        };
+    }
+
+
     public function getLabelText(): string
     {
         return match ($this) {

@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\App\WalletAppController as WalletApp;
 use App\Http\Controllers\Api\AccountApiController;
 use App\Http\Controllers\Api\Admin\CampaignModerationApiController;
+use App\Http\Controllers\Api\Admin\PaymentApiController;
 use App\Http\Controllers\Api\Admin\UsersApiController;
 use App\Http\Controllers\Api\Admin\WaitlistApiController;
 use App\Http\Controllers\Api\AuthenticateApiController;
@@ -139,6 +140,11 @@ Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:admin'])->
         Route::post('/{campaign}/approve', [CampaignModerationApiController::class, 'approve'])->name('approve');
         Route::post('/{campaign}/refuse', [CampaignModerationApiController::class, 'refuse'])->name('refuse');
         Route::patch('/{campaign}/status', [CampaignModerationApiController::class, 'updateStatus'])->name('status');
+    });
+
+    Route::name('admin.payments.')->prefix('admin/payments')->group(function () {
+        Route::get('/', [PaymentApiController::class, 'index'])->name('index');
+        Route::get('/stats', [PaymentApiController::class, 'stats'])->name('stats');
     });
 
     /*

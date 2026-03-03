@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\DevController;
+use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\WaitlistController;
 use App\Http\Controllers\Api\AccountApiController;
@@ -24,7 +25,8 @@ Route::name('admin.')->prefix('admin')->middleware(['auth', 'role:admin'])->grou
 
     Route::resource('users', UsersController::class);
 
-
+    Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
 
     Route::get('/teste-email', [AdminController::class, 'testeEmail'])->name('teste.email');
     Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
