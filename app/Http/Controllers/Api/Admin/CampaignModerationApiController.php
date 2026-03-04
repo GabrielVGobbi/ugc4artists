@@ -110,20 +110,19 @@ class CampaignModerationApiController extends Controller
         ]);
     }
 
-
     public function creators(Request $request): JsonResponse
     {
         $search = trim((string) $request->input('search', ''));
-        $limit = min(max((int) $request->integer('limit', 20), 1), 50);
+        $perPage = min(max((int) $request->integer('per_page', 20), 1), 50);
 
         $query = User::query()
             ->select(['id', 'uuid', 'name', 'email', 'avatar', 'account_type'])
             ->where(function ($builder): void {
                 $builder->where('account_type', UserRoleType::CREATOR)
+                    ->orWhere('account_type', UserRoleType::BRAND)
                     ->orWhereHas('roles', fn($q) => $q->where('slug', 'creator'));
             })
-            ->orderBy('name')
-            ->limit($limit);
+            ->orderBy('name');
 
         if ($search !== '') {
             $query->where(function ($builder) use ($search): void {
@@ -132,14 +131,22 @@ class CampaignModerationApiController extends Controller
             });
         }
 
+        $paginated = $query->paginate($perPage);
+
         return response()->json([
-            'data' => $query->get()->map(fn(User $user): array => [
+            'data' => collect($paginated->items())->map(fn(User $user): array => [
                 'id' => $user->id,
                 'uuid' => $user->uuid,
                 'name' => $user->name,
                 'email' => $user->email,
                 'avatar' => $user->avatar,
             ])->all(),
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ],
         ]);
     }
 

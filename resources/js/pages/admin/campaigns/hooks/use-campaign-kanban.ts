@@ -1,129 +1,156 @@
-import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
-import { httpGet } from '@/lib/http'
+import { httpPatch } from '@/lib/http'
 import type { PaginatedResponse } from '@/lib/http'
 import type {
 	Campaign,
 	CampaignFilterParams,
-	CampaignKanbanColumn,
-	UseCampaignKanbanReturn,
+	CampaignMutationResponse,
+	CampaignStatusValue,
 } from '@/types/campaign'
+import { CAMPAIGN_STATUS_LABELS } from '@/types/campaign'
+
 import {
-	CAMPAIGN_STATUS_LABELS,
-	KANBAN_COLUMN_STATUSES,
-} from '@/types/campaign'
+	kanbanColumnQueryKey,
+	insertCampaignIntoPages,
+	removeCampaignFromPages,
+} from './use-kanban-column'
+import { useKanbanColumnsConfig } from './use-kanban-columns-config'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CAMPAIGNS_ENDPOINT = '/api/v1/admin/campaigns'
-const KANBAN_PAGE_SIZE = 200
-const KANBAN_POLLING_INTERVAL = 15_000
-const KANBAN_MAX_CONSECUTIVE_ERRORS = 3
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface UseCampaignKanbanProps {
-	/** Filter params from useCampaignFilters hook */
 	filterParams: CampaignFilterParams
-	/** Enable query only when kanban view is active */
-	enabled: boolean
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Groups a flat list of campaigns into kanban columns based on
- * `KANBAN_COLUMN_STATUSES`. Campaigns whose status is not in the
- * column list are silently excluded.
- */
-const groupCampaignsByStatus = (
-	campaigns: Campaign[],
-): CampaignKanbanColumn[] =>
-	KANBAN_COLUMN_STATUSES.map((status) => ({
-		status,
-		label: CAMPAIGN_STATUS_LABELS[status],
-		campaigns: campaigns.filter(
-			(campaign) => campaign.status.value === status,
-		),
-	}))
+export interface UseCampaignKanbanReturn {
+	columnsConfig: ReturnType<typeof useKanbanColumnsConfig>
+	optimisticMove: (
+		campaignUuid: string,
+		fromStatus: CampaignStatusValue,
+		toStatus: CampaignStatusValue,
+		creatorIds?: number[],
+	) => Promise<void>
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Fetches all visible campaigns for the kanban view using a single
- * `useQuery` call with a high `per_page` value.
+ * Orchestrates the kanban board configuration and optimistic drag transitions.
  *
- * Unlike the table view (which uses `useInfiniteQuery` for progressive
- * loading), the kanban needs every campaign upfront so it can group
- * them into status columns.
+ * Per-column data fetching is handled by `useKanbanColumn` inside each
+ * `KanbanColumn` component — this avoids calling hooks inside `.map()`,
+ * which would violate React's rules of hooks.
  *
- * The queryKey includes `'kanban'` to keep its cache independent from
- * the table view while sharing the `'admin-campaigns'` base key.
+ * This hook is responsible for:
+ * - Column visibility/collapse state (via `useKanbanColumnsConfig`)
+ * - Optimistic cache mutations for drag-and-drop status transitions
  *
- * @param props.filterParams - Filter parameters from `useCampaignFilters`
- * @param props.enabled - Whether the query should be active (true when view === 'kanban')
- * @returns Columns, flat campaigns list, loading/error states, and refetch
- *
- * @example
- * const { filterParams } = useCampaignFilters()
- * const { columns, isLoading, refetch } = useCampaignKanban({
- *   filterParams,
- *   enabled: activeView === 'kanban',
- * })
+ * @param props.filterParams - Filter params from useCampaignFilters
  */
 export function useCampaignKanban({
 	filterParams,
-	enabled,
 }: UseCampaignKanbanProps): UseCampaignKanbanReturn {
-	const query = useQuery({
-		queryKey: ['admin-campaigns', 'kanban', filterParams],
-		queryFn: () =>
-			httpGet<PaginatedResponse<Campaign>>(CAMPAIGNS_ENDPOINT, {
-				params: {
-					...filterParams,
-					per_page: KANBAN_PAGE_SIZE,
+	const queryClient = useQueryClient()
+	const columnsConfig = useKanbanColumnsConfig()
+
+	// ── Optimistic drag-and-drop ──────────────────────────────────────
+
+	const optimisticMove = useCallback(
+		async (
+			campaignUuid: string,
+			fromStatus: CampaignStatusValue,
+			toStatus: CampaignStatusValue,
+			creatorIds?: number[],
+		) => {
+			const fromKey = kanbanColumnQueryKey(fromStatus, filterParams)
+			const toKey = kanbanColumnQueryKey(toStatus, filterParams)
+
+			type Pages = { pages: PaginatedResponse<Campaign>[]; pageParams: unknown[] }
+
+			// Snapshot both columns for rollback
+			const snapshotFrom = queryClient.getQueryData<Pages>(fromKey)
+			const snapshotTo = queryClient.getQueryData<Pages>(toKey)
+
+			// Find the campaign in the from column cache
+			const campaign = snapshotFrom?.pages
+				.flatMap((p) => p.data)
+				.find((c) => c.uuid === campaignUuid)
+
+			if (!campaign) return
+
+			// Build updated campaign with new status
+			const updatedCampaign: Campaign = {
+				...campaign,
+				status: {
+					...campaign.status,
+					value: toStatus,
+					label: CAMPAIGN_STATUS_LABELS[toStatus],
 				},
-			}),
-		enabled,
-		staleTime: 30 * 1000,
-		refetchInterval: (query) => {
-			if (!enabled) return false
-			// Pause polling during drag to prevent lag
-			if (document.body.dataset.dragging === 'true') return false
-			const errorCount = query.state.errorUpdateCount
-			if (errorCount >= KANBAN_MAX_CONSECUTIVE_ERRORS) {
-				return KANBAN_POLLING_INTERVAL * 2
 			}
-			return KANBAN_POLLING_INTERVAL
+
+			// Optimistic update — remove from source, insert into destination
+			if (snapshotFrom) {
+				queryClient.setQueryData<Pages>(fromKey, {
+					...snapshotFrom,
+					pages: removeCampaignFromPages(snapshotFrom.pages, campaignUuid),
+				})
+			}
+
+			if (snapshotTo) {
+				queryClient.setQueryData<Pages>(toKey, {
+					...snapshotTo,
+					pages: insertCampaignIntoPages(snapshotTo.pages, updatedCampaign),
+				})
+			} else {
+				// Destination column not yet loaded — initialise with this one campaign
+				queryClient.setQueryData<Pages>(toKey, {
+					pages: insertCampaignIntoPages([], updatedCampaign),
+					pageParams: [1],
+				})
+			}
+
+			// Fire API silently in background
+			try {
+				await httpPatch<CampaignMutationResponse>(
+					`${CAMPAIGNS_ENDPOINT}/${campaignUuid}/status`,
+					{
+						status: toStatus,
+						...(creatorIds && creatorIds.length > 0
+							? { creator_ids: creatorIds }
+							: {}),
+					},
+				)
+			} catch (error) {
+				// Rollback both columns on failure
+				if (snapshotFrom) queryClient.setQueryData(fromKey, snapshotFrom)
+				if (snapshotTo) queryClient.setQueryData(toKey, snapshotTo)
+
+				const message =
+					error instanceof Error
+						? error.message
+						: 'Não foi possível atualizar o status da campanha.'
+				toast.error(message)
+				throw error
+			}
 		},
-		refetchOnWindowFocus: true,
-	})
-
-	const campaigns = useMemo(
-		() => query.data?.data ?? [],
-		[query.data],
-	)
-
-	const columns = useMemo(
-		() => groupCampaignsByStatus(campaigns),
-		[campaigns],
+		[queryClient, filterParams],
 	)
 
 	return {
-		columns,
-		campaigns,
-		isLoading: query.isLoading,
-		isFetching: query.isFetching,
-		error: query.error,
-		refetch: query.refetch,
+		columnsConfig,
+		optimisticMove,
 	}
 }

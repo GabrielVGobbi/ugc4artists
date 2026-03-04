@@ -98,17 +98,19 @@ export function CreateCampaignModal({ open, onOpenChange }: CreateCampaignModalP
                     <div className="flex gap-3 pt-2">
                         <Button
                             type="button"
+                            size={'lg'}
                             variant="outline"
                             onClick={handleClose}
                             disabled={isCreatingDraft}
-                            className="flex-1 rounded-xl py-5 h-auto font-bold"
+                            className="flex-1 rounded-xl py-3 font-bold"
                         >
                             Cancelar
                         </Button>
                         <Button
                             type="submit"
+                            size={'lg'}
                             disabled={isCreatingDraft || !name.trim()}
-                            className="flex-1 rounded-xl py-5 h-auto font-bold bg-primary hover:bg-primary/90"
+                            className="flex-1 rounded-xl py-3 font-bold bg-primary hover:bg-primary/90"
                         >
                             {isCreatingDraft ? (
                                 <>

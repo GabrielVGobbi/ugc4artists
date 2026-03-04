@@ -530,6 +530,31 @@ export interface CampaignKanbanColumn {
 }
 
 /**
+ * Data for a single kanban column with pagination metadata.
+ * Used by the per-column infinite query architecture.
+ */
+export interface CampaignKanbanColumnData {
+	/** Status value used as column identifier */
+	status: CampaignStatusValue
+	/** Display label for the column header */
+	label: string
+	/** Campaigns loaded so far across all pages */
+	campaigns: Campaign[]
+	/** Total campaigns for this status on the server */
+	totalCount: number
+	/** Number of campaigns loaded client-side so far */
+	loadedCount: number
+	/** Whether there are more pages to load */
+	hasNextPage: boolean
+	/** Whether the next page is currently being fetched */
+	isFetchingNextPage: boolean
+	/** Whether the initial load is in progress */
+	isLoading: boolean
+	/** Load the next page */
+	fetchNextPage: () => void
+}
+
+/**
  * Admin-visible statuses displayed as kanban columns.
  * Matches the statuses filtered by the backend controller.
  */
@@ -540,6 +565,21 @@ export const KANBAN_COLUMN_STATUSES: readonly CampaignStatusValue[] = [
 	'in_progress',
 	'completed',
 	'refused',
+] as const
+
+/**
+ * All statuses available to add as kanban columns.
+ * Includes statuses not shown by default.
+ */
+export const ALL_KANBAN_STATUSES: readonly CampaignStatusValue[] = [
+	'under_review',
+	'approved',
+	'refused',
+	'awaiting_payment',
+	'sent_to_creators',
+	'in_progress',
+	'completed',
+	'cancelled',
 ] as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -586,18 +626,37 @@ export interface UseCampaignStatsReturn {
 
 /** Return type for the `useCampaignKanban` hook */
 export interface UseCampaignKanbanReturn {
-	/** Campaigns grouped by status into kanban columns */
-	columns: CampaignKanbanColumn[]
-	/** Flat list of all campaigns from the kanban query */
-	campaigns: Campaign[]
-	/** Whether the initial load is in progress */
+	/** Kanban columns with per-column pagination data */
+	columns: CampaignKanbanColumnData[]
+	/** Whether any column is still loading initial data */
 	isLoading: boolean
-	/** Whether data is being refetched in the background */
-	isFetching: boolean
-	/** Error if the fetch failed */
-	error: Error | null
-	/** Refetch kanban data */
-	refetch: () => void
+	/** Optimistically move a campaign between columns (drag-and-drop) */
+	optimisticMove: (
+		campaignUuid: string,
+		fromStatus: CampaignStatusValue,
+		toStatus: CampaignStatusValue,
+		creatorIds?: number[],
+	) => Promise<void>
+}
+
+/** Creators pagination response from the API */
+export interface CreatorsPaginatedResponse {
+	data: CreatorOption[]
+	meta: {
+		current_page: number
+		last_page: number
+		per_page: number
+		total: number
+	}
+}
+
+/** Creator option for selection in the creators modal */
+export interface CreatorOption {
+	id: number
+	uuid: string
+	name: string
+	email: string
+	avatar: string | null
 }
 
 /** Mutation input for approving a campaign */

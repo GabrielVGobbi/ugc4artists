@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useRef, useState } from 'react'
 import {
 	DndContext,
 	type DragEndEvent,
@@ -8,7 +8,6 @@ import {
 	KeyboardSensor,
 	PointerSensor,
 	useDraggable,
-	useDroppable,
 	useSensor,
 	useSensors,
 } from '@dnd-kit/core'
@@ -17,18 +16,15 @@ import {
 	Calendar,
 	DollarSign,
 	GripVertical,
-	Megaphone,
 	User,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import type {
 	Campaign,
-	CampaignKanbanColumn,
+	CampaignFilterParams,
 	CampaignStatusValue,
-	UpdateCampaignStatusInput,
 } from '@/types/campaign'
 import {
 	isValidStatusTransition,
@@ -38,111 +34,30 @@ import { formatCurrency } from '@/lib/utils'
 
 import { StatusBadge } from './status-badge'
 import { SelectCreatorsModal } from './select-creators-modal'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Column Color Config
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface ColumnColorConfig {
-	colorClass: string
-	headerBg: string
-	dropHighlight: string
-}
-
-/**
- * Maps each kanban-visible status to its column color scheme.
- * Falls back to neutral zinc tones for unmapped statuses.
- */
-const COLUMN_COLORS: Record<string, ColumnColorConfig> = {
-	under_review: {
-		colorClass: 'text-amber-700 dark:text-amber-400',
-		headerBg: 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
-		dropHighlight: 'ring-amber-400',
-	},
-	approved: {
-		colorClass: 'text-blue-700 dark:text-blue-400',
-		headerBg: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800',
-		dropHighlight: 'ring-blue-400',
-	},
-	sent_to_creators: {
-		colorClass: 'text-violet-700 dark:text-violet-400',
-		headerBg: 'bg-violet-50 border-violet-200 dark:bg-violet-950/30 dark:border-violet-800',
-		dropHighlight: 'ring-violet-400',
-	},
-	in_progress: {
-		colorClass: 'text-emerald-700 dark:text-emerald-400',
-		headerBg: 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800',
-		dropHighlight: 'ring-emerald-400',
-	},
-	completed: {
-		colorClass: 'text-zinc-700 dark:text-zinc-300',
-		headerBg: 'bg-zinc-50 border-zinc-200 dark:bg-zinc-800/50 dark:border-zinc-700',
-		dropHighlight: 'ring-zinc-400',
-	},
-	refused: {
-		colorClass: 'text-rose-700 dark:text-rose-400',
-		headerBg: 'bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800',
-		dropHighlight: 'ring-rose-400',
-	},
-}
-
-const DEFAULT_COLUMN_COLORS: ColumnColorConfig = {
-	colorClass: 'text-zinc-700 dark:text-zinc-300',
-	headerBg: 'bg-zinc-50 border-zinc-200 dark:bg-zinc-800/50 dark:border-zinc-700',
-	dropHighlight: 'ring-zinc-400',
-}
-
-const getColumnColors = (
-	status: CampaignStatusValue,
-): ColumnColorConfig =>
-	COLUMN_COLORS[status] ?? DEFAULT_COLUMN_COLORS
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-const parseApiErrorMessage = (error: unknown): string => {
-	if (
-		typeof error === 'object' &&
-		error !== null &&
-		'message' in error &&
-		typeof (error as { message?: unknown }).message === 'string'
-	) {
-		return (error as { message: string }).message
-	}
-
-	if (typeof error === 'object' && error !== null && 'errors' in error) {
-		const errors = (error as { errors?: Record<string, string> }).errors
-		const first = errors ? Object.values(errors)[0] : null
-		if (first) return first
-	}
-
-	return 'Não foi possível atualizar o status da campanha.'
-}
+import { KanbanColumn } from './kanban-column'
+import { KanbanColumnManager } from './kanban-column-manager'
+import { useCampaignKanban } from '../hooks/use-campaign-kanban'
+import type { UseKanbanColumnsConfigReturn } from '../hooks/use-kanban-columns-config'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface CampaignKanbanProps {
-	/** Kanban columns from useCampaignKanban hook */
-	columns: CampaignKanbanColumn[]
-	/** Whether the initial data load is in progress */
-	isLoading: boolean
-	/** Callback when a campaign card is clicked */
+	filterParams: CampaignFilterParams
+	enabled: boolean
 	onCampaignClick?: (campaign: Campaign) => void
-	/** Callback to update campaign status (from useCampaignMutations) */
-	onUpdateStatus: (input: UpdateCampaignStatusInput) => Promise<void>
 }
 
 interface PendingTransition {
 	campaignUuid: string
-	currentStatus: CampaignStatusValue
+	fromStatus: CampaignStatusValue
 	targetStatus: CampaignStatusValue
+	slotsToApprove?: number
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sub-components
+// Kanban Card
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface KanbanCardProps {
@@ -151,7 +66,7 @@ interface KanbanCardProps {
 	onCampaignClick?: (campaign: Campaign) => void
 }
 
-const KanbanCard = memo(function KanbanCard ({
+const KanbanCard = memo(function KanbanCard({
 	campaign,
 	isDragOverlay = false,
 	onCampaignClick,
@@ -167,6 +82,8 @@ const KanbanCard = memo(function KanbanCard ({
 		data: {
 			campaignUuid: campaign.uuid,
 			currentStatus: campaign.status.value,
+			slotsToApprove: campaign.slots_to_approve,
+			campaign,
 		},
 	})
 
@@ -204,16 +121,15 @@ const KanbanCard = memo(function KanbanCard ({
 			onClick={isDragOverlay ? undefined : handleCardClick}
 			onKeyDown={isDragOverlay ? undefined : handleKeyDown}
 			tabIndex={isDragOverlay ? undefined : 0}
-			className={`
-				group relative rounded-xl border bg-white p-3.5
-				shadow-sm transition-all duration-200
-				dark:bg-zinc-900 dark:border-zinc-700
-				${isDragOverlay
+			className={[
+				'group relative rounded-xl border bg-white p-3.5',
+				'shadow-sm transition-all duration-200',
+				'dark:bg-zinc-900 dark:border-zinc-700',
+				isDragOverlay
 					? 'rotate-2 scale-105 shadow-xl ring-2 ring-primary/30'
-					: 'hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-600 cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1'
-				}
-				${isDragging && !isDragOverlay ? 'opacity-30' : ''}
-			`}
+					: 'hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-600 cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1',
+				isDragging && !isDragOverlay ? 'opacity-30' : '',
+			].join(' ')}
 			role="article"
 			aria-label={`Campanha: ${campaign.name}`}
 			aria-roledescription="item arrastável"
@@ -226,17 +142,14 @@ const KanbanCard = memo(function KanbanCard ({
 				<GripVertical className="size-3.5 text-zinc-300 dark:text-zinc-600" />
 			</div>
 
-			{/* Campaign name + status */}
+			{/* Campaign name */}
 			<div className="mb-2.5 flex items-start justify-between gap-2 pr-4">
 				<h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-2 leading-snug">
 					{campaign.name}
 				</h4>
 			</div>
 
-			<StatusBadge
-				status={campaign.status}
-				className="mb-3 text-[10px]"
-			/>
+			<StatusBadge status={campaign.status} className="mb-3 text-[10px]" />
 
 			{/* Meta info */}
 			<div className="space-y-1.5">
@@ -254,9 +167,7 @@ const KanbanCard = memo(function KanbanCard ({
 				</div>
 				<div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
 					<Calendar className="size-3 shrink-0" aria-hidden="true" />
-					<span className="tabular-nums">
-						{campaign.created_at}
-					</span>
+					<span className="tabular-nums">{campaign.created_at}</span>
 				</div>
 			</div>
 		</div>
@@ -264,325 +175,140 @@ const KanbanCard = memo(function KanbanCard ({
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Kanban Column
+// Board Toolbar
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface KanbanColumnComponentProps {
-	column: CampaignKanbanColumn
-	isOver: boolean
+interface BoardToolbarProps {
+	columnsConfig: UseKanbanColumnsConfigReturn
+}
+
+function BoardToolbar({ columnsConfig }: BoardToolbarProps) {
+	return (
+		<div className="flex items-center justify-end">
+			<KanbanColumnManager
+				columns={columnsConfig.allColumnOptions}
+				onToggleColumn={columnsConfig.toggleColumn}
+				onResetToDefault={columnsConfig.resetToDefault}
+			/>
+		</div>
+	)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Kanban Board (DnD + columns)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface KanbanBoardProps {
+	visibleStatuses: CampaignStatusValue[]
+	filterParams: CampaignFilterParams
+	enabled: boolean
+	columnsConfig: UseKanbanColumnsConfigReturn
 	onCampaignClick?: (campaign: Campaign) => void
+	onOptimisticMove: (
+		campaignUuid: string,
+		fromStatus: CampaignStatusValue,
+		toStatus: CampaignStatusValue,
+		creatorIds?: number[],
+	) => Promise<void>
 }
 
-const KanbanColumn = memo(function KanbanColumn ({
-	column,
-	isOver,
+function KanbanBoard({
+	visibleStatuses,
+	filterParams,
+	enabled,
+	columnsConfig,
 	onCampaignClick,
-}: KanbanColumnComponentProps) {
-	const { setNodeRef } = useDroppable({ id: column.status })
-	const colors = getColumnColors(column.status)
-
-	return (
-		<div
-			ref={setNodeRef}
-			className={`
-				flex flex-col rounded-2xl border transition-all duration-200
-				bg-zinc-50/80 dark:bg-zinc-900/50 min-h-[400px]
-				min-w-[260px] snap-start
-				${isOver
-					? `ring-2 ${colors.dropHighlight} border-transparent`
-					: 'border-zinc-200/80 dark:border-zinc-700/80'
-				}
-			`}
-			role="region"
-			aria-label={`Coluna ${column.label}`}
-			aria-roledescription="coluna do kanban"
-		>
-			{/* Column header */}
-			<div
-				className={`
-					flex items-center justify-between rounded-t-2xl
-					border-b px-4 py-3 ${colors.headerBg}
-				`}
-			>
-				<h3
-					className={`text-sm font-semibold ${colors.colorClass}`}
-				>
-					{column.label}
-				</h3>
-				<Badge
-					variant="primary"
-					className="tabular-nums text-[10px] font-semibold"
-				>
-					{column.campaigns.length}
-				</Badge>
-			</div>
-
-			{/* Cards */}
-			<div
-				className="flex-1 space-y-2.5 p-3 overflow-y-auto"
-				role="list"
-				aria-label={`Campanhas em ${column.label}`}
-			>
-				{column.campaigns.length === 0 && (
-					<div className="flex flex-col items-center justify-center py-8 text-center">
-						<div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
-							<Megaphone className="size-4 text-zinc-300 dark:text-zinc-600" />
-						</div>
-						<p className="text-xs text-zinc-400 dark:text-zinc-500">
-							Nenhuma campanha
-						</p>
-					</div>
-				)}
-				{column.campaigns.map((campaign) => (
-					<div key={campaign.uuid} role="listitem">
-						<KanbanCard
-							campaign={campaign}
-							onCampaignClick={onCampaignClick}
-						/>
-					</div>
-				))}
-			</div>
-		</div>
-	)
-}, (prevProps, nextProps) => {
-	// Custom comparator: verifica se realmente nada mudou
-	if (prevProps.column.status !== nextProps.column.status) return false
-	if (prevProps.isOver !== nextProps.isOver) return false
-	if (prevProps.onCampaignClick !== nextProps.onCampaignClick) return false
-
-	// IMPORTANTE: Comparar os UUIDs das campanhas, não apenas o length
-	if (prevProps.column.campaigns.length !== nextProps.column.campaigns.length) {
-		return false
-	}
-
-	// Verificar se as campanhas mudaram (por UUID ou status)
-	for (let i = 0; i < prevProps.column.campaigns.length; i++) {
-		const prevCampaign = prevProps.column.campaigns[i]
-		const nextCampaign = nextProps.column.campaigns[i]
-
-		if (
-			prevCampaign.uuid !== nextCampaign.uuid ||
-			prevCampaign.status.value !== nextCampaign.status.value
-		) {
-			return false
-		}
-	}
-
-	// Nada mudou, pode pular o re-render
-	return true
-})
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Skeleton
-// ─────────────────────────────────────────────────────────────────────────────
-
-function KanbanSkeleton () {
-	const skeletonColumns = [
-		'under_review',
-		'approved',
-		'sent_to_creators',
-		'in_progress',
-		'completed',
-		'refused',
-	] as const
-
-	return (
-		<div
-			className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory lg:grid lg:grid-cols-6 lg:overflow-x-visible lg:pb-0"
-			role="status"
-			aria-label="Carregando campanhas"
-		>
-			{skeletonColumns.map((status) => {
-				const colors = getColumnColors(status)
-				return (
-					<div
-						key={status}
-						className="flex flex-col rounded-2xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/80 dark:bg-zinc-900/50 min-h-[400px] min-w-[260px] snap-start"
-					>
-						<div
-							className={`
-								flex items-center justify-between rounded-t-2xl
-								border-b px-4 py-3 ${colors.headerBg}
-							`}
-						>
-							<Skeleton className="h-4 w-20" />
-							<Skeleton className="h-5 w-6 rounded-md" />
-						</div>
-						<div className="space-y-2.5 p-3">
-							{Array.from({ length: 3 }).map((_, index) => (
-								<div
-									key={`${status}-skeleton-${index}`}
-									className="rounded-xl border bg-white dark:bg-zinc-900 dark:border-zinc-700 p-3.5 space-y-3"
-								>
-									<Skeleton className="h-4 w-3/4" />
-									<Skeleton className="h-5 w-16 rounded-md" />
-									<div className="space-y-1.5">
-										<Skeleton className="h-3 w-2/3" />
-										<Skeleton className="h-3 w-1/2" />
-										<Skeleton className="h-3 w-1/3" />
-									</div>
-								</div>
-							))}
-						</div>
-					</div>
-				)
-			})}
-		</div>
-	)
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Kanban board for campaign management with drag-and-drop status transitions.
- *
- * Uses `@dnd-kit/core` for drag-and-drop with `PointerSensor` (8px activation
- * distance) and `KeyboardSensor` for accessibility. Status transitions are
- * validated client-side via `isValidStatusTransition` before calling the
- * mutation. The `onUpdateStatus` callback (from `useCampaignMutations`) handles
- * optimistic updates and rollback internally.
- *
- * Validates: Requirements 1.3, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 9.1, 9.2, 9.4
- */
-function CampaignKanban ({
-	columns,
-	isLoading,
-	onCampaignClick,
-	onUpdateStatus,
-}: CampaignKanbanProps) {
+	onOptimisticMove,
+}: KanbanBoardProps) {
 	const [activeDragId, setActiveDragId] = useState<string | null>(null)
 	const [overColumnId, setOverColumnId] = useState<string | null>(null)
 	const [showCreatorsModal, setShowCreatorsModal] = useState(false)
 	const pendingTransitionRef = useRef<PendingTransition | null>(null)
+	const activeDragCampaignRef = useRef<Campaign | null>(null)
 
-	// ── Campaign lookup map (O(1) instead of O(N)) ───────────────────
-
-	const campaignMap = useMemo(() => {
-		const map = new Map<string, Campaign>()
-		columns.forEach((col) => {
-			col.campaigns.forEach((campaign) => {
-				map.set(campaign.uuid, campaign)
-			})
-		})
-		return map
-	}, [columns])
-
-	// ── Active drag campaign (for overlay) ───────────────────────────
-
-	const activeDragCampaign = useMemo(() => {
-		if (!activeDragId) return null
-		return campaignMap.get(activeDragId) ?? null
-	}, [activeDragId, campaignMap])
+	const activeDragCampaign = activeDragCampaignRef.current
 
 	// ── DnD sensors ──────────────────────────────────────────────────
 
 	const sensors = useSensors(
-		useSensor(PointerSensor, {
-			activationConstraint: { distance: 8 },
-		}),
+		useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
 		useSensor(KeyboardSensor),
 	)
 
-	// ── Drag handlers ────────────────────────────────────────────────
+	// ── Drag handlers ─────────────────────────────────────────────────
 
 	const handleDragStart = useCallback((event: DragStartEvent) => {
 		setActiveDragId(String(event.active.id))
-		// Pause polling during drag to prevent lag
+		activeDragCampaignRef.current = (event.active.data.current?.campaign as Campaign) ?? null
 		document.body.dataset.dragging = 'true'
 	}, [])
 
 	const handleDragOver = useCallback((event: DragOverEvent) => {
-		setOverColumnId(
-			event.over ? String(event.over.id) : null,
-		)
+		setOverColumnId(event.over ? String(event.over.id) : null)
 	}, [])
 
 	const handleDragEnd = useCallback(
 		async (event: DragEndEvent) => {
 			setActiveDragId(null)
 			setOverColumnId(null)
-			// Resume polling after drag
+			activeDragCampaignRef.current = null
 			delete document.body.dataset.dragging
 
 			const campaignUuid = String(event.active.id)
-			const currentStatus = event.active.data.current
-				?.currentStatus as CampaignStatusValue | undefined
-			const targetStatus = event.over?.id as
-				CampaignStatusValue | undefined
+			const fromStatus = event.active.data.current?.currentStatus as CampaignStatusValue | undefined
+			const toStatus = event.over?.id as CampaignStatusValue | undefined
+			const slotsToApprove = event.active.data.current?.slotsToApprove as number | undefined
 
-			if (!campaignUuid || !currentStatus || !targetStatus) {
-				return
-			}
+			if (!campaignUuid || !fromStatus || !toStatus) return
+			if (fromStatus === toStatus) return
 
-			// Same column — no-op
-			if (currentStatus === targetStatus) return
-
-			// Validate transition client-side
-			if (!isValidStatusTransition(currentStatus, targetStatus)) {
+			if (!isValidStatusTransition(fromStatus, toStatus)) {
 				toast.error(
-					`Transição inválida: não é possível mover de "${CAMPAIGN_STATUS_LABELS[currentStatus]}" para "${CAMPAIGN_STATUS_LABELS[targetStatus]}".`,
+					`Transição inválida: "${CAMPAIGN_STATUS_LABELS[fromStatus]}" → "${CAMPAIGN_STATUS_LABELS[toStatus]}".`,
 				)
 				return
 			}
 
-			// Special case: approved → sent_to_creators requires creator selection
-			if (
-				currentStatus === 'approved' &&
-				targetStatus === 'sent_to_creators'
-			) {
-				pendingTransitionRef.current = {
-					campaignUuid,
-					currentStatus,
-					targetStatus,
-				}
+			// Special case: requires creator selection modal
+			if (fromStatus === 'approved' && toStatus === 'sent_to_creators') {
+				pendingTransitionRef.current = { campaignUuid, fromStatus, targetStatus: toStatus, slotsToApprove }
 				setShowCreatorsModal(true)
 				return
 			}
 
-			// Call mutation — hook handles optimistic update + rollback
 			try {
-				await onUpdateStatus({
-					campaignUuid,
-					status: targetStatus,
-				})
+				await onOptimisticMove(campaignUuid, fromStatus, toStatus)
 				toast.success('Status atualizado com sucesso.')
-			} catch (error) {
-				toast.error(parseApiErrorMessage(error))
+			} catch {
+				// Error toast handled inside optimisticMove
 			}
 		},
-		[onUpdateStatus],
+		[onOptimisticMove],
 	)
 
 	const handleDragCancel = useCallback(() => {
 		setActiveDragId(null)
 		setOverColumnId(null)
-		// Resume polling after drag
+		activeDragCampaignRef.current = null
 		delete document.body.dataset.dragging
 	}, [])
 
-	// ── Creators modal handlers ──────────────────────────────────────
+	// ── Creators modal ────────────────────────────────────────────────
 
 	const handleCreatorsConfirm = useCallback(
 		async (creatorIds: number[]) => {
-			const transition = pendingTransitionRef.current
-			if (!transition) return
-
+			const t = pendingTransitionRef.current
+			if (!t) return
 			try {
-				await onUpdateStatus({
-					campaignUuid: transition.campaignUuid,
-					status: transition.targetStatus,
-					creatorIds,
-				})
+				await onOptimisticMove(t.campaignUuid, t.fromStatus, t.targetStatus, creatorIds)
 				toast.success('Campanha enviada para creators com sucesso.')
-			} catch (error) {
-				toast.error(parseApiErrorMessage(error))
+			} catch {
+				// Error handled inside optimisticMove
 			} finally {
 				pendingTransitionRef.current = null
 			}
 		},
-		[onUpdateStatus],
+		[onOptimisticMove],
 	)
 
 	const handleCreatorsModalClose = useCallback(() => {
@@ -590,11 +316,14 @@ function CampaignKanban ({
 		pendingTransitionRef.current = null
 	}, [])
 
-	// ── Loading state ────────────────────────────────────────────────
+	// ── Render card factory ───────────────────────────────────────────
 
-	if (isLoading) {
-		return <KanbanSkeleton />
-	}
+	const renderCard = useCallback(
+		(campaign: Campaign) => (
+			<KanbanCard campaign={campaign} onCampaignClick={onCampaignClick} />
+		),
+		[onCampaignClick],
+	)
 
 	// ── Render ────────────────────────────────────────────────────────
 
@@ -607,47 +336,106 @@ function CampaignKanban ({
 				onDragEnd={handleDragEnd}
 				onDragCancel={handleDragCancel}
 			>
+				{/*
+				 * Board container: fixed viewport height so columns don't grow
+				 * the page. Each column gets h-full, and its ScrollArea uses
+				 * flex-1 min-h-0 to scroll independently.
+				 */}
 				<div
-					className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory lg:grid lg:grid-cols-6 lg:overflow-x-visible lg:pb-0"
+					className="flex gap-3 overflow-x-auto overflow-y-hidden pb-2 snap-x snap-mandatory h-[calc(100svh-420px)] min-h-[480px]"
 					role="region"
 					aria-label="Kanban de campanhas"
 					aria-roledescription="quadro kanban"
 					aria-live="polite"
 				>
-					{columns.map((column) => (
+					{visibleStatuses.map((status) => (
 						<KanbanColumn
-							key={column.status}
-							column={column}
-							isOver={overColumnId === column.status}
+							key={status}
+							status={status}
+							filterParams={filterParams}
+							enabled={enabled}
+							isOver={overColumnId === status}
+							isCollapsed={columnsConfig.collapsedStatuses.has(status)}
+							onToggleCollapse={columnsConfig.toggleCollapse}
 							onCampaignClick={onCampaignClick}
+							renderCard={renderCard}
 						/>
 					))}
 				</div>
 
-				{/* Drag overlay — renders a floating copy of the card */}
 				<DragOverlay dropAnimation={null}>
-					{activeDragCampaign ? (
-						<KanbanCard
-							campaign={activeDragCampaign}
-							isDragOverlay
-						/>
+					{activeDragId && activeDragCampaign ? (
+						<KanbanCard campaign={activeDragCampaign} isDragOverlay />
 					) : null}
 				</DragOverlay>
 			</DndContext>
 
-			{/* Creators selection modal */}
 			<SelectCreatorsModal
 				open={showCreatorsModal}
 				onClose={handleCreatorsModalClose}
 				onConfirm={handleCreatorsConfirm}
-				maxSelections={
-					pendingTransitionRef.current
-						? campaignMap.get(pendingTransitionRef.current.campaignUuid)
-								?.slots_to_approve ?? undefined
-						: undefined
-				}
+				maxSelections={pendingTransitionRef.current?.slotsToApprove}
 			/>
 		</>
+	)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main export
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Kanban board for campaign management.
+ *
+ * Each column independently fetches its own paginated data via `useInfiniteQuery`
+ * inside the `KanbanColumn` component. Drag-and-drop transitions are applied
+ * optimistically — the card moves immediately and the API updates silently.
+ * On failure, the cache rolls back. Column visibility and collapse state
+ * are persisted in localStorage.
+ */
+function CampaignKanban({
+	filterParams,
+	enabled,
+	onCampaignClick,
+}: CampaignKanbanProps) {
+	const { optimisticMove, columnsConfig } = useCampaignKanban({ filterParams })
+	const { visibleStatuses } = columnsConfig
+
+	if (!enabled) {
+		return (
+			<div className="space-y-3">
+				<div className="flex justify-end">
+					<Skeleton className="h-8 w-28 rounded-lg" />
+				</div>
+				<div className="flex gap-4 overflow-x-auto pb-4">
+					{[...Array(6)].map((_, i) => (
+						<div
+							key={`sk-col-${i}`}
+							className="flex flex-col rounded-2xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/80 dark:bg-zinc-900/50 min-h-[400px] min-w-[260px]"
+						>
+							<div className="flex items-center justify-between rounded-t-2xl border-b px-4 py-3 bg-zinc-50 dark:bg-zinc-800/50">
+								<Skeleton className="h-4 w-20" />
+								<Skeleton className="h-5 w-12 rounded-md" />
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+		)
+	}
+
+	return (
+		<div className="space-y-3">
+			<BoardToolbar columnsConfig={columnsConfig} />
+			<KanbanBoard
+				visibleStatuses={visibleStatuses}
+				filterParams={filterParams}
+				enabled={enabled}
+				columnsConfig={columnsConfig}
+				onCampaignClick={onCampaignClick}
+				onOptimisticMove={optimisticMove}
+			/>
+		</div>
 	)
 }
 

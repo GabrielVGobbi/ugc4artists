@@ -1,4 +1,4 @@
-﻿import { useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Head } from '@inertiajs/react'
 
 import AppLayout from '@/layouts/app2-layout'
@@ -6,7 +6,6 @@ import type { BreadcrumbItem } from '@/types'
 import type {
     Campaign,
     ViewMode,
-    UpdateCampaignStatusInput,
 } from '@/types/campaign'
 
 import { ApproveDialog } from './components/approve-dialog'
@@ -18,7 +17,6 @@ import { RejectDialog } from './components/reject-dialog'
 import { StatsGrid } from './components/stats-grid'
 import { ViewToggle } from './components/view-toggle'
 import { useCampaignFilters } from './hooks/use-campaign-filters'
-import { useCampaignKanban } from './hooks/use-campaign-kanban'
 import { useCampaignMutations } from './hooks/use-campaign-mutations'
 import { useCampaignTableResource } from './hooks/use-campaign-table-resource'
 
@@ -72,24 +70,9 @@ export default function CampaignsIndex() {
     })
 
     const {
-        columns,
-        isLoading: isKanbanLoading,
-    } = useCampaignKanban({
-        filterParams,
-        enabled: viewMode === 'kanban',
-    })
-
-    const {
         approve,
         refuse,
-        updateStatus: updateStatusMutation,
     } = useCampaignMutations()
-
-    // Memoize updateStatus to prevent re-renders during drag
-    const updateStatus = useCallback(
-        (input: UpdateCampaignStatusInput) => updateStatusMutation(input),
-        [updateStatusMutation],
-    )
 
     // ── View mode toggle ──────────────────────────────────
     const handleViewModeChange = useCallback(
@@ -176,10 +159,9 @@ export default function CampaignsIndex() {
                     />
                 ) : (
                     <CampaignKanban
-                        columns={columns}
-                        isLoading={isKanbanLoading}
+                        filterParams={filterParams}
+                        enabled={viewMode === 'kanban'}
                         onCampaignClick={handleCampaignClick}
-                        onUpdateStatus={updateStatus}
                     />
                 )}
             </div>

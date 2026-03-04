@@ -252,7 +252,7 @@ export default function Dashboard({
 
                 {/* ── Row: Nova Campanha + Destaque ───────────────────────────── */}
                 <div className="grid grid-cols-12 gap-8 lg:col-span-12">
-                    <Link href={CampaignController.create()} className="col-span-12 lg:col-span-4 group cursor-pointer">
+                    <Link href={CampaignController.index()} className="col-span-12 lg:col-span-4 group cursor-pointer">
                         <div className="bg-white border-2 border-zinc-100 rounded-[3rem] p-5 h-full flex flex-col items-center justify-center text-center relative overflow-hidden hover:border-primary transition-all duration-500 group">
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-zinc-50/50 group-hover:text-primary/5 transition-colors duration-500">
                                 <Plus size={300} strokeWidth={1} />

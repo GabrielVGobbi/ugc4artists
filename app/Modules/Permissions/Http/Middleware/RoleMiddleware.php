@@ -12,11 +12,11 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, string $role, ?string $permission = null)
     {
-        #if (app()->isLocal()) {
-        #    if (!$request->user()) {
-        #        Auth::login(User::first());
-        #    }
-        #}
+        if (app()->isLocal()) {
+            if (!$request->user()) {
+                Auth::login(User::first());
+            }
+        }
 
         // Verifica autenticação
         if (!$request->user()) {

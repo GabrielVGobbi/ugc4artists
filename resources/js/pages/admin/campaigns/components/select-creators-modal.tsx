@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Search, User as UserIcon, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { Loader2, Search, User as UserIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -18,31 +19,15 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { httpGet } from '@/lib/http'
 import { cn } from '@/lib/utils'
+import type { CreatorOption, CreatorsPaginatedResponse } from '@/types/campaign'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Types
+// Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface Creator {
-    id: number
-    uuid: string
-    name: string
-    email: string
-    avatar: string | null
-}
-
-interface SelectCreatorsModalProps {
-    /** Whether the modal is open */
-    open: boolean
-    /** Callback when the modal is closed */
-    onClose: () => void
-    /** Callback when creators are selected */
-    onConfirm: (creatorIds: number[]) => void
-    /** IDs of already selected creators (pre-selected) */
-    initialSelectedIds?: number[]
-    /** Maximum number of creators that can be selected (from campaign.slots_to_approve) */
-    maxSelections?: number
-}
+const CREATORS_ENDPOINT = '/api/v1/admin/campaigns/creators'
+const PER_PAGE = 20
+const SEARCH_DEBOUNCE_MS = 400
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -57,26 +42,75 @@ const getInitials = (name: string): string => {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface SelectCreatorsModalProps {
+    open: boolean
+    onClose: () => void
+    onConfirm: (creatorIds: number[]) => void
+    initialSelectedIds?: number[]
+    maxSelections?: number
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Infinite scroll sentinel
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface SentinelProps {
+    hasNextPage: boolean
+    isFetchingNextPage: boolean
+    onIntersect: () => void
+}
+
+function InfiniteScrollSentinel({ hasNextPage, isFetchingNextPage, onIntersect }: SentinelProps) {
+    const ref = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const el = ref.current
+        if (!el || !hasNextPage) return
+
+        // Find Radix ScrollArea viewport as the root so the observer fires
+        // relative to the modal's scroll container, not the window.
+        let scrollRoot: Element | null = el.parentElement
+        while (scrollRoot && !scrollRoot.hasAttribute('data-radix-scroll-area-viewport')) {
+            scrollRoot = scrollRoot.parentElement
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    onIntersect()
+                }
+            },
+            { root: scrollRoot ?? null, threshold: 0.1 },
+        )
+
+        observer.observe(el)
+        return () => observer.disconnect()
+    }, [hasNextPage, isFetchingNextPage, onIntersect])
+
+    if (!hasNextPage && !isFetchingNextPage) return null
+
+    return (
+        <div ref={ref} className="flex items-center justify-center py-4">
+            {isFetchingNextPage && (
+                <Loader2 className="size-4 animate-spin text-zinc-400" />
+            )}
+        </div>
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Modal for selecting creators to send campaign to.
+ * Modal for selecting creators to send a campaign to.
  *
- * Features:
- * - Fetches creators from API
- * - Search by name/email
- * - Multiple selection with checkboxes
- * - Shows selected count
- * - Validates at least one creator is selected
- *
- * @example
- * <SelectCreatorsModal
- *   open={showModal}
- *   onClose={() => setShowModal(false)}
- *   onConfirm={(ids) => handleSendToCreators(ids)}
- *   initialSelectedIds={[1, 2, 3]}
- * />
+ * Uses `useInfiniteQuery` for paginated creator listing with server-side search.
+ * An `IntersectionObserver` sentinel at the list bottom triggers `fetchNextPage`.
+ * Search input is debounced 400ms — each new query resets to page 1.
  */
 export function SelectCreatorsModal({
     open,
@@ -85,61 +119,64 @@ export function SelectCreatorsModal({
     initialSelectedIds = [],
     maxSelections,
 }: SelectCreatorsModalProps) {
-    const [creators, setCreators] = useState<Creator[]>([])
-    const [filteredCreators, setFilteredCreators] = useState<Creator[]>([])
     const [selectedIds, setSelectedIds] = useState<Set<number>>(
         new Set(initialSelectedIds),
     )
     const [search, setSearch] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
+    const [debouncedSearch, setDebouncedSearch] = useState('')
 
-    // ── Fetch creators ────────────────────────────────────────────────
-
+    // Reset state when modal opens
     useEffect(() => {
-        if (!open) return
-
-        const fetchCreators = async () => {
-            setIsLoading(true)
-            try {
-                const response = await httpGet<{ data: Creator[] }>(
-                    '/api/v1/admin/campaigns/creators',
-                    {
-                        params: { limit: 100 },
-                    },
-                )
-                setCreators(response.data)
-                setFilteredCreators(response.data)
-            } catch (error) {
-                toast.error('Erro ao carregar creators.')
-                console.error('Failed to fetch creators:', error)
-            } finally {
-                setIsLoading(false)
-            }
+        if (open) {
+            setSelectedIds(new Set(initialSelectedIds))
+            setSearch('')
+            setDebouncedSearch('')
         }
+    }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
-        fetchCreators()
-        setSelectedIds(new Set(initialSelectedIds))
-        setSearch('')
-    }, [open]) // Removido fetchCreators e initialSelectedIds das dependências
-
-    // ── Search filter ─────────────────────────────────────────────────
-
+    // Debounce search input
     useEffect(() => {
-        if (search.trim() === '') {
-            setFilteredCreators(creators)
-        } else {
-            const searchLower = search.toLowerCase()
-            setFilteredCreators(
-                creators.filter(
-                    (c) =>
-                        c.name.toLowerCase().includes(searchLower) ||
-                        c.email.toLowerCase().includes(searchLower),
-                ),
-            )
-        }
-    }, [search, creators])
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search)
+        }, SEARCH_DEBOUNCE_MS)
+        return () => clearTimeout(timer)
+    }, [search])
 
-    // ── Handlers ──────────────────────────────────────────────────────
+    // ── Infinite query ────────────────────────────────────────────────
+
+    const query = useInfiniteQuery({
+        queryKey: ['admin-creators', debouncedSearch],
+        queryFn: ({ pageParam }) =>
+            httpGet<CreatorsPaginatedResponse>(CREATORS_ENDPOINT, {
+                params: {
+                    search: debouncedSearch || undefined,
+                    page: pageParam,
+                    per_page: PER_PAGE,
+                },
+            }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) => {
+            const { current_page, last_page } = lastPage.meta
+            return current_page < last_page ? current_page + 1 : undefined
+        },
+        enabled: open,
+        staleTime: 60_000,
+    })
+
+    const creators = useMemo(
+        () => query.data?.pages.flatMap((p) => p.data) ?? [],
+        [query.data],
+    )
+
+    const totalCount = query.data?.pages[0]?.meta.total ?? 0
+
+    const handleFetchNextPage = useCallback(() => {
+        if (query.hasNextPage && !query.isFetchingNextPage) {
+            query.fetchNextPage()
+        }
+    }, [query])
+
+    // ── Selection handlers ────────────────────────────────────────────
 
     const handleToggle = useCallback((id: number) => {
         setSelectedIds((prev) => {
@@ -147,10 +184,9 @@ export function SelectCreatorsModal({
             if (next.has(id)) {
                 next.delete(id)
             } else {
-                // Check max selections limit
                 if (maxSelections && next.size >= maxSelections) {
                     toast.error(
-                        `Você pode selecionar no máximo ${maxSelections} creator${maxSelections > 1 ? 's' : ''} para esta campanha.`,
+                        `Máximo de ${maxSelections} creator${maxSelections > 1 ? 's' : ''} para esta campanha.`,
                     )
                     return prev
                 }
@@ -160,40 +196,15 @@ export function SelectCreatorsModal({
         })
     }, [maxSelections])
 
-    const handleSelectAll = useCallback(() => {
-        setSelectedIds((prev) => {
-            if (prev.size === filteredCreators.length) {
-                return new Set()
-            }
-
-            // If max selections is set, limit to that number
-            if (maxSelections) {
-                const limitedCreators = filteredCreators.slice(0, maxSelections)
-                if (filteredCreators.length > maxSelections) {
-                    toast.info(
-                        `Selecionados apenas ${maxSelections} creators (limite da campanha).`,
-                    )
-                }
-                return new Set(limitedCreators.map((c) => c.id))
-            }
-
-            return new Set(filteredCreators.map((c) => c.id))
-        })
-    }, [filteredCreators, maxSelections])
-
     const handleConfirm = useCallback(() => {
         if (selectedIds.size === 0) {
             toast.error('Selecione pelo menos um creator.')
             return
         }
-
         if (maxSelections && selectedIds.size > maxSelections) {
-            toast.error(
-                `Você selecionou ${selectedIds.size} creators, mas o limite é ${maxSelections}.`,
-            )
+            toast.error(`Limite é ${maxSelections} creator${maxSelections > 1 ? 's' : ''}.`)
             return
         }
-
         onConfirm(Array.from(selectedIds))
         onClose()
     }, [selectedIds, maxSelections, onConfirm, onClose])
@@ -204,15 +215,8 @@ export function SelectCreatorsModal({
         onClose()
     }, [onClose])
 
-    // ── Render ────────────────────────────────────────────────────────
-
-    const selectedCount = useMemo(() => selectedIds.size, [selectedIds])
-    const allSelected = useMemo(
-        () =>
-            filteredCreators.length > 0 &&
-            selectedIds.size === filteredCreators.length,
-        [filteredCreators.length, selectedIds],
-    )
+    const selectedCount = selectedIds.size
+    const isLoading = query.isLoading
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
@@ -220,10 +224,9 @@ export function SelectCreatorsModal({
                 <DialogHeader>
                     <DialogTitle>Selecionar Creators</DialogTitle>
                     <DialogDescription>
-                        Selecione os creators que receberão esta campanha. Eles
-                        poderão aceitar ou recusar a participação.
+                        Selecione os creators que receberão esta campanha.
                         {maxSelections && (
-                            <span className="block mt-2 text-amber-600 dark:text-amber-400 font-medium">
+                            <span className="block mt-1 text-amber-600 dark:text-amber-400 font-medium text-xs">
                                 Limite: {maxSelections} creator{maxSelections > 1 ? 's' : ''}
                             </span>
                         )}
@@ -238,30 +241,24 @@ export function SelectCreatorsModal({
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-9"
+                        aria-label="Buscar creators"
                     />
                 </div>
 
-                {/* Select all + counter */}
+                {/* Counter bar */}
                 <div className="flex items-center justify-between border-b pb-2">
-                    <div className="flex items-center gap-2">
-                        <Checkbox
-                            id="select-all"
-                            checked={allSelected}
-                            onCheckedChange={handleSelectAll}
-                            disabled={isLoading || filteredCreators.length === 0}
-                        />
-                        <label
-                            htmlFor="select-all"
-                            className="text-sm font-medium cursor-pointer"
-                        >
-                            Selecionar todos
-                        </label>
-                    </div>
+                    <span className="text-xs text-zinc-500">
+                        {isLoading ? (
+                            <Skeleton className="h-3 w-24 inline-block" />
+                        ) : (
+                            `${creators.length} de ${totalCount} carregados`
+                        )}
+                    </span>
                     <Badge
                         variant={
                             maxSelections && selectedCount >= maxSelections
-                                ? 'default'
-                                : 'primary'
+                                ? 'destructive'
+                                : 'default'
                         }
                     >
                         {selectedCount}
@@ -289,28 +286,29 @@ export function SelectCreatorsModal({
                         </div>
                     )}
 
-                    {!isLoading && filteredCreators.length === 0 && (
+                    {!isLoading && creators.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <div className="mb-3 flex size-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
                                 <UserIcon className="size-5 text-zinc-400" />
                             </div>
                             <p className="text-sm text-zinc-500">
-                                {search
+                                {debouncedSearch
                                     ? 'Nenhum creator encontrado.'
                                     : 'Nenhum creator disponível.'}
                             </p>
                         </div>
                     )}
 
-                    {!isLoading && filteredCreators.length > 0 && (
+                    {!isLoading && creators.length > 0 && (
                         <div className="space-y-2">
-                            {filteredCreators.map((creator) => {
+                            {creators.map((creator: CreatorOption) => {
                                 const isSelected = selectedIds.has(creator.id)
                                 return (
                                     <div
                                         key={creator.id}
                                         className={cn(
-                                            'flex items-center gap-3 rounded-lg border p-3 transition-colors cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900',
+                                            'flex items-center gap-3 rounded-lg border p-3 transition-colors cursor-pointer',
+                                            'hover:bg-zinc-50 dark:hover:bg-zinc-900',
                                             isSelected &&
                                             'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800',
                                         )}
@@ -323,14 +321,16 @@ export function SelectCreatorsModal({
                                                 handleToggle(creator.id)
                                             }
                                         }}
+                                        aria-pressed={isSelected}
+                                        aria-label={`${isSelected ? 'Desselecionar' : 'Selecionar'} ${creator.name}`}
                                     >
                                         <Checkbox
                                             checked={isSelected}
                                             onCheckedChange={() => handleToggle(creator.id)}
                                             onClick={(e) => e.stopPropagation()}
+                                            aria-hidden="true"
                                         />
 
-                                        {/* Avatar */}
                                         {creator.avatar ? (
                                             <img
                                                 src={creator.avatar}
@@ -343,7 +343,6 @@ export function SelectCreatorsModal({
                                             </div>
                                         )}
 
-                                        {/* Info */}
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
                                                 {creator.name}
@@ -355,6 +354,13 @@ export function SelectCreatorsModal({
                                     </div>
                                 )
                             })}
+
+                            {/* Infinite scroll sentinel */}
+                            <InfiniteScrollSentinel
+                                hasNextPage={query.hasNextPage}
+                                isFetchingNextPage={query.isFetchingNextPage}
+                                onIntersect={handleFetchNextPage}
+                            />
                         </div>
                     )}
                 </ScrollArea>

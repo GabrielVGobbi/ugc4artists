@@ -32,7 +32,7 @@ Route::get('me', [AuthenticateApiController::class, 'me'])->middleware('auth:san
 | Routes Usuários
 |--------------------------------------------------------------------------
 */
-Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function () {
+Route::name('api.')->prefix('v1/')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
@@ -125,7 +125,7 @@ Route::name('api.')->prefix('v1/')->middleware('auth:sanctum')->group(function (
 | Routes Admin
 |--------------------------------------------------------------------------
 */
-Route::name('api.')->prefix('v1/')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+Route::name('api.')->prefix('v1/')->middleware(['role:admin'])->group(function () {
     Route::name('admin.dashboard.')->prefix('admin/dashboard')->group(function () {
         Route::get('/payments', [TablesApiController::class, 'dashboardPayments'])->name('payments');
         Route::get('/waitlist', [TablesApiController::class, 'dashboardWaitlist'])->name('waitlist');
