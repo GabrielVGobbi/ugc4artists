@@ -3,7 +3,7 @@
 import AppLogo from "@/components/app-logo"
 import { Container } from "@/components/landing-page/container"
 import { Button } from "@/components/ui/button"
-import { dashboard, login } from "@/routes"
+import { dashboard } from "@/routes/app"
 import { Link } from "@inertiajs/react"
 import { SquareArrowUpRight } from "lucide-react"
 
@@ -46,16 +46,30 @@ export function Header({ isAuthenticated, headerCtaHref, headerCtaLabel }: Heade
                     ))}
                 </nav>
                 <div className="flex items-center gap-3">
-                    <Button
-                        asChild
-                        size={'none'}
-                        className="bg-primary px-5 py-3 font-semibold text-white hover:bg-secondary"
-                    >
-                        <a  href={'/auth'} tabIndex={0}>
-                            Cadastre-se
-                            <SquareArrowUpRight />
+
+                    {isAuthenticated ? (
+                        <a
+                            href={'/app/dashboard'}
+                            className=" text-secondary inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+                        >
+                            Dashboard
                         </a>
-                    </Button>
+                    ) : (
+                        <>
+                            <Button
+                                asChild
+                                size={'none'}
+                                className="bg-primary px-5 py-3 font-semibold text-white hover:bg-secondary"
+                            >
+                                <a href={'/auth'} tabIndex={0}>
+                                    Cadastre-se
+                                    <SquareArrowUpRight />
+                                </a>
+                            </Button>
+                        </>
+                    )}
+
+
                     {/*
                     <Button
                         asChild

@@ -403,7 +403,12 @@ class WalletService
 
         $runningTotal = (int) $initialBalance;
 
-        while ($currentDate <= now()) {
+        // Safety limit: maximum iterations (months + 1 for current month)
+        $maxIterations = $months + 1;
+        $iterations = 0;
+        $endDate = now()->endOfMonth();
+
+        while ($currentDate <= $endDate && $iterations < $maxIterations) {
             $monthKey = $currentDate->format('Y-m');
             $monthLabel = $currentDate->translatedFormat('d/M');
 
@@ -424,6 +429,7 @@ class WalletService
             ];
 
             $currentDate->addMonth();
+            $iterations++;
         }
 
         // Calculate growth percentage

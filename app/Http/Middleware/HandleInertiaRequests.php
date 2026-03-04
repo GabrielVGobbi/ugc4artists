@@ -50,7 +50,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'currentPath' => $currentPath,
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
+            #'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $user,
             ],

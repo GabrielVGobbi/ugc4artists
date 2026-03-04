@@ -8,8 +8,10 @@ use App\Exceptions\Auth\SocialAuthenticationException;
 use App\Http\Controllers\Controller;
 use App\Services\Auth\GoogleAuthService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Fortify\Features;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -26,9 +28,25 @@ class AuthController extends Controller
      *
      * @return Response
      */
+    public function login(Request $request)
+    {
+        return Inertia::render('auth/login', [
+            'canResetPassword' => Features::enabled(Features::resetPasswords()),
+            'canRegister' => Features::enabled(Features::registration()),
+            'status' => $request->session()->get('status'),
+        ]);
+    }
+
+    /**
+     * Show the authentication page.
+     *
+     * @return Response
+     */
     public function authenticate(): Response
     {
-        return Inertia::render('auth/auth-google');
+        return Inertia::render('auth/auth-google', [
+            'canRegister' => Features::enabled(Features::registration()),
+        ]);
     }
 
     /**

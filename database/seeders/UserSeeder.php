@@ -148,11 +148,17 @@ class UserSeeder extends Seeder
         $this->command->info('');
         $this->command->info('✅ Users seeded successfully!');
         $this->command->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        $this->command->info('📊 Statistics:');
-        $this->command->info('   Total users: ' . User::count());
-        $this->command->info('   🎨 Artists: ' . User::where('account_type', UserRoleType::ARTIST)->count());
-        $this->command->info('   🏢 Brands: ' . User::where('account_type', UserRoleType::BRAND)->count());
-        $this->command->info('   🎬 Creators: ' . User::where('account_type', UserRoleType::CREATOR)->count());
+        $this->command->info('📊 Estatísticas:');
+        $this->command->info('   Total de usuários: ' . User::count());
+        $this->command->info('   🎨 Artistas:  ' . User::where('account_type', UserRoleType::ARTIST)->count());
+        $this->command->info('   🏢 Marcas:    ' . User::where('account_type', UserRoleType::BRAND)->count());
+        $this->command->info('   🎬 Criadores: ' . User::where('account_type', UserRoleType::CREATOR)->count());
+        $this->command->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        $this->command->info('🔑 Acessos fixos (senha: superadmin)');
+        $this->command->info('   super@admin.com         → Admin');
+        $this->command->info('   artist@test.com         → Artista');
+        $this->command->info('   brand@test.com          → Marca');
+        $this->command->info('   creator@test.com        → Criador');
         $this->command->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         $this->command->info('');
     }
@@ -202,49 +208,54 @@ class UserSeeder extends Seeder
             $this->command->warn('⚠️  Admin 2 already exists, skipping...');
         }
 
-        // Test users for each type
+        // Test users – one per account type, all with password "superadmin"
         $testUsers = [
             [
-                'name' => 'Artista Teste',
-                'email' => 'artist@test.com',
+                'name'         => 'Artista Teste',
+                'email'        => 'artist@test.com',
                 'account_type' => UserRoleType::ARTIST,
-                'bio' => 'Artista de teste com perfil completo',
+                'phone'        => '11911111111',
+                'document'     => '11111111111',
+                'bio'          => 'Artista de teste com perfil completo',
             ],
             [
-                'name' => 'Marca Teste',
-                'email' => 'brand@test.com',
+                'name'         => 'Marca Teste',
+                'email'        => 'brand@test.com',
                 'account_type' => UserRoleType::BRAND,
-                'bio' => 'Marca de teste com perfil completo',
+                'phone'        => '11922222222',
+                'document'     => '22222222222',
+                'bio'          => 'Marca de teste com perfil completo',
             ],
             [
-                'name' => 'Criador Teste',
-                'email' => 'creator@test.com',
+                'name'         => 'Criador Teste',
+                'email'        => 'creator@test.com',
                 'account_type' => UserRoleType::CREATOR,
-                'bio' => 'Criador de teste com perfil completo',
+                'phone'        => '11933333333',
+                'document'     => '33333333333',
+                'bio'          => 'Criador de teste com perfil completo',
             ],
         ];
 
         foreach ($testUsers as $userData) {
-            if (!User::where(function ($query) use ($userData) {
-                $query->where('email', $userData['email'])->orWhere('document', '98765432101');
-            })->exists()) {
-                User::create([
-                    'name' => $userData['name'],
-                    'email' => $userData['email'],
-                    'password' => Hash::make('password'),
-                    'email_verified_at' => now(),
-                    'onboarding_completed_at' => now(),
-                    'account_type' => $userData['account_type'],
-                    'phone' => '11987654321',
-                    'document' => '98765432101',
-                    'bio' => $userData['bio'],
-                    'avatar' => 'https://i.pravatar.cc/150?u=' . $userData['email'],
-                ]);
-
-                $this->command->info('✅ Test user created: ' . $userData['email'] . ' / password');
-            } else {
-                $this->command->warn('⚠️  Test user ' . $userData['email'] . ' already exists, skipping...');
+            if (User::where('email', $userData['email'])->exists()) {
+                $this->command->warn('⚠️  Usuário de teste já existe, pulando: ' . $userData['email']);
+                continue;
             }
+
+            User::create([
+                'name'                    => $userData['name'],
+                'email'                   => $userData['email'],
+                'password'                => Hash::make('superadmin'),
+                'email_verified_at'       => now(),
+                'onboarding_completed_at' => now(),
+                'account_type'            => $userData['account_type'],
+                'phone'                   => $userData['phone'],
+                'document'                => $userData['document'],
+                'bio'                     => $userData['bio'],
+                'avatar'                  => 'https://i.pravatar.cc/150?u=' . $userData['email'],
+            ]);
+
+            $this->command->info('✅ Usuário de teste criado: ' . $userData['email'] . ' / superadmin');
         }
     }
 }

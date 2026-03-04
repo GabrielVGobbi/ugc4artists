@@ -31,6 +31,8 @@ export default function LandingPage({ seo, canRegister = true }: IndexPageProps)
     const { auth } = usePage<SharedData>().props
     const isAuthenticated = Boolean(auth?.user)
 
+    console.log(isAuthenticated);
+
     //const heroPrimaryHref = isAuthenticated
     //    ? dashboard().url
     //    : canRegister
