@@ -12,6 +12,8 @@ import type {
 
 const STATS_ENDPOINT = '/api/v1/admin/campaigns/stats'
 const STATS_STALE_TIME = 60 * 1000 // 60 seconds
+const STATS_POLLING_INTERVAL = 30_000 // 60 seconds
+const STATS_MAX_CONSECUTIVE_ERRORS = 3
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook
@@ -39,6 +41,14 @@ export function useCampaignStats(): UseCampaignStatsReturn {
 		queryKey: ['admin-campaigns', 'stats'],
 		queryFn: () => httpGet<CampaignStatsResponse>(STATS_ENDPOINT),
 		staleTime: STATS_STALE_TIME,
+		refetchInterval: (query) => {
+			const errorCount = query.state.errorUpdateCount
+			if (errorCount >= STATS_MAX_CONSECUTIVE_ERRORS) {
+				return STATS_POLLING_INTERVAL * 2
+			}
+			return STATS_POLLING_INTERVAL
+		},
+		refetchOnWindowFocus: true,
 	})
 
 	return {

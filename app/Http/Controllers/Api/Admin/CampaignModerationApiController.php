@@ -151,7 +151,6 @@ class CampaignModerationApiController extends Controller
 
         $updatedCampaign = $this->campaignService->approve(
             campaign: $campaign,
-            creatorIds: $request->creatorIds(),
             reviewedBy: (int) $request->user()->id,
         );
 

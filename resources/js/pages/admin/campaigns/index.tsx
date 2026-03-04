@@ -3,7 +3,11 @@ import { Head } from '@inertiajs/react'
 
 import AppLayout from '@/layouts/app2-layout'
 import type { BreadcrumbItem } from '@/types'
-import type { Campaign, ViewMode } from '@/types/campaign'
+import type {
+    Campaign,
+    ViewMode,
+    UpdateCampaignStatusInput,
+} from '@/types/campaign'
 
 import { ApproveDialog } from './components/approve-dialog'
 import { CampaignFilters } from './components/campaign-filters'
@@ -78,8 +82,14 @@ export default function CampaignsIndex() {
     const {
         approve,
         refuse,
-        updateStatus,
+        updateStatus: updateStatusMutation,
     } = useCampaignMutations()
+
+    // Memoize updateStatus to prevent re-renders during drag
+    const updateStatus = useCallback(
+        (input: UpdateCampaignStatusInput) => updateStatusMutation(input),
+        [updateStatusMutation],
+    )
 
     // ── View mode toggle ──────────────────────────────────
     const handleViewModeChange = useCallback(

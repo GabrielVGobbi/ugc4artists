@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Bavix\Wallet\Interfaces\Customer;
 use Bavix\Wallet\Traits\HasWallet;
+use Illuminate\Support\Str;
 
 class Campaign extends Model implements ProductInterface
 {
@@ -249,10 +250,15 @@ class Campaign extends Model implements ProductInterface
 
     public function scopeByToken(Builder $query, $tokenId = null): Builder
     {
-        return $query->where(function ($q) use ($tokenId) {
-            $q->where('id', $tokenId);
-            $q->orWhere('uuid', $tokenId);
-        });
+        $identifier = $tokenId;
+
+        if (Str::isUuid($identifier)) {
+            $query->where('uuid', $identifier);
+        } else {
+            $query->where('id', $identifier);
+        }
+
+        return $query;
     }
 
     public function scopeByUser(Builder $query, ?int $userId = null): Builder
@@ -500,7 +506,6 @@ class Campaign extends Model implements ProductInterface
     {
         return match ($status) {
             CampaignStatus::AWAITING_PAYMENT => ['submitted_at' => now()],
-            CampaignStatus::PENDING => ['reviewed_at' => now()],
             CampaignStatus::UNDER_REVIEW => ['reviewed_at' => now()],
             CampaignStatus::APPROVED => ['approved_at' => now()],
             CampaignStatus::REFUSED => ['rejected_at' => now()],

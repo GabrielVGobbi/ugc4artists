@@ -71,6 +71,7 @@ class UsersApiController extends Controller
                     // Eager load relationships
                     'with' => [
                         'onboardingProfile',
+                        'wallet',
                     ],
 
                     // Count relationships

@@ -19,8 +19,8 @@ class ApproveCampaignRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'creator_ids' => ['required', 'array', 'min:1'],
-            'creator_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+            #'creator_ids' => ['required', 'array', 'min:1'],
+            #'creator_ids.*' => ['integer', 'distinct', 'exists:users,id'],
         ];
     }
 
@@ -29,6 +29,7 @@ class ApproveCampaignRequest extends FormRequest
      */
     public function creatorIds(): array
     {
-        return array_values(array_unique(array_map('intval', $this->input('creator_ids', []))));
+        return [];
+        #return array_values(array_unique(array_map('intval', $this->input('creator_ids', []))));
     }
 }

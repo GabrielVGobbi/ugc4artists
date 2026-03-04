@@ -20,6 +20,8 @@ import {
 
 const CAMPAIGNS_ENDPOINT = '/api/v1/admin/campaigns'
 const KANBAN_PAGE_SIZE = 200
+const KANBAN_POLLING_INTERVAL = 15_000
+const KANBAN_MAX_CONSECUTIVE_ERRORS = 3
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -93,6 +95,17 @@ export function useCampaignKanban({
 			}),
 		enabled,
 		staleTime: 30 * 1000,
+		refetchInterval: (query) => {
+			if (!enabled) return false
+			// Pause polling during drag to prevent lag
+			if (document.body.dataset.dragging === 'true') return false
+			const errorCount = query.state.errorUpdateCount
+			if (errorCount >= KANBAN_MAX_CONSECUTIVE_ERRORS) {
+				return KANBAN_POLLING_INTERVAL * 2
+			}
+			return KANBAN_POLLING_INTERVAL
+		},
+		refetchOnWindowFocus: true,
 	})
 
 	const campaigns = useMemo(

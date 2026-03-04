@@ -9,6 +9,7 @@ import type { Campaign, CampaignFilterParams } from '@/types/campaign'
 
 const CAMPAIGNS_ENDPOINT = '/api/v1/admin/campaigns'
 const PAGE_SIZE = 20
+const TABLE_POLLING_INTERVAL = 30_000 // 30 segundos
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -82,5 +83,6 @@ export function useCampaignTableResource({
 		sortDirection,
 		filters,
 		enabled,
+		refetchInterval: enabled ? TABLE_POLLING_INTERVAL : false,
 	})
 }

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useRef, useState } from 'react'
 import {
 	DndContext,
 	type DragEndEvent,
@@ -37,6 +37,7 @@ import {
 import { formatCurrency } from '@/lib/utils'
 
 import { StatusBadge } from './status-badge'
+import { SelectCreatorsModal } from './select-creators-modal'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Column Color Config
@@ -134,6 +135,12 @@ interface CampaignKanbanProps {
 	onUpdateStatus: (input: UpdateCampaignStatusInput) => Promise<void>
 }
 
+interface PendingTransition {
+	campaignUuid: string
+	currentStatus: CampaignStatusValue
+	targetStatus: CampaignStatusValue
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
@@ -144,7 +151,7 @@ interface KanbanCardProps {
 	onCampaignClick?: (campaign: Campaign) => void
 }
 
-function KanbanCard ({
+const KanbanCard = memo(function KanbanCard ({
 	campaign,
 	isDragOverlay = false,
 	onCampaignClick,
@@ -254,7 +261,7 @@ function KanbanCard ({
 			</div>
 		</div>
 	)
-}
+})
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Kanban Column
@@ -266,7 +273,7 @@ interface KanbanColumnComponentProps {
 	onCampaignClick?: (campaign: Campaign) => void
 }
 
-function KanbanColumn ({
+const KanbanColumn = memo(function KanbanColumn ({
 	column,
 	isOver,
 	onCampaignClick,
@@ -303,7 +310,7 @@ function KanbanColumn ({
 					{column.label}
 				</h3>
 				<Badge
-					variant="secondary"
+					variant="primary"
 					className="tabular-nums text-[10px] font-semibold"
 				>
 					{column.campaigns.length}
@@ -337,7 +344,33 @@ function KanbanColumn ({
 			</div>
 		</div>
 	)
-}
+}, (prevProps, nextProps) => {
+	// Custom comparator: verifica se realmente nada mudou
+	if (prevProps.column.status !== nextProps.column.status) return false
+	if (prevProps.isOver !== nextProps.isOver) return false
+	if (prevProps.onCampaignClick !== nextProps.onCampaignClick) return false
+
+	// IMPORTANTE: Comparar os UUIDs das campanhas, não apenas o length
+	if (prevProps.column.campaigns.length !== nextProps.column.campaigns.length) {
+		return false
+	}
+
+	// Verificar se as campanhas mudaram (por UUID ou status)
+	for (let i = 0; i < prevProps.column.campaigns.length; i++) {
+		const prevCampaign = prevProps.column.campaigns[i]
+		const nextCampaign = nextProps.column.campaigns[i]
+
+		if (
+			prevCampaign.uuid !== nextCampaign.uuid ||
+			prevCampaign.status.value !== nextCampaign.status.value
+		) {
+			return false
+		}
+	}
+
+	// Nada mudou, pode pular o re-render
+	return true
+})
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Skeleton
@@ -421,22 +454,27 @@ function CampaignKanban ({
 }: CampaignKanbanProps) {
 	const [activeDragId, setActiveDragId] = useState<string | null>(null)
 	const [overColumnId, setOverColumnId] = useState<string | null>(null)
+	const [showCreatorsModal, setShowCreatorsModal] = useState(false)
+	const pendingTransitionRef = useRef<PendingTransition | null>(null)
 
-	// ── Flat campaigns list (for drag overlay lookup) ────────────────
+	// ── Campaign lookup map (O(1) instead of O(N)) ───────────────────
 
-	const allCampaigns = useMemo(
-		() => columns.flatMap((col) => col.campaigns),
-		[columns],
-	)
+	const campaignMap = useMemo(() => {
+		const map = new Map<string, Campaign>()
+		columns.forEach((col) => {
+			col.campaigns.forEach((campaign) => {
+				map.set(campaign.uuid, campaign)
+			})
+		})
+		return map
+	}, [columns])
 
 	// ── Active drag campaign (for overlay) ───────────────────────────
 
 	const activeDragCampaign = useMemo(() => {
 		if (!activeDragId) return null
-		return allCampaigns.find(
-			(c) => c.uuid === activeDragId,
-		) ?? null
-	}, [activeDragId, allCampaigns])
+		return campaignMap.get(activeDragId) ?? null
+	}, [activeDragId, campaignMap])
 
 	// ── DnD sensors ──────────────────────────────────────────────────
 
@@ -451,6 +489,8 @@ function CampaignKanban ({
 
 	const handleDragStart = useCallback((event: DragStartEvent) => {
 		setActiveDragId(String(event.active.id))
+		// Pause polling during drag to prevent lag
+		document.body.dataset.dragging = 'true'
 	}, [])
 
 	const handleDragOver = useCallback((event: DragOverEvent) => {
@@ -463,6 +503,8 @@ function CampaignKanban ({
 		async (event: DragEndEvent) => {
 			setActiveDragId(null)
 			setOverColumnId(null)
+			// Resume polling after drag
+			delete document.body.dataset.dragging
 
 			const campaignUuid = String(event.active.id)
 			const currentStatus = event.active.data.current
@@ -485,6 +527,20 @@ function CampaignKanban ({
 				return
 			}
 
+			// Special case: approved → sent_to_creators requires creator selection
+			if (
+				currentStatus === 'approved' &&
+				targetStatus === 'sent_to_creators'
+			) {
+				pendingTransitionRef.current = {
+					campaignUuid,
+					currentStatus,
+					targetStatus,
+				}
+				setShowCreatorsModal(true)
+				return
+			}
+
 			// Call mutation — hook handles optimistic update + rollback
 			try {
 				await onUpdateStatus({
@@ -502,6 +558,36 @@ function CampaignKanban ({
 	const handleDragCancel = useCallback(() => {
 		setActiveDragId(null)
 		setOverColumnId(null)
+		// Resume polling after drag
+		delete document.body.dataset.dragging
+	}, [])
+
+	// ── Creators modal handlers ──────────────────────────────────────
+
+	const handleCreatorsConfirm = useCallback(
+		async (creatorIds: number[]) => {
+			const transition = pendingTransitionRef.current
+			if (!transition) return
+
+			try {
+				await onUpdateStatus({
+					campaignUuid: transition.campaignUuid,
+					status: transition.targetStatus,
+					creatorIds,
+				})
+				toast.success('Campanha enviada para creators com sucesso.')
+			} catch (error) {
+				toast.error(parseApiErrorMessage(error))
+			} finally {
+				pendingTransitionRef.current = null
+			}
+		},
+		[onUpdateStatus],
+	)
+
+	const handleCreatorsModalClose = useCallback(() => {
+		setShowCreatorsModal(false)
+		pendingTransitionRef.current = null
 	}, [])
 
 	// ── Loading state ────────────────────────────────────────────────
@@ -513,40 +599,55 @@ function CampaignKanban ({
 	// ── Render ────────────────────────────────────────────────────────
 
 	return (
-		<DndContext
-			sensors={sensors}
-			onDragStart={handleDragStart}
-			onDragOver={handleDragOver}
-			onDragEnd={handleDragEnd}
-			onDragCancel={handleDragCancel}
-		>
-			<div
-				className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory lg:grid lg:grid-cols-6 lg:overflow-x-visible lg:pb-0"
-				role="region"
-				aria-label="Kanban de campanhas"
-				aria-roledescription="quadro kanban"
-				aria-live="polite"
+		<>
+			<DndContext
+				sensors={sensors}
+				onDragStart={handleDragStart}
+				onDragOver={handleDragOver}
+				onDragEnd={handleDragEnd}
+				onDragCancel={handleDragCancel}
 			>
-				{columns.map((column) => (
-					<KanbanColumn
-						key={column.status}
-						column={column}
-						isOver={overColumnId === column.status}
-						onCampaignClick={onCampaignClick}
-					/>
-				))}
-			</div>
+				<div
+					className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory lg:grid lg:grid-cols-6 lg:overflow-x-visible lg:pb-0"
+					role="region"
+					aria-label="Kanban de campanhas"
+					aria-roledescription="quadro kanban"
+					aria-live="polite"
+				>
+					{columns.map((column) => (
+						<KanbanColumn
+							key={column.status}
+							column={column}
+							isOver={overColumnId === column.status}
+							onCampaignClick={onCampaignClick}
+						/>
+					))}
+				</div>
 
-			{/* Drag overlay — renders a floating copy of the card */}
-			<DragOverlay dropAnimation={null}>
-				{activeDragCampaign ? (
-					<KanbanCard
-						campaign={activeDragCampaign}
-						isDragOverlay
-					/>
-				) : null}
-			</DragOverlay>
-		</DndContext>
+				{/* Drag overlay — renders a floating copy of the card */}
+				<DragOverlay dropAnimation={null}>
+					{activeDragCampaign ? (
+						<KanbanCard
+							campaign={activeDragCampaign}
+							isDragOverlay
+						/>
+					) : null}
+				</DragOverlay>
+			</DndContext>
+
+			{/* Creators selection modal */}
+			<SelectCreatorsModal
+				open={showCreatorsModal}
+				onClose={handleCreatorsModalClose}
+				onConfirm={handleCreatorsConfirm}
+				maxSelections={
+					pendingTransitionRef.current
+						? campaignMap.get(pendingTransitionRef.current.campaignUuid)
+								?.slots_to_approve ?? undefined
+						: undefined
+				}
+			/>
+		</>
 	)
 }
 

@@ -12,7 +12,6 @@ enum CampaignStatus: string implements StatusableEnum
     use GetsAttributes;
 
     case DRAFT = 'draft';
-    case PENDING = 'pending';
     case UNDER_REVIEW = 'under_review';
     case APPROVED = 'approved';
     case REFUSED = 'refused';
@@ -31,7 +30,6 @@ enum CampaignStatus: string implements StatusableEnum
     {
         return match ($label) {
             'draft' => 'Rascunho',
-            'pending' => 'Pendente',
             'under_review' => 'Em analise',
             'approved' => 'Aprovada',
             'refused' => 'Recusada',
@@ -53,7 +51,7 @@ enum CampaignStatus: string implements StatusableEnum
     {
         return match ($this) {
             self::DRAFT => 'gray',
-            self::PENDING, self::UNDER_REVIEW, self::AWAITING_PAYMENT => 'warning',
+            self::UNDER_REVIEW, self::AWAITING_PAYMENT => 'warning',
             self::APPROVED, self::SENT_TO_CREATORS => 'info',
             self::IN_PROGRESS, self::COMPLETED => 'success',
             self::REFUSED, self::CANCELLED => 'danger',
@@ -64,7 +62,7 @@ enum CampaignStatus: string implements StatusableEnum
     {
         return match ($this) {
             self::DRAFT => 'pencil',
-            self::PENDING, self::UNDER_REVIEW => 'search',
+            self::UNDER_REVIEW => 'search',
             self::APPROVED => 'check',
             self::REFUSED => 'x-circle',
             self::AWAITING_PAYMENT => 'clock',
@@ -79,7 +77,6 @@ enum CampaignStatus: string implements StatusableEnum
     {
         return match ($this) {
             self::DRAFT => 'Mover para rascunho',
-            self::PENDING => 'Enviar para triagem',
             self::UNDER_REVIEW => 'Enviar para analise',
             self::APPROVED => 'Aprovar campanha',
             self::REFUSED => 'Recusar campanha',
@@ -107,9 +104,8 @@ enum CampaignStatus: string implements StatusableEnum
     {
         return match ($this) {
             self::DRAFT => [self::AWAITING_PAYMENT, self::CANCELLED],
-            self::AWAITING_PAYMENT => [self::PENDING, self::UNDER_REVIEW, self::DRAFT, self::CANCELLED],
-            self::UNDER_REVIEW => [self::PENDING, self::APPROVED, self::REFUSED, self::DRAFT, self::CANCELLED],
-            self::PENDING => [self::APPROVED, self::REFUSED, self::SENT_TO_CREATORS, self::DRAFT, self::CANCELLED],
+            self::AWAITING_PAYMENT => [self::UNDER_REVIEW, self::DRAFT, self::CANCELLED],
+            self::UNDER_REVIEW => [self::APPROVED, self::REFUSED, self::DRAFT, self::CANCELLED],
             self::APPROVED => [self::SENT_TO_CREATORS, self::IN_PROGRESS, self::CANCELLED],
             self::REFUSED => [self::DRAFT],
             self::SENT_TO_CREATORS => [self::IN_PROGRESS, self::CANCELLED],
@@ -123,7 +119,7 @@ enum CampaignStatus: string implements StatusableEnum
     {
         return match ($this) {
             self::DRAFT => [],
-            self::PENDING, self::UNDER_REVIEW => ['reviewed_at'],
+            self::UNDER_REVIEW => ['reviewed_at'],
             self::APPROVED => ['approved_at'],
             self::REFUSED => ['rejected_at', 'rejection_reason'],
             self::AWAITING_PAYMENT => ['submitted_at'],
@@ -159,7 +155,7 @@ enum CampaignStatus: string implements StatusableEnum
 
     public function isPending(): bool
     {
-        return in_array($this, [self::PENDING, self::UNDER_REVIEW], true);
+        return $this === self::UNDER_REVIEW;
     }
 
     public function isUnderReview(): bool
@@ -214,7 +210,7 @@ enum CampaignStatus: string implements StatusableEnum
 
     public function canBeEdited(): bool
     {
-        return in_array($this, [self::DRAFT,  self::PENDING], true);
+        return $this === self::DRAFT;
     }
 
     public function canBePaid(): bool

@@ -78,9 +78,14 @@ class CampaignController extends Controller
                 ->with('error', 'Esta campanha não pode ser editada.');
         }
 
-         if ($campaign->status !== CampaignStatus::DRAFT) {
-            $campaign->status = CampaignStatus::DRAFT;
-            $campaign->save();
+        // Revert campaign to draft if not already in draft status
+        // This allows users to edit campaigns that were refused or in other editable states
+        if ($campaign->status !== CampaignStatus::DRAFT) {
+            app(\App\Actions\Campaign\RevertToDraftAction::class)($campaign, [
+                'user_id' => auth()->id(),
+                'reason' => 'User requested to edit campaign',
+            ]);
+            $campaign->refresh(); // Reload campaign with updated status
         }
 
         return Inertia::render('app/campaigns/edit', [
@@ -130,9 +135,10 @@ class CampaignController extends Controller
         $user = auth()->user();
         $walletBalance = $user->wallet?->balanceFloat ?? 0;
 
-        if ($campaign->status == CampaignStatus::DRAFT) {
-            $campaign->status = CampaignStatus::AWAITING_PAYMENT;
-            $campaign->save();
+        // Mark campaign as awaiting payment if still in draft
+        // This transitions the campaign from DRAFT to AWAITING_PAYMENT
+        if ($campaign->status === CampaignStatus::DRAFT) {
+            $campaign->markAwaitingPayment(); // Use existing model method
         }
 
         return Inertia::render('app/campaigns/pay', [

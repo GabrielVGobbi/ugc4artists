@@ -165,6 +165,7 @@ const updateCampaignInAllCaches = (
 
 /**
  * Takes a snapshot of all admin-campaigns query caches for rollback.
+ * Uses shallow copy instead of structuredClone for better performance.
  */
 const snapshotAllCaches = (
 	queryClient: ReturnType<typeof useQueryClient>,
@@ -174,9 +175,25 @@ const snapshotAllCaches = (
 	})
 
 	return {
-		queries: queries.map(
-			([key, data]) => [key, structuredClone(data)],
-		),
+		queries: queries.map(([key, data]) => {
+			// Shallow copy is enough for rollback - much faster than structuredClone
+			if (isInfiniteData(data)) {
+				return [
+					key,
+					{
+						...data,
+						pages: data.pages.map((page) => ({
+							...page,
+							data: [...page.data],
+						})),
+					},
+				]
+			}
+			if (isPaginatedData(data)) {
+				return [key, { ...data, data: [...data.data] }]
+			}
+			return [key, data]
+		}),
 	}
 }
 
@@ -224,8 +241,11 @@ const restoreCacheSnapshot = (
 export function useCampaignMutations(): UseCampaignMutationsReturn {
 	const queryClient = useQueryClient()
 
-	const invalidateStats = () => {
-		queryClient.invalidateQueries({ queryKey: STATS_KEY })
+	const invalidateStats = async () => {
+		await queryClient.invalidateQueries({
+			queryKey: STATS_KEY,
+			refetchType: 'all',
+		})
 	}
 
 	// ── Approve ──────────────────────────────────────────────────────
@@ -239,9 +259,14 @@ export function useCampaignMutations(): UseCampaignMutationsReturn {
 				`/api/v1/admin/campaigns/${campaignUuid}/approve`,
 				{ creator_ids: creatorIds },
 			),
-		onSuccess: (response) => {
+		onMutate: async () => {
+			await queryClient.cancelQueries({
+				queryKey: ADMIN_CAMPAIGNS_KEY,
+			})
+		},
+		onSuccess: async (response) => {
 			updateCampaignInAllCaches(queryClient, response.campaign)
-			invalidateStats()
+			await invalidateStats()
 		},
 	})
 
@@ -256,9 +281,14 @@ export function useCampaignMutations(): UseCampaignMutationsReturn {
 				`/api/v1/admin/campaigns/${campaignUuid}/refuse`,
 				{ reason_for_refusal: reason },
 			),
-		onSuccess: (response) => {
+		onMutate: async () => {
+			await queryClient.cancelQueries({
+				queryKey: ADMIN_CAMPAIGNS_KEY,
+			})
+		},
+		onSuccess: async (response) => {
 			updateCampaignInAllCaches(queryClient, response.campaign)
-			invalidateStats()
+			await invalidateStats()
 		},
 	})
 
@@ -290,16 +320,48 @@ export function useCampaignMutations(): UseCampaignMutationsReturn {
 				queryKey: ADMIN_CAMPAIGNS_KEY,
 			})
 
-			// Snapshot current cache for rollback
-			const snapshot = snapshotAllCaches(queryClient)
+			// Also cancel stats queries for optimistic update
+			await queryClient.cancelQueries({
+				queryKey: STATS_KEY,
+			})
 
-			// Optimistically update the campaign status in all caches
+			// Snapshot and update in a single iteration (performance optimization)
 			const allQueries = queryClient.getQueriesData({
 				queryKey: ADMIN_CAMPAIGNS_KEY,
 			})
 
+			const snapshot: CacheSnapshot = { queries: [] }
+
+			// Find the campaign being updated to get its current status
+			let previousStatus: CampaignStatusValue | null = null
+
 			allQueries.forEach(([queryKey, data]) => {
+				// Save snapshot (shallow copy)
 				if (isInfiniteData(data)) {
+					// Find campaign to get previous status
+					if (!previousStatus) {
+						for (const page of data.pages) {
+							const campaign = page.data.find(
+								(c) => c.uuid === input.campaignUuid,
+							)
+							if (campaign) {
+								previousStatus = campaign.status.value
+								break
+							}
+						}
+					}
+
+					snapshot.queries.push([
+						queryKey,
+						{
+							...data,
+							pages: data.pages.map((page) => ({
+								...page,
+								data: [...page.data],
+							})),
+						},
+					])
+					// Apply optimistic update
 					queryClient.setQueryData(
 						queryKey,
 						optimisticStatusInInfiniteData(
@@ -309,6 +371,21 @@ export function useCampaignMutations(): UseCampaignMutationsReturn {
 						),
 					)
 				} else if (isPaginatedData(data)) {
+					// Find campaign to get previous status
+					if (!previousStatus) {
+						const campaign = data.data.find(
+							(c) => c.uuid === input.campaignUuid,
+						)
+						if (campaign) {
+							previousStatus = campaign.status.value
+						}
+					}
+
+					snapshot.queries.push([
+						queryKey,
+						{ ...data, data: [...data.data] },
+					])
+					// Apply optimistic update
 					queryClient.setQueryData(
 						queryKey,
 						optimisticStatusInPaginatedData(
@@ -320,6 +397,55 @@ export function useCampaignMutations(): UseCampaignMutationsReturn {
 				}
 			})
 
+			// Optimistically update stats if we found the previous status
+			if (previousStatus && previousStatus !== input.status) {
+				const currentStats = queryClient.getQueryData(STATS_KEY)
+				if (currentStats && typeof currentStats === 'object') {
+					const stats = currentStats as Record<string, number>
+					const updatedStats = { ...stats }
+
+					/**
+					 * Map campaign status values to stats response keys.
+					 * Note: 'sent_to_creators' and 'in_progress' are aggregated
+					 * into a single 'active' field in the backend.
+					 */
+					const mapStatusToStatsKey = (
+						status: CampaignStatusValue,
+					): keyof typeof updatedStats | null => {
+						if (
+							status === 'sent_to_creators' ||
+							status === 'in_progress'
+						) {
+							return 'active'
+						}
+						if (status === 'refused') return 'refused'
+						if (status === 'under_review') return 'under_review'
+						if (status === 'approved') return 'approved'
+						if (status === 'completed') return 'completed'
+						return null // draft, awaiting_payment, cancelled not in stats
+					}
+
+					const prevKey = mapStatusToStatsKey(previousStatus)
+					const nextKey = mapStatusToStatsKey(input.status)
+
+					// Decrement previous status count
+					if (prevKey && updatedStats[prevKey] !== undefined) {
+						updatedStats[prevKey] = Math.max(
+							0,
+							updatedStats[prevKey] - 1,
+						)
+					}
+
+					// Increment new status count
+					if (nextKey && updatedStats[nextKey] !== undefined) {
+						updatedStats[nextKey] =
+							(updatedStats[nextKey] || 0) + 1
+					}
+
+					queryClient.setQueryData(STATS_KEY, updatedStats)
+				}
+			}
+
 			return { snapshot }
 		},
 
@@ -327,12 +453,15 @@ export function useCampaignMutations(): UseCampaignMutationsReturn {
 			if (context?.snapshot) {
 				restoreCacheSnapshot(queryClient, context.snapshot)
 			}
+			// Force immediate refetch to ensure data consistency after failed optimistic mutation
+			queryClient.invalidateQueries({ queryKey: ADMIN_CAMPAIGNS_KEY })
+			queryClient.invalidateQueries({ queryKey: STATS_KEY })
 		},
 
-		onSuccess: (response) => {
+		onSuccess: async (response) => {
 			// Replace optimistic data with actual server response
 			updateCampaignInAllCaches(queryClient, response.campaign)
-			invalidateStats()
+			await invalidateStats()
 		},
 	})
 
