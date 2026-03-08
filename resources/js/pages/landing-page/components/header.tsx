@@ -61,7 +61,7 @@ export function Header({ isAuthenticated, headerCtaHref, headerCtaLabel }: Heade
                                 size={'none'}
                                 className="bg-primary px-5 py-3 font-semibold text-white hover:bg-secondary"
                             >
-                                <a href={'/auth'} tabIndex={0}>
+                                <a href={'/register'} tabIndex={0}>
                                     Cadastre-se
                                     <SquareArrowUpRight />
                                 </a>
