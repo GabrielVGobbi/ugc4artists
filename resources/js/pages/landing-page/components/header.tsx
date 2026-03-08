@@ -66,6 +66,17 @@ export function Header({ isAuthenticated, headerCtaHref, headerCtaLabel }: Heade
                                     <SquareArrowUpRight />
                                 </a>
                             </Button>
+
+                             <Button
+                                asChild
+                                size={'none'}
+                                className="bg-secondary px-5 py-3 font-semibold text-white hover:bg-secondary"
+                            >
+                                <a href={'/auth'} tabIndex={0}>
+                                    Login
+                                    <SquareArrowUpRight />
+                                </a>
+                            </Button>
                         </>
                     )}
 
