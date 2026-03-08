@@ -6,6 +6,7 @@ namespace App\Services\Auth;
 
 use App\Exceptions\Auth\SocialAuthenticationException;
 use App\Models\User;
+use App\Notifications\WelcomeUserNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -180,6 +181,8 @@ class GoogleAuthService
 			'user_id' => $user->id,
 			'email' => $user->email,
 		]);
+
+		$user->notify(new WelcomeUserNotification(isGoogleUser: true));
 
 		return $user;
 	}

@@ -26,7 +26,6 @@ export default function AuthSplitLayout({
             {/* Left Panel - Visual/Branding Side */}
             <div className="relative hidden lg:flex flex-col bg-foreground overflow-hidden">
 
-
                 {/* Editorial Background Text - Like Admin Layout */}
                 <div className="absolute top-[-5%] left-[-5%] text-[18rem] font-black text-white/[0.03] pointer-events-none select-none z-0 rotate-[-8deg] leading-none">
                     THE UGC4ARTISTS
@@ -187,7 +186,6 @@ export default function AuthSplitLayout({
                         </div>
 
                         {children}
-
 
 
                     </div>

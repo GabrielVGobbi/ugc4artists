@@ -320,27 +320,20 @@ export default function DashboardCreator({
                 {/* ── Second Stats Row ─────────────────────────────────────── */}
                 <div className="grid grid-cols-3 gap-4">
                     <div className="bg-white border border-zinc-100 rounded-[1.75rem] p-6 flex items-center gap-4 shadow-sm">
-                        <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <CheckCircle size={22} className="text-emerald-600" />
-                        </div>
                         <div>
                             <p className="text-3xl font-bold tracking-tight">{stats.completed}</p>
                             <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide">Concluídas</p>
                         </div>
                     </div>
                     <div className="bg-white border border-zinc-100 rounded-[1.75rem] p-6 flex items-center gap-4 shadow-sm">
-                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <Layers size={22} className="text-blue-600" />
-                        </div>
+
                         <div>
                             <p className="text-3xl font-bold tracking-tight">{stats.totalAccepted}</p>
                             <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide">Total Aceitas</p>
                         </div>
                     </div>
                     <div className="bg-white border border-zinc-100 rounded-[1.75rem] p-6 flex items-center gap-4 shadow-sm">
-                        <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <TrendingUp size={22} className="text-amber-600" />
-                        </div>
+
                         <div>
                             <p className="text-3xl font-bold tracking-tight">
                                 {(stats.totalEarned / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}

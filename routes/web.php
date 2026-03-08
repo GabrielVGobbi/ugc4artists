@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dev\EmailPreviewController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\WaitlistRegistrationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -34,6 +35,19 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/app.php';
 require __DIR__ . '/admin.php';
 require __DIR__ . '/settings.php';
+
+/*
+|--------------------------------------------------------------------------
+| Dev — Preview de emails (apenas fora de produção)
+|--------------------------------------------------------------------------
+*/
+if (!app()->isProduction()) {
+    Route::prefix('_dev/emails')->name('dev.emails.')->group(function () {
+        Route::get('welcome', [EmailPreviewController::class, 'welcomeStandard'])->name('welcome');
+        Route::get('welcome-google', [EmailPreviewController::class, 'welcomeGoogle'])->name('welcome.google');
+        Route::post('send-test', [EmailPreviewController::class, 'sendTest'])->name('send-test');
+    });
+}
 
 Route::get('/sitemap.xml', function () {
     $urls = [

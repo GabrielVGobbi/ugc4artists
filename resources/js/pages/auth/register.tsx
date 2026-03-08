@@ -8,6 +8,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/register';
 import { ArrowRight, KeyRound, Mail, User } from 'lucide-react';
 import { useState } from 'react';
+import AuthGoogleLayout from '@/layouts/auth/auth-google-layout';
 
 export default function Register() {
     const [isLoading, setIsLoading] = useState(false)
@@ -26,10 +27,7 @@ export default function Register() {
     }
 
     return (
-        <AuthLayout
-            title="Preencha os dados"
-            subtitle="The UGC for Artists"
-            description=""
+        <AuthGoogleLayout
             type={'register'}
         >
             <Head title="Register" />
@@ -196,6 +194,6 @@ export default function Register() {
                     </>
                 )}
             </Form>
-        </AuthLayout>
+        </AuthGoogleLayout>
     );
 }

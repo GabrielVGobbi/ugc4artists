@@ -42,6 +42,20 @@ class AuthController extends Controller
      *
      * @return Response
      */
+    public function register(Request $request)
+    {
+        return Inertia::render('auth/register', [
+            'canResetPassword' => Features::enabled(Features::resetPasswords()),
+            'canRegister' => Features::enabled(Features::registration()),
+            'status' => $request->session()->get('status'),
+        ]);
+    }
+
+    /**
+     * Show the authentication page.
+     *
+     * @return Response
+     */
     public function authenticate(): Response
     {
         return Inertia::render('auth/auth-google', [

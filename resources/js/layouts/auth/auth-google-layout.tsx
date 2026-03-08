@@ -6,6 +6,7 @@ import { PropsWithChildren, useEffect } from 'react';
 
 export default function AuthGoogleLayout({
     children,
+    type
 }: PropsWithChildren) {
     const { name, quote } = usePage<SharedData>().props;
 
@@ -61,6 +62,7 @@ export default function AuthGoogleLayout({
                             <p className="text-white/60 text-lg leading-relaxed">
                                 Conectamos marcas e artistas aos criadores certos para transformar conteúdo em conexão real e conexão em performance.
                             </p>
+
                         </div>
 
                         {/* Stats */}
@@ -118,10 +120,14 @@ export default function AuthGoogleLayout({
                             <h2 className="text-7xl md:text-5xl font-bold text-foreground tracking-tighter leading-[1.05]">
                                 A nova era do <span className="italic font-light text-zinc-500">Marketing Musical.</span>
                             </h2>
-                            <p className="text-zinc-400 text-xl font-medium leading-relaxed">
-                                Simplificamos a conexão entre marcas, artistas e criadores UGC para que o foco esteja no que realmente importa:
-                                criar conteúdo que performa.
-                            </p>
+                            {type && type === 'login' && (
+
+                                <p className="text-zinc-400 text-xl font-medium leading-relaxed">
+                                    Simplificamos a conexão entre marcas, artistas e criadores UGC para que o foco esteja no que realmente importa:
+                                    criar conteúdo que performa.
+                                </p>
+                            )}
+
                         </div>
 
                         {children}
