@@ -7,8 +7,10 @@ namespace App\Http\Controllers\App;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Onboarding\CompleteOnboardingRequest;
 use App\Http\Requests\Onboarding\SaveOnboardingProgressRequest;
+use App\Services\Dashboard\CreatorDashboardService;
 use App\Services\Dashboard\DashboardService;
 use App\Services\Onboarding\OnboardingService;
+use App\Supports\Enums\Users\UserRoleType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,16 +22,27 @@ class DashboardAppController extends Controller
     public function __construct(
         private readonly OnboardingService $onboardingService,
         private readonly DashboardService $dashboardService,
+        private readonly CreatorDashboardService $creatorDashboardService,
     ) {}
 
     /**
      * Display the app dashboard.
+     * Dispatches to the appropriate Inertia page based on the user's account_type.
      */
     public function index(): Response
     {
-        $data = $this->dashboardService->getDataForUser(auth()->user());
+        $user = auth()->user();
 
-        return Inertia::render('app/dashboard', $data);
+        if ($user->account_type === UserRoleType::ARTIST) {
+            $data = $this->dashboardService->getDataForUser($user);
+
+            return Inertia::render('app/dashboard', $data);
+        }
+
+        // brand or creator
+        $data = $this->creatorDashboardService->getDataForUser($user);
+
+        return Inertia::render('app/dashboard-creator', $data);
     }
 
     /**

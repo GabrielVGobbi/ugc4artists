@@ -172,6 +172,7 @@ class Campaign extends Model implements ProductInterface
     public function approvedCreators(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'campaign_approved_creators', 'campaign_id', 'creator_id')
+            ->withPivot(['content_url', 'notes', 'submitted_at'])
             ->withTimestamps();
     }
 

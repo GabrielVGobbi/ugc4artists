@@ -6,6 +6,7 @@ namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkout\CheckoutRequest;
+use App\Http\Requests\Wallet\WithdrawalRequest;
 use App\Http\Resources\UserResource;
 use App\Modules\Payments\Enums\PaymentMethod;
 use App\Modules\Payments\Http\Resources\PaymentResource;
@@ -13,6 +14,8 @@ use App\Modules\Payments\Http\Resources\TransactionResource;
 use App\Modules\Payments\Models\Payment;
 use App\Services\UserService;
 use App\Services\Wallet\WalletService;
+use App\Services\Wallet\WithdrawalService;
+use App\Supports\Enums\Users\UserRoleType;
 use App\Supports\TheOneResponse;
 use Bavix\Wallet\Models\Transaction;
 use Illuminate\Http\JsonResponse;
@@ -26,23 +29,66 @@ class WalletAppController extends Controller
 {
     public function __construct(
         private readonly WalletService $walletService,
+        private readonly WithdrawalService $withdrawalService,
         private readonly UserService $userService
     ) {}
 
     /**
-     * Display wallet page with balance and transactions.
+     * Display wallet page.
+     * Artista → página de depósito; Brand/Creator → página de saque.
      */
     public function index(Request $request): Response
     {
         $user = $request->user();
 
-        $walletData = $this->walletService->getWalletData($user);
-        $chartData = $this->walletService->getChartData($user);
+        if ($user->account_type === UserRoleType::ARTIST) {
+            $walletData = $this->walletService->getWalletData($user);
+            $chartData  = $this->walletService->getChartData($user);
 
-        return Inertia::render('app/wallet/index', [
-            'wallet' => $walletData,
-            'chart' => $chartData,
+            return Inertia::render('app/wallet/index', [
+                'wallet' => $walletData,
+                'chart'  => $chartData,
+            ]);
+        }
+
+        // brand or creator
+        $walletData      = $this->walletService->getWalletData($user);
+        $withdrawals     = $this->withdrawalService->getWithdrawalHistory($user);
+        $earnings        = $this->withdrawalService->getEarningHistory($user);
+
+        return Inertia::render('app/wallet/creator', [
+            'wallet'      => $walletData,
+            'withdrawals' => $withdrawals,
+            'earnings'    => $earnings,
         ]);
+    }
+
+    /**
+     * Creator: solicitar saque via PIX.
+     */
+    public function requestWithdrawal(WithdrawalRequest $request): JsonResponse
+    {
+        $user      = $request->user();
+        $validated = $request->validated();
+
+        try {
+            $result = $this->withdrawalService->requestWithdrawal(
+                user: $user,
+                amount: (float) $validated['amount'],
+                pixKey: $validated['pix_key'],
+                pixKeyType: $validated['pix_key_type'],
+                description: $validated['description'] ?? null,
+            );
+
+            return response()->json($result);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao processar saque. Tente novamente.',
+            ], 500);
+        }
     }
 
     /**

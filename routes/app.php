@@ -33,6 +33,13 @@ Route::middleware(['auth'])->prefix('app')->name('app.')->group(function () {
         Route::prefix('campaigns')->name('campaigns.')->group(function () {
             Route::get('/', [CampaignController::class, 'index'])->name('index');
             Route::get('/create', [CampaignController::class, 'create'])->name('create');
+
+            // Rotas exclusivas para brand/creator
+            Route::get('/{key}/view', [CampaignController::class, 'showForCreator'])->name('creator.show');
+            Route::post('/{key}/apply', [CampaignController::class, 'apply'])->name('creator.apply');
+            Route::post('/{key}/submit', [CampaignController::class, 'submitDeliverable'])->name('creator.submit');
+
+            // Rotas exclusivas para artista
             Route::get('/{key}', [CampaignController::class, 'show'])->name('show');
             Route::get('/{key}/edit', [CampaignController::class, 'edit'])->name('edit');
             Route::get('/{key}/pay', [CampaignController::class, 'pay'])->name('pay');
@@ -71,10 +78,13 @@ Route::middleware(['auth'])->prefix('app')->name('app.')->group(function () {
         */
         Route::prefix('wallet')->name('wallet.')->group(function () {
             Route::get('/', [WalletApp::class, 'index'])->name('index');
+            // Artista: adicionar saldo
             Route::get('/add-balance', [WalletApp::class, 'create'])->name('create');
             Route::post('/deposit', [WalletApp::class, 'addBalanceCheckout'])->name('deposit');
             Route::get('/payments', [WalletApp::class, 'payments'])->name('payments');
             Route::get('/payments/export', [WalletApp::class, 'exportPayments'])->name('payments.export');
+            // Brand/Creator: solicitar saque
+            Route::post('/withdrawal', [WalletApp::class, 'requestWithdrawal'])->name('withdrawal');
         });
 
         /*

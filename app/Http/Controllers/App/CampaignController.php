@@ -11,6 +11,8 @@ use App\Http\Resources\CampaignResource;
 use App\Models\Campaign;
 use App\Modules\Payments\Checkout\CheckoutResult;
 use App\Services\Campaign\CampaignCheckoutService;
+use App\Services\Campaign\CreatorCampaignService;
+use App\Supports\Enums\Users\UserRoleType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,15 +22,131 @@ use Inertia\Response;
 class CampaignController extends Controller
 {
     public function __construct(
-        protected CampaignCheckoutService $checkoutService
+        protected CampaignCheckoutService $checkoutService,
+        protected CreatorCampaignService $creatorCampaignService,
     ) {}
 
     /**
-     * Lista de campanhas do usuário logado
+     * Lista de campanhas — artista vê suas campanhas criadas,
+     * brand/creator vê campanhas disponíveis e aceitas.
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('app/campaigns/index');
+        $user = $request->user();
+
+        if ($user->account_type === UserRoleType::ARTIST) {
+            return Inertia::render('app/campaigns/index');
+        }
+
+        return Inertia::render('app/campaigns/creator/index', [
+            'available' => $this->creatorCampaignService->getAvailable($user),
+            'active'    => $this->creatorCampaignService->getActive($user),
+            'completed' => $this->creatorCampaignService->getCompleted($user),
+        ]);
+    }
+
+    /**
+     * Creator: visualizar detalhe de uma campanha disponível/aceita.
+     */
+    public function showForCreator(string $key): Response|RedirectResponse
+    {
+        $user = auth()->user();
+
+        $campaign = Campaign::byKey($key)->firstOrFail();
+
+        $isApproved = $campaign->approvedCreators()
+            ->where('creator_id', $user->id)
+            ->exists();
+
+        return Inertia::render('app/campaigns/creator/show', [
+            'campaign'   => new CampaignResource($campaign),
+            'isApproved' => $isApproved,
+        ]);
+    }
+
+    /**
+     * Creator: candidatar-se a uma campanha aberta.
+     */
+    public function apply(Request $request, string $key): JsonResponse|RedirectResponse
+    {
+        $user     = $request->user();
+        $campaign = Campaign::byKey($key)->firstOrFail();
+
+        if (!$campaign->isSentToCreators()) {
+            $message = 'Esta campanha não está aceitando candidaturas no momento.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->with('error', $message);
+        }
+
+        $alreadyApplied = $campaign->approvedCreators()
+            ->where('creator_id', $user->id)
+            ->exists();
+
+        if ($alreadyApplied) {
+            $message = 'Você já se candidatou a esta campanha.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->with('info', $message);
+        }
+
+        $campaign->approvedCreators()->attach($user->id);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Candidatura enviada com sucesso!',
+            ]);
+        }
+
+        return back()->with('success', 'Candidatura enviada com sucesso!');
+    }
+
+    /**
+     * Creator: enviar conteúdo/entrega de uma campanha aceita.
+     */
+    public function submitDeliverable(Request $request, string $key): JsonResponse|RedirectResponse
+    {
+        $request->validate([
+            'content_url'  => ['required', 'url'],
+            'notes'        => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $user     = $request->user();
+        $campaign = Campaign::byKey($key)->firstOrFail();
+
+        $isApproved = $campaign->approvedCreators()
+            ->where('creator_id', $user->id)
+            ->exists();
+
+        if (!$isApproved) {
+            $message = 'Você não está aprovado nesta campanha.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 403);
+            }
+
+            return back()->with('error', $message);
+        }
+
+        // Update pivot with submission data
+        $campaign->approvedCreators()->updateExistingPivot($user->id, [
+            'content_url'    => $request->string('content_url'),
+            'notes'          => $request->string('notes'),
+            'submitted_at'   => now(),
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Conteúdo enviado com sucesso! Aguardando revisão.',
+            ]);
+        }
+
+        return back()->with('success', 'Conteúdo enviado com sucesso! Aguardando revisão.');
     }
 
     /**

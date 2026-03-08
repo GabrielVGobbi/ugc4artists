@@ -104,6 +104,13 @@ class User extends Authenticatable implements Wallet, Customer
         return $this->hasMany(Campaign::class, 'user_id', 'id');
     }
 
+    public function approvedCampaigns(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Campaign::class, 'campaign_approved_creators', 'creator_id', 'campaign_id')
+            ->withPivot(['content_url', 'notes', 'submitted_at'])
+            ->withTimestamps();
+    }
+
     public function campaignTransactions(): HasMany
     {
         return $this->hasMany(CampaignTransaction::class);
