@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import { Head, router } from '@inertiajs/react'
+import { logout } from '@/routes'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import {
     ArrowRight,
@@ -41,6 +42,7 @@ import {
     type LucideIcon,
     Castle,
     Ellipsis,
+    LogOut,
 } from 'lucide-react'
 import ClearLayout from '@/layouts/clear-layout'
 import axios from 'axios'
@@ -2166,6 +2168,8 @@ export default function Onboarding({ savedProgress, userName }: OnboardingProps)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
 
+    const handleLogout = () => router.post(logout().url)
+
     // Obtém configuração de steps baseado no role
     const stepsConfig = getStepsConfig(formData.role)
 
@@ -2350,6 +2354,14 @@ export default function Onboarding({ savedProgress, userName }: OnboardingProps)
                         {isSaving && (
                             <span className="text-[10px] font-medium text-zinc-400">Salvando...</span>
                         )}
+                        <button
+                            onClick={handleLogout}
+                            aria-label="Sair da conta"
+                            className="cursor-pointer flex items-center gap-1.5 rounded-full border border-zinc-100 bg-white px-3 py-1 text-[10px] font-semibold text-zinc-400 transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-500"
+                        >
+                            <LogOut className="h-3 w-3" />
+                            Sair
+                        </button>
                     </div>
                 </div>
             )}
